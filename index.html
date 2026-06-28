@@ -739,6 +739,11 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
       // blocs
       fillSelect("filterBlockWeek", weeks);
       fillSelect("filterBlockCoach", coaches);
+      // Selecciona "Setmana 1" per defecte si existeix
+      const defaultWeek=weeks.includes("Setmana 1")?"Setmana 1":(weeks[0]||"");
+      ["filterWeek","filterHmWeek","filterBlockWeek"].forEach(id=>{
+        document.getElementById(id).value=defaultWeek;
+      });
     }
 
     function getFiltered(){
