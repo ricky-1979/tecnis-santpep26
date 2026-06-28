@@ -81,6 +81,27 @@
     .badge.ok { background:#2e1f44; color:var(--lila); }
     .badge.noplayers { background:#241836; color:var(--muted); }
     .coach-chips { display:flex; flex-wrap:wrap; gap:6px; }
+    /* Assignació editable */
+    .assign-grid { display:grid; grid-template-columns:130px repeat(4,1fr); gap:8px; min-width:760px; }
+    .assign-grid .ah { color:var(--muted); font-weight:600; font-size:0.8rem; padding:6px 8px; position:sticky; top:0; }
+    .assign-grid .daylbl { color:var(--muted); font-size:0.82rem; padding:8px; display:flex; flex-direction:column; justify-content:center; }
+    .assign-grid .daylbl small { color:var(--accent); }
+    .assign-cell { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:6px; min-height:54px;
+      display:flex; flex-wrap:wrap; gap:4px; align-content:flex-start; transition:border-color .15s, background .15s; }
+    .assign-cell.dragover { border-color:var(--groc); background:#241836; }
+    .assign-cell .pill { display:inline-flex; align-items:center; gap:4px; background:#2e1f44; color:var(--lila);
+      border:1px solid var(--border); border-radius:999px; padding:2px 6px 2px 8px; font-size:0.76rem; font-weight:600; cursor:grab; }
+    .assign-cell .pill.dragging { opacity:0.4; }
+    .assign-cell .pill .rm { cursor:pointer; color:var(--muted); font-weight:700; line-height:1; padding:0 2px; }
+    .assign-cell .pill .rm:hover { color:var(--danger); }
+    .assign-cell .addbtn { border:1px dashed var(--border); background:transparent; color:var(--muted);
+      border-radius:999px; padding:2px 8px; font-size:0.74rem; cursor:pointer; }
+    .assign-cell .addbtn:hover { color:var(--groc); border-color:var(--groc); }
+    .assign-cell .cell-count { width:100%; color:var(--muted); font-size:0.68rem; margin-bottom:2px; }
+    .assign-overwrap { overflow-x:auto; }
+    .assign-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px; }
+    .assign-toolbar .sep { flex:1; }
+    .assign-status { color:var(--muted); font-size:0.78rem; }
     .badge .add { opacity:0.7; font-weight:500; font-size:0.72rem; }
     .count-info { color:var(--muted); font-size:0.85rem; margin-bottom:10px; }
     .empty { text-align:center; color:var(--muted); padding:30px; }
@@ -148,6 +169,26 @@
   </div>
 
   <div class="table-card">
+    <h2 class="section">Assignació de coachs</h2>
+    <p class="hint">Arrossega un coach d'una franja a una altra per moure'l, o fes servir <strong>+ Afegir</strong> per assignar-ne un de nou. Fes clic a la <strong>×</strong> per treure'l. Amb <strong>Sincronitzar al núvol</strong> els canvis es comparteixen entre dispositius (via GitHub Gist).</p>
+    <div class="assign-toolbar">
+      <select id="assignWeek"></select>
+      <span class="sep"></span>
+      <span class="assign-status" id="assignStatus"></span>
+      <button id="assignCloud" type="button">Sincronitzar al núvol…</button>
+      <button id="assignPull" type="button" title="Descarregar del núvol">⬇ Núvol</button>
+      <button id="assignPush" type="button" title="Pujar al núvol">⬆ Núvol</button>
+      <button id="assignExport" type="button">Exportar</button>
+      <button id="assignImport" type="button">Importar</button>
+      <button id="assignReset" type="button">Reiniciar</button>
+      <input type="file" id="assignFile" accept="application/json" style="display:none;" />
+    </div>
+    <div class="assign-overwrap">
+      <div class="assign-grid" id="assignGrid"></div>
+    </div>
+  </div>
+
+  <div class="table-card">
     <h2 class="section">Players inscrits</h2>
     <p class="hint">Players inscrits a cada sessió, agrupats per dia i franja horària.</p>
     <div class="filters">
@@ -173,7 +214,7 @@
 
   <div class="grid-card">
     <h2 class="section">Ocupació per sessió</h2>
-    <p class="hint">Cada cel·la mostra <strong>players inscrits</strong> i <strong>coachs disponibles</strong>. Objectiu: 2 coachs per cada 8 players.</p>
+    <p class="hint">Cada cel·la mostra <strong>players inscrits</strong> i <strong>coachs disponibles</strong>. Objectiu: 4 coachs per cada 16 players.</p>
     <div class="filters">
       <select id="filterHmWeek"><option value="">Totes les setmanes</option></select>
       <select id="filterHmCategory"><option value="">Totes les categories</option></select>
@@ -418,9 +459,9 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
 
   <script>
     // ---- Configuració ----
-    // Objectiu: 2 coachs per cada 8 players (en blocs)
-    const COACHES_PER_BLOCK = 2;
-    const PLAYERS_PER_BLOCK = 8;
+    // Objectiu: 4 coachs per cada 16 players (en blocs)
+    const COACHES_PER_BLOCK = 4;
+    const PLAYERS_PER_BLOCK = 16;
     function coachesNeeded(players){
       return players>0 ? Math.ceil(players/PLAYERS_PER_BLOCK)*COACHES_PER_BLOCK : 0;
     }
@@ -456,6 +497,136 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
     let playerSortKey = "dateISO";
     let playerSortDir = 1;
     const charts = {};
+
+    // ---- Assignació editable (persistida al navegador) ----
+    const ASSIGN_KEY = "tecnis-assignments-v1";
+    let assignments = {}; // "dateISO|slot" -> [coach, ...]
+    let assignWeek = "";
+    let dragInfo = null;  // { from:"dateISO|slot", coach }
+
+    // ---- Sincronització al núvol via GitHub Gist ----
+    // El token i l'id del gist es desen NOMÉS al localStorage d'aquest
+    // navegador; mai s'incrusten a la pàgina pública.
+    const GIST_TOKEN_KEY = "tecnis-gist-token";
+    const GIST_ID_KEY = "tecnis-gist-id";
+    const GIST_FILENAME = "assignacions-coachs.json";
+    const gistToken = ()=> localStorage.getItem(GIST_TOKEN_KEY)||"";
+    const gistId = ()=> localStorage.getItem(GIST_ID_KEY)||"";
+
+    async function gistPush(){
+      const token=gistToken();
+      if(!token){ setAssignStatus("Configura primer el núvol"); return false; }
+      const body={
+        description:"Assignació de coachs · Tecnificació SantPep",
+        files:{ [GIST_FILENAME]:{ content:JSON.stringify(assignments,null,2) } }
+      };
+      try{
+        let id=gistId(), res;
+        if(id){
+          res=await fetch(`https://api.github.com/gists/${id}`,{
+            method:"PATCH",
+            headers:{ "Authorization":"token "+token, "Accept":"application/vnd.github+json" },
+            body:JSON.stringify(body)
+          });
+        } else {
+          res=await fetch("https://api.github.com/gists",{
+            method:"POST",
+            headers:{ "Authorization":"token "+token, "Accept":"application/vnd.github+json" },
+            body:JSON.stringify({ ...body, public:false })
+          });
+        }
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        const data=await res.json();
+        if(data.id) localStorage.setItem(GIST_ID_KEY,data.id);
+        setAssignStatus("Pujat al núvol · "+new Date().toLocaleTimeString("ca-ES"));
+        return true;
+      }catch(e){
+        setAssignStatus("Error pujant al núvol ("+e.message+")");
+        return false;
+      }
+    }
+
+    async function gistPull(){
+      const token=gistToken(), id=gistId();
+      if(!token || !id){ setAssignStatus("Configura primer el núvol"); return false; }
+      try{
+        const res=await fetch(`https://api.github.com/gists/${id}`,{
+          headers:{ "Authorization":"token "+token, "Accept":"application/vnd.github+json" }
+        });
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        const data=await res.json();
+        const file=data.files && data.files[GIST_FILENAME];
+        if(!file) throw new Error("fitxer no trobat al gist");
+        const parsed=JSON.parse(file.content);
+        if(parsed && typeof parsed==="object"){
+          assignments=parsed;
+          saveAssignments();
+          renderAssign();
+          setAssignStatus("Descarregat del núvol · "+new Date().toLocaleTimeString("ca-ES"));
+        }
+        return true;
+      }catch(e){
+        setAssignStatus("Error descarregant del núvol ("+e.message+")");
+        return false;
+      }
+    }
+
+    function configureCloud(){
+      const curToken=gistToken();
+      const t=prompt(
+        "Enganxa un GitHub Personal Access Token amb permís 'gist'.\n"+
+        "Es desa NOMÉS en aquest navegador (no a la pàgina pública).\n"+
+        "Deixa-ho buit per mantenir l'actual; escriu 'esborrar' per treure'l.",
+        curToken?"(token desat)":"");
+      if(t===null) return;
+      if(t.trim().toLowerCase()==="esborrar"){
+        localStorage.removeItem(GIST_TOKEN_KEY);
+        setAssignStatus("Token del núvol esborrat");
+        return;
+      }
+      if(t.trim() && t.trim()!=="(token desat)"){
+        localStorage.setItem(GIST_TOKEN_KEY,t.trim());
+      }
+      const curId=gistId();
+      const id=prompt(
+        "ID del Gist a compartir entre dispositius.\n"+
+        "Deixa-ho buit per crear-ne un de nou automàticament en pujar.\n"+
+        "En un segon dispositiu, enganxa aquí l'ID que et va donar el primer.",
+        curId);
+      if(id!==null){
+        if(id.trim()) localStorage.setItem(GIST_ID_KEY,id.trim());
+        else localStorage.removeItem(GIST_ID_KEY);
+      }
+      setAssignStatus("Núvol configurat. Fes ⬆ Núvol per pujar o ⬇ Núvol per baixar.");
+    }
+
+    function defaultAssignments(){
+      // Inicialitza des de la disponibilitat de Koalendar
+      const a={};
+      coachRecords.forEach(c=>{
+        const k=c.dateISO+"|"+c.slot;
+        if(!a[k]) a[k]=[];
+        if(!a[k].includes(c.coach)) a[k].push(c.coach);
+      });
+      Object.values(a).forEach(arr=>arr.sort((x,y)=>x.localeCompare(y)));
+      return a;
+    }
+    function loadAssignments(){
+      try{
+        const raw=localStorage.getItem(ASSIGN_KEY);
+        if(raw){ assignments=JSON.parse(raw); return true; }
+      }catch(e){ /* ignora */ }
+      assignments=defaultAssignments();
+      return false;
+    }
+    function saveAssignments(){
+      try{ localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignments)); }catch(e){ /* ignora */ }
+      setAssignStatus("Desat al navegador");
+    }
+    function setAssignStatus(msg){
+      const el=document.getElementById("assignStatus");
+      if(el) el.textContent=msg;
+    }
 
     // ---- Utilitats data (sense dependència de zona horària) ----
     function isoFromMdy(mdy){
@@ -623,7 +794,7 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
         { label:"Coachs", value:totalCoaches, sub:"diferents disponibles", cls:"" },
         { label:"Sessions amb inscrits", value:sessWithPlayers.length, sub:`de ${sessions.length} programades`, cls:"" },
         { label:"Sense coach", value:crit, sub:"players sense cobrir", cls:crit?"alert":"ok" },
-        { label:"Falten coachs", value:under, sub:"per assolir 2 per cada 8", cls:under?"warn":"ok" },
+        { label:"Falten coachs", value:under, sub:"per assolir 4 per cada 16", cls:under?"warn":"ok" },
         { label:"Ràtio coberta", value:ok, sub:"sessions correctes", cls:"ok" },
         { label:"Coachs sobrecarregats", value:overloadCoaches.size,
           sub:overloadCoaches.size?`+2 sessions/dia en ${overloadDays} ${overloadDays===1?"dia":"dies"}`:"cap amb +2 sessions/dia",
@@ -768,11 +939,15 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
       // players
       fillSelect("filterPlayerWeek", weeks);
       fillSelect("filterPlayerCategory", cats);
+      // assignació: selector de setmana (amb opció "Totes")
+      const aw=document.getElementById("assignWeek");
+      aw.innerHTML=`<option value="">Totes les setmanes</option>`+weeks.map(w=>`<option value="${w}">${w}</option>`).join("");
       // Selecciona "Setmana 1" per defecte si existeix
       const defaultWeek=weeks.includes("Setmana 1")?"Setmana 1":(weeks[0]||"");
-      ["filterWeek","filterHmWeek","filterBlockWeek","filterPlayerWeek"].forEach(id=>{
+      ["filterWeek","filterHmWeek","filterBlockWeek","filterPlayerWeek","assignWeek"].forEach(id=>{
         document.getElementById(id).value=defaultWeek;
       });
+      assignWeek=defaultWeek;
     }
 
     function getFiltered(){
@@ -986,6 +1161,176 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
         </tr>`).join("");
     }
 
+    // ---- Render de l'assignació editable ----
+    function allCoachNames(){
+      return [...new Set(coachRecords.map(c=>c.coach).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    }
+    function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+    function renderAssign(){
+      const grid=document.getElementById("assignGrid");
+      if(!grid) return;
+      // dies de la setmana seleccionada (o tots)
+      let days=[...new Set(sessions.map(s=>s.dateISO))].sort();
+      if(assignWeek) days=days.filter(d=>ISO_WEEK[d]===assignWeek);
+      // jugadors per dia+franja (per mostrar quants cal cobrir)
+      const playersBySlot=new Map();
+      enrollments.forEach(e=>{ const k=e.dateISO+"|"+e.slot; playersBySlot.set(k,(playersBySlot.get(k)||0)+1); });
+
+      let html=`<div class="ah"></div>`;
+      SLOTS.forEach(sl=> html+=`<div class="ah">${SLOT_LABEL[sl]}</div>`);
+      days.forEach(d=>{
+        html+=`<div class="daylbl">${displayFromIso(d)}<small>${weekdayFromIso(d)}</small></div>`;
+        SLOTS.forEach(sl=>{
+          const key=d+"|"+sl;
+          const coaches=assignments[key]||[];
+          const players=playersBySlot.get(key)||0;
+          const needed=coachesNeeded(players);
+          const pills=coaches.map(c=>
+            `<span class="pill" draggable="true" data-key="${esc(key)}" data-coach="${esc(c)}">${esc(c)}<span class="rm" data-key="${esc(key)}" data-coach="${esc(c)}" title="Treure">×</span></span>`
+          ).join("");
+          const countTxt=players>0 ? `${coaches.length}/${needed} · ${players} pl.` : `${coaches.length}`;
+          html+=`<div class="assign-cell" data-key="${esc(key)}">
+            <span class="cell-count">${countTxt}</span>
+            ${pills}
+            <button class="addbtn" data-key="${esc(key)}" type="button">+ Afegir</button>
+          </div>`;
+        });
+      });
+      grid.innerHTML=html;
+      wireAssignCells();
+    }
+
+    function wireAssignCells(){
+      const grid=document.getElementById("assignGrid");
+      // arrossegar pills
+      grid.querySelectorAll(".pill").forEach(p=>{
+        p.addEventListener("dragstart",e=>{
+          dragInfo={ from:p.dataset.key, coach:p.dataset.coach };
+          p.classList.add("dragging");
+          e.dataTransfer.effectAllowed="move";
+        });
+        p.addEventListener("dragend",()=>p.classList.remove("dragging"));
+      });
+      // treure
+      grid.querySelectorAll(".pill .rm").forEach(x=>{
+        x.addEventListener("click",e=>{
+          e.stopPropagation();
+          removeCoach(x.dataset.key, x.dataset.coach);
+        });
+      });
+      // afegir
+      grid.querySelectorAll(".addbtn").forEach(b=>{
+        b.addEventListener("click",()=>openAddPicker(b));
+      });
+      // zones de drop
+      grid.querySelectorAll(".assign-cell").forEach(cell=>{
+        cell.addEventListener("dragover",e=>{ e.preventDefault(); cell.classList.add("dragover"); });
+        cell.addEventListener("dragleave",()=>cell.classList.remove("dragover"));
+        cell.addEventListener("drop",e=>{
+          e.preventDefault(); cell.classList.remove("dragover");
+          if(!dragInfo) return;
+          moveCoach(dragInfo.from, cell.dataset.key, dragInfo.coach);
+          dragInfo=null;
+        });
+      });
+    }
+
+    function ensureSlot(key){ if(!assignments[key]) assignments[key]=[]; return assignments[key]; }
+
+    function addCoach(key, coach){
+      const arr=ensureSlot(key);
+      if(!arr.includes(coach)){ arr.push(coach); arr.sort((a,b)=>a.localeCompare(b)); }
+      afterAssignChange();
+    }
+    function removeCoach(key, coach){
+      const arr=assignments[key]; if(!arr) return;
+      const i=arr.indexOf(coach); if(i>=0) arr.splice(i,1);
+      if(!arr.length) delete assignments[key];
+      afterAssignChange();
+    }
+    function moveCoach(from, to, coach){
+      if(from===to) return;
+      const src=assignments[from];
+      if(src){ const i=src.indexOf(coach); if(i>=0) src.splice(i,1); if(!src.length) delete assignments[from]; }
+      addCoachSilently(to, coach);
+      afterAssignChange();
+    }
+    function addCoachSilently(key, coach){
+      const arr=ensureSlot(key);
+      if(!arr.includes(coach)){ arr.push(coach); arr.sort((a,b)=>a.localeCompare(b)); }
+    }
+    let cloudSyncTimer=null;
+    function afterAssignChange(){
+      saveAssignments();
+      renderAssign();
+      // Si el núvol està configurat, puja automàticament (amb debounce)
+      if(gistToken() && gistId()){
+        clearTimeout(cloudSyncTimer);
+        setAssignStatus("Desat · pujant al núvol…");
+        cloudSyncTimer=setTimeout(()=>gistPush(),1200);
+      }
+    }
+
+    // Coachs proposats per a una franja: els que ja van demanar la franja
+    // adjacent i, afegint aquesta, completarien un bloc de 2h consecutives.
+    function proposedCoachesFor(key){
+      const [dateISO,slot]=key.split("|");
+      return blocks
+        .filter(b=>b.type==="proposed" && b.dateISO===dateISO && b.slot===slot)
+        .map(b=>b.coach);
+    }
+
+    function openAddPicker(btn){
+      const key=btn.dataset.key;
+      const current=assignments[key]||[];
+      const proposed=[...new Set(proposedCoachesFor(key))].filter(c=>!current.includes(c)).sort((a,b)=>a.localeCompare(b));
+      const proposedSet=new Set(proposed);
+      const others=allCoachNames().filter(c=>!current.includes(c) && !proposedSet.has(c));
+      // substitueix el botó per un select temporal
+      const sel=document.createElement("select");
+      let html=`<option value="">+ Coach…</option>`;
+      if(proposed.length){
+        html+=`<optgroup label="Proposats (2h consecutives)">`+
+          proposed.map(c=>`<option value="${esc(c)}">${esc(c)} · faria 2h</option>`).join("")+
+          `</optgroup>`;
+      }
+      html+=`<optgroup label="Tots els coachs">`+
+        others.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("")+
+        `</optgroup>`;
+      sel.innerHTML=html;
+      sel.className="addbtn";
+      btn.replaceWith(sel);
+      sel.focus();
+      const finish=()=>{ if(sel.isConnected) renderAssign(); };
+      sel.addEventListener("change",()=>{ if(sel.value) addCoach(key, sel.value); else finish(); });
+      sel.addEventListener("blur",finish);
+    }
+
+    function exportAssignments(){
+      const blob=new Blob([JSON.stringify(assignments,null,2)],{type:"application/json"});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");
+      a.href=url; a.download="assignacions-coachs.json"; a.click();
+      URL.revokeObjectURL(url);
+      setAssignStatus("Exportat");
+    }
+    function importAssignments(file){
+      const reader=new FileReader();
+      reader.onload=()=>{
+        try{
+          const data=JSON.parse(reader.result);
+          if(data && typeof data==="object"){ assignments=data; saveAssignments(); renderAssign(); setAssignStatus("Importat"); }
+        }catch(e){ setAssignStatus("Error en importar"); }
+      };
+      reader.readAsText(file);
+    }
+    function resetAssignments(){
+      if(!confirm("Reiniciar les assignacions amb la disponibilitat de Koalendar? Es perdran els canvis manuals.")) return;
+      assignments=defaultAssignments();
+      saveAssignments(); renderAssign(); setAssignStatus("Reiniciat des de Koalendar");
+    }
+
     function wireEvents(){
       const filterIds=["search","filterWeek","filterTime","filterCategory","filterCoach","filterStatus"];
       filterIds.forEach(id=>{
@@ -1043,6 +1388,16 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
           renderPlayers();
         });
       });
+      // Assignació editable
+      document.getElementById("assignWeek").addEventListener("change",e=>{ assignWeek=e.target.value; renderAssign(); });
+      document.getElementById("assignExport").addEventListener("click",exportAssignments);
+      document.getElementById("assignImport").addEventListener("click",()=>document.getElementById("assignFile").click());
+      document.getElementById("assignFile").addEventListener("change",e=>{ if(e.target.files[0]) importAssignments(e.target.files[0]); e.target.value=""; });
+      document.getElementById("assignReset").addEventListener("click",resetAssignments);
+      // Sincronització al núvol (Gist)
+      document.getElementById("assignCloud").addEventListener("click",configureCloud);
+      document.getElementById("assignPush").addEventListener("click",gistPush);
+      document.getElementById("assignPull").addEventListener("click",gistPull);
     }
 
     function init(){
@@ -1056,6 +1411,14 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
       renderTable();
       renderBlocks();
       renderPlayers();
+      const hadSaved=loadAssignments();
+      renderAssign();
+      setAssignStatus(hadSaved?"Carregat del navegador":"Inicialitzat des de Koalendar");
+      // Si el núvol està configurat, sincronitza l'última versió en arrencar
+      if(gistToken() && gistId()){
+        setAssignStatus("Sincronitzant amb el núvol…");
+        gistPull();
+      }
       document.getElementById("footer").textContent=
         `${coachRecords.length} disponibilitats de coach · ${enrollments.length} places·dia de players · Generat ${new Date().toLocaleString("ca-ES")}`;
     }
