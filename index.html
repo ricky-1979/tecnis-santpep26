@@ -147,6 +147,30 @@
     <div class="empty" id="blocksEmpty" style="display:none;">No hi ha blocs amb aquests filtres.</div>
   </div>
 
+  <div class="table-card">
+    <h2 class="section">Players inscrits</h2>
+    <p class="hint">Players inscrits a cada sessió, agrupats per dia i franja horària.</p>
+    <div class="filters">
+      <select id="filterPlayerWeek"><option value="">Totes les setmanes</option></select>
+      <select id="filterPlayerCategory"><option value="">Totes les categories</option></select>
+      <button id="clearPlayerFilters" type="button">Netejar</button>
+    </div>
+    <div class="count-info" id="playerCountInfo"></div>
+    <table class="data" id="playersTable">
+      <thead>
+        <tr>
+          <th data-key="dateISO">Data</th>
+          <th data-key="weekday">Dia</th>
+          <th data-key="slotIdx">Franja</th>
+          <th data-key="count">Players</th>
+          <th>Players inscrits</th>
+        </tr>
+      </thead>
+      <tbody id="playersBody"></tbody>
+    </table>
+    <div class="empty" id="playersEmpty" style="display:none;">No hi ha players amb aquests filtres.</div>
+  </div>
+
   <div class="grid-card">
     <h2 class="section">Ocupació per sessió</h2>
     <p class="hint">Cada cel·la mostra <strong>players inscrits</strong> i <strong>coachs disponibles</strong>. Objectiu: 2 coachs per cada 8 players.</p>
@@ -204,29 +228,6 @@
     <div class="empty" id="emptyMsg" style="display:none;">No hi ha resultats amb aquests filtres.</div>
   </div>
 
-  <div class="table-card">
-    <h2 class="section">Players inscrits</h2>
-    <p class="hint">Players inscrits a cada sessió, agrupats per dia i franja horària.</p>
-    <div class="filters">
-      <select id="filterPlayerWeek"><option value="">Totes les setmanes</option></select>
-      <select id="filterPlayerCategory"><option value="">Totes les categories</option></select>
-      <button id="clearPlayerFilters" type="button">Netejar</button>
-    </div>
-    <div class="count-info" id="playerCountInfo"></div>
-    <table class="data" id="playersTable">
-      <thead>
-        <tr>
-          <th data-key="dateISO">Data</th>
-          <th data-key="weekday">Dia</th>
-          <th data-key="slotIdx">Franja</th>
-          <th data-key="count">Players</th>
-          <th>Players inscrits</th>
-        </tr>
-      </thead>
-      <tbody id="playersBody"></tbody>
-    </table>
-    <div class="empty" id="playersEmpty" style="display:none;">No hi ha players amb aquests filtres.</div>
-  </div>
 
   <footer id="footer"></footer>
 
