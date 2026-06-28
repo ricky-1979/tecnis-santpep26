@@ -578,7 +578,7 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
         if(parsed && typeof parsed==="object"){
           assignments=parsed;
           saveAssignments();
-          renderAssign();
+          refreshFromAssignments();
           setAssignStatus("Descarregat del núvol · "+new Date().toLocaleTimeString("ca-ES"));
         }
         return true;
@@ -739,13 +739,26 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
     // Planificació per franja de 1h, amb propostes per completar blocs de 2h
     function buildBlocks(){
       const SLOT_IDX={"18:00":0,"19:00":1,"20:00":2,"21:00":3};
-      // disponibilitat: coach|dia -> Set de franges
+      // Basat en l'assignació editable: coach|dia -> Set de franges assignades.
+      // Si encara no hi ha assignacions carregades, cau a la disponibilitat de Koalendar.
       const avail=new Map();
-      coachRecords.forEach(c=>{
-        const k=c.coach+"|"+c.dateISO;
-        if(!avail.has(k)) avail.set(k,new Set());
-        avail.get(k).add(c.slot);
-      });
+      const useAssign=assignments && Object.keys(assignments).length>0;
+      if(useAssign){
+        Object.entries(assignments).forEach(([cell,coaches])=>{
+          const [dateISO,slot]=cell.split("|");
+          (coaches||[]).forEach(coach=>{
+            const k=coach+"|"+dateISO;
+            if(!avail.has(k)) avail.set(k,new Set());
+            avail.get(k).add(slot);
+          });
+        });
+      } else {
+        coachRecords.forEach(c=>{
+          const k=c.coach+"|"+c.dateISO;
+          if(!avail.has(k)) avail.set(k,new Set());
+          avail.get(k).add(c.slot);
+        });
+      }
 
       blocks=[];
       avail.forEach((slotsSet,key)=>{
@@ -757,7 +770,7 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
           week:ISO_WEEK[dateISO]||"",
         };
         const have=[...slotsSet].sort((a,b)=>SLOT_IDX[a]-SLOT_IDX[b]);
-        // 1) Franja demanada: l'coach apareix a la franja que va demanar
+        // 1) Franja assignada: el coach apareix a la franja on està assignat
         have.forEach(s=>{
           blocks.push({
             ...meta,
@@ -1280,10 +1293,16 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
       const arr=ensureSlot(key);
       if(!arr.includes(coach)){ arr.push(coach); arr.sort((a,b)=>a.localeCompare(b)); }
     }
+    // Recalcula tot el que depèn de l'assignació (graella + planificació 2h)
+    function refreshFromAssignments(){
+      renderAssign();
+      buildBlocks();
+      renderBlocks();
+    }
     let cloudSyncTimer=null;
     function afterAssignChange(){
       saveAssignments();
-      renderAssign();
+      refreshFromAssignments();
       // Si el núvol està configurat, puja automàticament (amb debounce)
       if(gistToken() && gistId()){
         clearTimeout(cloudSyncTimer);
@@ -1340,7 +1359,7 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
       reader.onload=()=>{
         try{
           const data=JSON.parse(reader.result);
-          if(data && typeof data==="object"){ assignments=data; saveAssignments(); renderAssign(); setAssignStatus("Importat"); }
+          if(data && typeof data==="object"){ assignments=data; saveAssignments(); refreshFromAssignments(); setAssignStatus("Importat"); }
         }catch(e){ setAssignStatus("Error en importar"); }
       };
       reader.readAsText(file);
@@ -1348,7 +1367,7 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
     function resetAssignments(){
       if(!confirm("Reiniciar les assignacions amb la disponibilitat de Koalendar? Es perdran els canvis manuals.")) return;
       assignments=defaultAssignments();
-      saveAssignments(); renderAssign(); setAssignStatus("Reiniciat des de Koalendar");
+      saveAssignments(); refreshFromAssignments(); setAssignStatus("Reiniciat des de Koalendar");
     }
 
     function wireEvents(){
@@ -1422,6 +1441,8 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
 
     function init(){
       buildSessions();
+      // Carrega l'assignació abans de construir els blocs (que ara s'hi basen)
+      const hadSaved=loadAssignments();
       buildBlocks();
       populateFilters();
       buildCards();
@@ -1431,7 +1452,6 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
       renderTable();
       renderBlocks();
       renderPlayers();
-      const hadSaved=loadAssignments();
       renderAssign();
       setAssignStatus(hadSaved?"Carregat del navegador":"Inicialitzat des de Koalendar");
       // Si el núvol està configurat, sincronitza l'última versió en arrencar
