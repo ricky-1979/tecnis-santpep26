@@ -535,15 +535,32 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
             body:JSON.stringify({ ...body, public:false })
           });
         }
-        if(!res.ok) throw new Error("HTTP "+res.status);
+        if(!res.ok) throw new Error(await gistErrMsg(res));
         const data=await res.json();
         if(data.id) localStorage.setItem(GIST_ID_KEY,data.id);
         setAssignStatus("Pujat al núvol · "+new Date().toLocaleTimeString("ca-ES"));
         return true;
       }catch(e){
-        setAssignStatus("Error pujant al núvol ("+e.message+")");
+        setAssignStatus("Error pujant al núvol: "+e.message);
         return false;
       }
+    }
+
+    // Construeix un missatge d'error clar a partir de la resposta de GitHub
+    async function gistErrMsg(res){
+      let detail="";
+      try{ const j=await res.json(); detail=j.message||""; }catch(e){ /* ignora */ }
+      const scopes=res.headers.get("x-oauth-scopes");
+      if(res.status===401) return "HTTP 401 · token invàlid o caducat";
+      if(res.status===403){
+        let m="HTTP 403";
+        if(scopes!==null) m+=" · scopes del token: ["+(scopes||"cap")+"] (cal 'gist')";
+        else m+=" · el token no té permís 'gist' o no s'envia bé";
+        if(detail) m+=" · "+detail;
+        return m;
+      }
+      if(res.status===404) return "HTTP 404 · gist no trobat (revisa l'ID)";
+      return "HTTP "+res.status+(detail?" · "+detail:"");
     }
 
     async function gistPull(){
@@ -553,7 +570,7 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
         const res=await fetch(`https://api.github.com/gists/${id}`,{
           headers:{ "Authorization":"token "+token, "Accept":"application/vnd.github+json" }
         });
-        if(!res.ok) throw new Error("HTTP "+res.status);
+        if(!res.ok) throw new Error(await gistErrMsg(res));
         const data=await res.json();
         const file=data.files && data.files[GIST_FILENAME];
         if(!file) throw new Error("fitxer no trobat al gist");
@@ -566,7 +583,7 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
         }
         return true;
       }catch(e){
-        setAssignStatus("Error descarregant del núvol ("+e.message+")");
+        setAssignStatus("Error descarregant del núvol: "+e.message);
         return false;
       }
     }
@@ -574,18 +591,21 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
     function configureCloud(){
       const curToken=gistToken();
       const t=prompt(
-        "Enganxa un GitHub Personal Access Token amb permís 'gist'.\n"+
-        "Es desa NOMÉS en aquest navegador (no a la pàgina pública).\n"+
-        "Deixa-ho buit per mantenir l'actual; escriu 'esborrar' per treure'l.",
-        curToken?"(token desat)":"");
+        "Enganxa el GitHub token CLASSIC amb permís 'gist' (comença per ghp_).\n"+
+        (curToken?"Ja n'hi ha un de desat ("+curToken.slice(0,7)+"…). ":"")+
+        "El camp està buit: enganxa el token nou i prem OK.\n"+
+        "Deixa-ho BUIT per mantenir l'actual; escriu 'esborrar' per treure'l.",
+        "");
       if(t===null) return;
-      if(t.trim().toLowerCase()==="esborrar"){
+      const tv=t.trim();
+      if(tv.toLowerCase()==="esborrar"){
         localStorage.removeItem(GIST_TOKEN_KEY);
         setAssignStatus("Token del núvol esborrat");
         return;
       }
-      if(t.trim() && t.trim()!=="(token desat)"){
-        localStorage.setItem(GIST_TOKEN_KEY,t.trim());
+      if(tv){
+        localStorage.setItem(GIST_TOKEN_KEY,tv);
+        setAssignStatus("Token desat ("+tv.slice(0,7)+"…)");
       }
       const curId=gistId();
       const id=prompt(
