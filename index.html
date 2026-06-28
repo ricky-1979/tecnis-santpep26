@@ -204,6 +204,28 @@
     <div class="empty" id="emptyMsg" style="display:none;">No hi ha resultats amb aquests filtres.</div>
   </div>
 
+  <div class="table-card">
+    <h2 class="section">Players inscrits</h2>
+    <p class="hint">Dies d'entrenament (places·dia) de cada player segons les setmanes inscrites.</p>
+    <div class="filters">
+      <select id="filterPlayerWeek"><option value="">Totes les setmanes</option></select>
+      <select id="filterPlayerCategory"><option value="">Totes les categories</option></select>
+      <button id="clearPlayerFilters" type="button">Netejar</button>
+    </div>
+    <div class="count-info" id="playerCountInfo"></div>
+    <table class="data" id="playersTable">
+      <thead>
+        <tr>
+          <th data-key="player">Player</th>
+          <th data-key="category">Categoria</th>
+          <th data-key="days">Dies</th>
+          <th data-key="weeksLabel">Setmanes</th>
+        </tr>
+      </thead>
+      <tbody id="playersBody"></tbody>
+    </table>
+    <div class="empty" id="playersEmpty" style="display:none;">No hi ha players amb aquests filtres.</div>
+  </div>
 
   <footer id="footer"></footer>
 
@@ -429,6 +451,8 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
     let sortDir = 1;
     let blockSortKey = "dateISO";
     let blockSortDir = 1;
+    let playerSortKey = "player";
+    let playerSortDir = 1;
     const charts = {};
 
     // ---- Utilitats data (sense dependència de zona horària) ----
@@ -593,7 +617,7 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
       perCoachDay.forEach((n,key)=>{ if(n>2){ overloadCoaches.add(key.split("|")[0]); overloadDays++; } });
 
       const cards=[
-        { label:"Players inscrits", value:totalPlayers, sub:`${enrollments.length} places·dia`, cls:"" },
+        { label:"Players inscrits", value:totalPlayers, sub:totalPlayers?`~${Math.round(enrollments.length/totalPlayers)} dies/player de mitjana`:"", cls:"" },
         { label:"Coachs", value:totalCoaches, sub:"diferents disponibles", cls:"" },
         { label:"Sessions amb inscrits", value:sessWithPlayers.length, sub:`de ${sessions.length} programades`, cls:"" },
         { label:"Sense coach", value:crit, sub:"players sense cobrir", cls:crit?"alert":"ok" },
@@ -739,9 +763,12 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
       // blocs
       fillSelect("filterBlockWeek", weeks);
       fillSelect("filterBlockCoach", coaches);
+      // players
+      fillSelect("filterPlayerWeek", weeks);
+      fillSelect("filterPlayerCategory", cats);
       // Selecciona "Setmana 1" per defecte si existeix
       const defaultWeek=weeks.includes("Setmana 1")?"Setmana 1":(weeks[0]||"");
-      ["filterWeek","filterHmWeek","filterBlockWeek"].forEach(id=>{
+      ["filterWeek","filterHmWeek","filterBlockWeek","filterPlayerWeek"].forEach(id=>{
         document.getElementById(id).value=defaultWeek;
       });
     }
@@ -890,6 +917,56 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
         </tr>`).join("");
     }
 
+    function getFilteredPlayers(){
+      const fw=document.getElementById("filterPlayerWeek").value;
+      const fcat=document.getElementById("filterPlayerCategory").value;
+      const filtered=enrollments.filter(e=>{
+        if(fw && e.week!==fw) return false;
+        if(fcat && e.category!==fcat) return false;
+        return true;
+      });
+      // Agrupa per player: compta dies i recull setmanes/categories
+      const groups=new Map();
+      filtered.forEach(e=>{
+        if(!groups.has(e.player)){
+          groups.set(e.player,{ player:e.player, days:0, weeks:new Set(), categories:new Set() });
+        }
+        const g=groups.get(e.player);
+        g.days++;
+        if(e.week) g.weeks.add(e.week);
+        if(e.category) g.categories.add(e.category);
+      });
+      const data=[...groups.values()];
+      data.forEach(g=>{
+        g.category=[...g.categories].sort().join(", ")||"—";
+        g.weeksLabel=[...g.weeks].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true})).join(", ");
+      });
+      data.sort((a,b)=>{
+        let va=a[playerSortKey], vb=b[playerSortKey];
+        if(va<vb) return -1*playerSortDir;
+        if(va>vb) return 1*playerSortDir;
+        return a.player.localeCompare(b.player);
+      });
+      return data;
+    }
+
+    function renderPlayers(){
+      const data=getFilteredPlayers();
+      const body=document.getElementById("playersBody");
+      const empty=document.getElementById("playersEmpty");
+      const totalDays=data.reduce((s,g)=>s+g.days,0);
+      document.getElementById("playerCountInfo").textContent=`${data.length} players · ${totalDays} places·dia`;
+      if(!data.length){ body.innerHTML=""; empty.style.display="block"; return; }
+      empty.style.display="none";
+      body.innerHTML=data.map(g=>`
+        <tr>
+          <td>${g.player}</td>
+          <td>${g.category}</td>
+          <td>${g.days}</td>
+          <td>${g.weeksLabel}</td>
+        </tr>`).join("");
+    }
+
     function wireEvents(){
       const filterIds=["search","filterWeek","filterTime","filterCategory","filterCoach","filterStatus"];
       filterIds.forEach(id=>{
@@ -933,6 +1010,20 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
           renderBlocks();
         });
       });
+      // Filtres de la taula de players
+      const playerIds=["filterPlayerWeek","filterPlayerCategory"];
+      playerIds.forEach(id=> document.getElementById(id).addEventListener("change",renderPlayers));
+      document.getElementById("clearPlayerFilters").addEventListener("click",()=>{
+        playerIds.forEach(id=> document.getElementById(id).value="");
+        renderPlayers();
+      });
+      document.querySelectorAll("#playersTable th").forEach(th=>{
+        th.addEventListener("click",()=>{
+          const key=th.dataset.key;
+          if(playerSortKey===key) playerSortDir*=-1; else { playerSortKey=key; playerSortDir=1; }
+          renderPlayers();
+        });
+      });
     }
 
     function init(){
@@ -945,6 +1036,7 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
       wireEvents();
       renderTable();
       renderBlocks();
+      renderPlayers();
       document.getElementById("footer").textContent=
         `${coachRecords.length} disponibilitats de coach · ${enrollments.length} places·dia de players · Generat ${new Date().toLocaleString("ca-ES")}`;
     }
