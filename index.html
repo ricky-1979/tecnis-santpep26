@@ -170,18 +170,13 @@
 
   <div class="table-card">
     <h2 class="section">Assignació de coachs</h2>
-    <p class="hint">Arrossega un coach d'una franja a una altra per moure'l, o fes servir <strong>+ Afegir</strong> per assignar-ne un de nou. Fes clic a la <strong>×</strong> per treure'l. Amb <strong>Sincronitzar al núvol</strong> els canvis es comparteixen entre dispositius (via GitHub Gist).</p>
+    <p class="hint">Arrossega un coach d'una franja a una altra per moure'l, o fes servir <strong>+ Afegir</strong> per assignar-ne un de nou. Fes clic a la <strong>×</strong> per treure'l. Els canvis es desen i se sincronitzen automàticament entre dispositius.</p>
     <div class="assign-toolbar">
       <select id="assignWeek"></select>
       <span class="sep"></span>
       <span class="assign-status" id="assignStatus"></span>
       <button id="assignCloud" type="button">Sincronitzar al núvol…</button>
-      <button id="assignPull" type="button" title="Descarregar del núvol">⬇ Núvol</button>
-      <button id="assignPush" type="button" title="Pujar al núvol">⬆ Núvol</button>
-      <button id="assignExport" type="button">Exportar</button>
-      <button id="assignImport" type="button">Importar</button>
       <button id="assignReset" type="button">Reiniciar</button>
-      <input type="file" id="assignFile" accept="application/json" style="display:none;" />
     </div>
     <div class="assign-overwrap">
       <div class="assign-grid" id="assignGrid"></div>
@@ -617,7 +612,15 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
         if(id.trim()) localStorage.setItem(GIST_ID_KEY,id.trim());
         else localStorage.removeItem(GIST_ID_KEY);
       }
-      setAssignStatus("Núvol configurat. Fes ⬆ Núvol per pujar o ⬇ Núvol per baixar.");
+      updateCloudButton();
+      // La sincronització és automàtica: si ja hi ha un Gist, baixa l'última
+      // versió; si no, puja l'actual per crear-lo.
+      if(gistToken()){
+        if(gistId()){ setAssignStatus("Sincronitzant amb el núvol…"); gistPull(); }
+        else { setAssignStatus("Creant el Gist al núvol…"); gistPush(); }
+      } else {
+        setAssignStatus("Token del núvol esborrat");
+      }
     }
 
     function defaultAssignments(){
@@ -1346,24 +1349,6 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
       sel.addEventListener("blur",finish);
     }
 
-    function exportAssignments(){
-      const blob=new Blob([JSON.stringify(assignments,null,2)],{type:"application/json"});
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement("a");
-      a.href=url; a.download="assignacions-coachs.json"; a.click();
-      URL.revokeObjectURL(url);
-      setAssignStatus("Exportat");
-    }
-    function importAssignments(file){
-      const reader=new FileReader();
-      reader.onload=()=>{
-        try{
-          const data=JSON.parse(reader.result);
-          if(data && typeof data==="object"){ assignments=data; saveAssignments(); refreshFromAssignments(); setAssignStatus("Importat"); }
-        }catch(e){ setAssignStatus("Error en importar"); }
-      };
-      reader.readAsText(file);
-    }
     function resetAssignments(){
       if(!confirm("Reiniciar les assignacions amb la disponibilitat de Koalendar? Es perdran els canvis manuals.")) return;
       assignments=defaultAssignments();
@@ -1429,14 +1414,15 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
       });
       // Assignació editable
       document.getElementById("assignWeek").addEventListener("change",e=>{ assignWeek=e.target.value; renderAssign(); });
-      document.getElementById("assignExport").addEventListener("click",exportAssignments);
-      document.getElementById("assignImport").addEventListener("click",()=>document.getElementById("assignFile").click());
-      document.getElementById("assignFile").addEventListener("change",e=>{ if(e.target.files[0]) importAssignments(e.target.files[0]); e.target.value=""; });
       document.getElementById("assignReset").addEventListener("click",resetAssignments);
-      // Sincronització al núvol (Gist)
+      // Sincronització al núvol (Gist) — configuració manual només si cal
       document.getElementById("assignCloud").addEventListener("click",configureCloud);
-      document.getElementById("assignPush").addEventListener("click",gistPush);
-      document.getElementById("assignPull").addEventListener("click",gistPull);
+    }
+
+    // Mostra el botó de configuració del núvol només si encara no hi ha token
+    function updateCloudButton(){
+      const btn=document.getElementById("assignCloud");
+      if(btn) btn.style.display=gistToken()?"none":"";
     }
 
     function init(){
@@ -1453,6 +1439,7 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
       renderBlocks();
       renderPlayers();
       renderAssign();
+      updateCloudButton();
       setAssignStatus(hadSaved?"Carregat del navegador":"Inicialitzat des de Koalendar");
       // Si el núvol està configurat, sincronitza l'última versió en arrencar
       if(gistToken() && gistId()){
