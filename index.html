@@ -206,7 +206,7 @@
 
   <div class="table-card">
     <h2 class="section">Players inscrits</h2>
-    <p class="hint">Dies d'entrenament (places·dia) de cada player segons les setmanes inscrites.</p>
+    <p class="hint">Players inscrits a cada sessió, agrupats per dia i franja horària.</p>
     <div class="filters">
       <select id="filterPlayerWeek"><option value="">Totes les setmanes</option></select>
       <select id="filterPlayerCategory"><option value="">Totes les categories</option></select>
@@ -216,10 +216,11 @@
     <table class="data" id="playersTable">
       <thead>
         <tr>
-          <th data-key="player">Player</th>
-          <th data-key="category">Categoria</th>
-          <th data-key="days">Dies</th>
-          <th data-key="weeksLabel">Setmanes</th>
+          <th data-key="dateISO">Data</th>
+          <th data-key="weekday">Dia</th>
+          <th data-key="slotIdx">Franja</th>
+          <th data-key="count">Players</th>
+          <th>Players inscrits</th>
         </tr>
       </thead>
       <tbody id="playersBody"></tbody>
@@ -451,7 +452,7 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
     let sortDir = 1;
     let blockSortKey = "dateISO";
     let blockSortDir = 1;
-    let playerSortKey = "player";
+    let playerSortKey = "dateISO";
     let playerSortDir = 1;
     const charts = {};
 
@@ -918,6 +919,7 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
     }
 
     function getFilteredPlayers(){
+      const SLOT_IDX={"18:00":0,"19:00":1,"20:00":2,"21:00":3};
       const fw=document.getElementById("filterPlayerWeek").value;
       const fcat=document.getElementById("filterPlayerCategory").value;
       const filtered=enrollments.filter(e=>{
@@ -925,27 +927,42 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
         if(fcat && e.category!==fcat) return false;
         return true;
       });
-      // Agrupa per player: compta dies i recull setmanes/categories
+      // Agrupa per dia + franja
       const groups=new Map();
       filtered.forEach(e=>{
-        if(!groups.has(e.player)){
-          groups.set(e.player,{ player:e.player, days:0, weeks:new Set(), categories:new Set() });
+        const k=e.dateISO+"|"+e.slot;
+        if(!groups.has(k)){
+          groups.set(k,{
+            dateISO:e.dateISO,
+            dateDisplay:displayFromIso(e.dateISO),
+            weekday:weekdayFromIso(e.dateISO),
+            week:e.week,
+            slot:e.slot,
+            slotIdx:SLOT_IDX[e.slot]??99,
+            slotLabel:SLOT_LABEL[e.slot]||e.slot,
+            players:[],
+          });
         }
-        const g=groups.get(e.player);
-        g.days++;
-        if(e.week) g.weeks.add(e.week);
-        if(e.category) g.categories.add(e.category);
+        groups.get(k).players.push(e.player);
       });
       const data=[...groups.values()];
       data.forEach(g=>{
-        g.category=[...g.categories].sort().join(", ")||"—";
-        g.weeksLabel=[...g.weeks].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true})).join(", ");
+        g.players.sort((a,b)=>a.localeCompare(b));
+        g.count=g.players.length;
       });
+      // Ordre per defecte: setmana → dia → franja
+      const naturalOrder=(a,b)=>
+        String(a.week).localeCompare(String(b.week),undefined,{numeric:true})
+        || a.dateISO.localeCompare(b.dateISO)
+        || (a.slotIdx-b.slotIdx);
       data.sort((a,b)=>{
+        if(playerSortKey==="dateISO"){
+          return naturalOrder(a,b)*playerSortDir;
+        }
         let va=a[playerSortKey], vb=b[playerSortKey];
         if(va<vb) return -1*playerSortDir;
         if(va>vb) return 1*playerSortDir;
-        return a.player.localeCompare(b.player);
+        return naturalOrder(a,b);
       });
       return data;
     }
@@ -954,16 +971,17 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
       const data=getFilteredPlayers();
       const body=document.getElementById("playersBody");
       const empty=document.getElementById("playersEmpty");
-      const totalDays=data.reduce((s,g)=>s+g.days,0);
-      document.getElementById("playerCountInfo").textContent=`${data.length} players · ${totalDays} places·dia`;
+      const totalPlaces=data.reduce((s,g)=>s+g.count,0);
+      document.getElementById("playerCountInfo").textContent=`${data.length} sessions · ${totalPlaces} places·dia`;
       if(!data.length){ body.innerHTML=""; empty.style.display="block"; return; }
       empty.style.display="none";
       body.innerHTML=data.map(g=>`
         <tr>
-          <td>${g.player}</td>
-          <td>${g.category}</td>
-          <td>${g.days}</td>
-          <td>${g.weeksLabel}</td>
+          <td>${g.dateDisplay}</td>
+          <td>${g.weekday}</td>
+          <td><strong>${g.slotLabel}</strong></td>
+          <td>${g.count}</td>
+          <td class="coach-chips">${g.players.map(p=>`<span class="badge ok">${p}</span>`).join(" ")}</td>
         </tr>`).join("");
     }
 
