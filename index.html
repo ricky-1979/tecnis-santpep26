@@ -685,6 +685,13 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
 
     const PARSE_OPTS = { header:true, skipEmptyLines:true, transformHeader:h=>h.replace(/^\uFEFF+/, "").trim() };
 
+    // Normalitza noms de coach que arriben incomplets des de Koalendar
+    const COACH_NAME_MAP = { "Pau": "Pau Laviña" };
+    function normalizeCoach(name){
+      const n=(name||"").trim();
+      return COACH_NAME_MAP[n] || n;
+    }
+
     function getEmbedded(id){
       const t=(document.getElementById(id)?.textContent||"").trim();
       return (t && !t.startsWith("__")) ? t : "";
@@ -693,7 +700,7 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
     function loadCoaches(text){
       const data=Papa.parse(text,PARSE_OPTS).data;
       coachRecords=data.filter(r=>r["Meeting Date"]).map(r=>({
-        coach:(r["Invitee Name"]||"").trim(),
+        coach:normalizeCoach(r["Invitee Name"]),
         dateISO:isoFromMdy(r["Meeting Date"].trim()),
         slot:(r["Meeting Start"]||"").trim(),
         location:(r["Meeting Location"]||"").trim(),
