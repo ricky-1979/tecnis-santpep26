@@ -707,6 +707,18 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       return COACH_NAME_MAP[n] || n;
     }
 
+    // Excepcions manuals de franja per a players concrets: mou un player
+    // d'una franja a una altra només per a la setmana indicada. Persisteix
+    // encara que es reimporti el CSV de tecnificacions.
+    // Clau: "Nom Cognoms|Setmana X" -> nova franja ("HH:MM").
+    const PLAYER_SLOT_OVERRIDES = {
+      "Jan Rodríguez González|Setmana 1": "19:00",
+      "Miquel Lopez Serrano|Setmana 1": "19:00",
+    };
+    function overrideSlot(player, week, slot){
+      return PLAYER_SLOT_OVERRIDES[`${player}|${week}`] || slot;
+    }
+
     function getEmbedded(id){
       const t=(document.getElementById(id)?.textContent||"").trim();
       return (t && !t.startsWith("__")) ? t : "";
@@ -732,8 +744,9 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         WEEK_COLUMNS.forEach(wc=>{
           const cell=(r[wc.key]||"").trim();
           if(!cell || cell.toLowerCase()==="no" || cell.toLowerCase()==="cap") return;
-          const slot=slotFromCell(cell);
-          if(!slot) return;
+          const baseSlot=slotFromCell(cell);
+          if(!baseSlot) return;
+          const slot=overrideSlot(player, wc.label, baseSlot);
           const category=categoryFromCell(cell)||"";
           wc.days.forEach(mdy=>{
             enrollments.push({ player, dateISO:isoFromMdy(mdy), slot, category, week:wc.label });
@@ -765,7 +778,8 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           if(!(day>=1 && day<=31)) return;
           const dateISO=`2026-07-${String(day).padStart(2,"0")}`;
           const week=ISO_WEEK[dateISO]||"";
-          enrollments.push({ player, dateISO, slot, category, week, solt:true });
+          const finalSlot=overrideSlot(player, week, slot);
+          enrollments.push({ player, dateISO, slot:finalSlot, category, week, solt:true });
         });
       });
     }
