@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>CB Sant Josep de Badalona · Coachs per sessió</title>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
@@ -74,7 +77,6 @@
 
   <div class="toolbar">
     <select id="filterWeek"><option value="">Totes les setmanes</option></select>
-    <button id="refreshBtn" type="button" class="navlink" style="cursor:pointer;background:transparent;">↻ Actualitzar</button>
     <span class="status" id="status"></span>
     <span class="sep"></span>
     <a class="navlink" id="cartellLink" href="#" target="_blank" rel="noopener" download="Tecnis 26.jpeg" style="display:none;">📄 Continguts Tecnificació Individual</a>
@@ -244,8 +246,6 @@
       filterWeek="Setmana 1";
       sel.value=filterWeek;
       sel.addEventListener("change",e=>{ filterWeek=e.target.value; render(); });
-      const rb=document.getElementById("refreshBtn");
-      if(rb) rb.addEventListener("click",()=>{ setStatus("Actualitzant…"); gistPull(); });
     }
 
     function playersFor(dateISO, slot){
@@ -349,7 +349,7 @@
     // Les dades de players viuen incrustades a index.html (única font de
     // veritat). Les llegim d'allà perquè sempre estiguin sincronitzades.
     (function start(){
-      fetch("index.html").then(r=>r.text()).then(html=>{
+      fetch("index.html?t="+Date.now(),{cache:"no-store"}).then(r=>r.text()).then(html=>{
         loadPlayers(extractBlock(html,"playersCsv"));
         loadPlayersSolts(extractBlock(html,"playersSoltsCsv"));
         const logo=extractLogo(html);
