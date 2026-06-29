@@ -214,9 +214,12 @@
         const file=data.files && data.files[GIST_FILENAME];
         if(!file) throw new Error("fitxer no trobat");
         const parsed=JSON.parse(file.content);
-        if(parsed && typeof parsed==="object"){
-          assignments=parsed;
-          try{ localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignments)); }catch(e){}
+        // Format nou: { _ts, assignments }. Format antic: assignacions directes.
+        let next=null;
+        if(parsed && parsed.assignments && typeof parsed.assignments==="object") next=parsed.assignments;
+        else if(parsed && typeof parsed==="object") next=parsed;
+        if(next){
+          assignments=next;
           render();
           setStatus("Assignació actualitzada · "+new Date().toLocaleTimeString("ca-ES"));
         }

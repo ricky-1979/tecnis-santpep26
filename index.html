@@ -537,16 +537,21 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     // navegador; mai s'incrusten a la pàgina pública.
     const GIST_TOKEN_KEY = "tecnis-gist-token";
     const GIST_ID_KEY = "tecnis-gist-id";
+    const ASSIGN_TS_KEY = "tecnis-assignments-ts";
     const GIST_FILENAME = "assignacions-coachs.json";
     const gistToken = ()=> localStorage.getItem(GIST_TOKEN_KEY)||"";
     const gistId = ()=> localStorage.getItem(GIST_ID_KEY)||"";
+    const localTs = ()=> parseInt(localStorage.getItem(ASSIGN_TS_KEY)||"0",10);
 
     async function gistPush(){
       const token=gistToken();
       if(!token){ setAssignStatus("Configura primer el núvol"); return false; }
+      // Inclou un timestamp dins el fitxer per resoldre conflictes en arrencar
+      const ts=localTs()||Date.now();
+      const payload={ _ts:ts, assignments };
       const body={
         description:"Assignació de coachs · Tecnificació SantPep",
-        files:{ [GIST_FILENAME]:{ content:JSON.stringify(assignments,null,2) } }
+        files:{ [GIST_FILENAME]:{ content:JSON.stringify(payload,null,2) } }
       };
       try{
         let id=gistId(), res;
@@ -591,20 +596,35 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       return "HTTP "+res.status+(detail?" · "+detail:"");
     }
 
+    // Llegeix el Gist i retorna { ts, assignments } o null.
+    async function gistFetch(){
+      const token=gistToken(), id=gistId();
+      if(!token || !id) return null;
+      const res=await fetch(`https://api.github.com/gists/${id}`,{
+        headers:{ "Authorization":"token "+token, "Accept":"application/vnd.github+json" }
+      });
+      if(!res.ok) throw new Error(await gistErrMsg(res));
+      const data=await res.json();
+      const file=data.files && data.files[GIST_FILENAME];
+      if(!file) throw new Error("fitxer no trobat al gist");
+      const parsed=JSON.parse(file.content);
+      // Format nou: { _ts, assignments }. Format antic: assignacions directes.
+      if(parsed && parsed.assignments && typeof parsed.assignments==="object"){
+        return { ts:parsed._ts||0, assignments:parsed.assignments };
+      }
+      if(parsed && typeof parsed==="object"){
+        return { ts:0, assignments:parsed };
+      }
+      return null;
+    }
+
     async function gistPull(){
       const token=gistToken(), id=gistId();
       if(!token || !id){ setAssignStatus("Configura primer el núvol"); return false; }
       try{
-        const res=await fetch(`https://api.github.com/gists/${id}`,{
-          headers:{ "Authorization":"token "+token, "Accept":"application/vnd.github+json" }
-        });
-        if(!res.ok) throw new Error(await gistErrMsg(res));
-        const data=await res.json();
-        const file=data.files && data.files[GIST_FILENAME];
-        if(!file) throw new Error("fitxer no trobat al gist");
-        const parsed=JSON.parse(file.content);
-        if(parsed && typeof parsed==="object"){
-          assignments=parsed;
+        const remote=await gistFetch();
+        if(remote){
+          assignments=remote.assignments;
           saveAssignments();
           refreshFromAssignments();
           setAssignStatus("Descarregat del núvol · "+new Date().toLocaleTimeString("ca-ES"));
@@ -613,6 +633,38 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       }catch(e){
         setAssignStatus("Error descarregant del núvol: "+e.message);
         return false;
+      }
+    }
+
+    // En arrencar: aplica el Gist només si és més nou que el local. Si el
+    // local té canvis més recents (no pujats), els puja per no perdre'ls.
+    async function gistSyncStartup(){
+      const token=gistToken(), id=gistId();
+      if(!token || !id) return;
+      try{
+        setAssignStatus("Sincronitzant amb el núvol…");
+        const remote=await gistFetch();
+        const lts=localTs();
+        if(!remote){
+          if(lts) await gistPush();
+          return;
+        }
+        if(remote.ts > lts){
+          // El núvol és més nou → aplica'l
+          assignments=remote.assignments;
+          try{ localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignments)); }catch(e){}
+          try{ localStorage.setItem(ASSIGN_TS_KEY, String(remote.ts)); }catch(e){}
+          refreshFromAssignments();
+          setAssignStatus("Descarregat del núvol · "+new Date().toLocaleTimeString("ca-ES"));
+        } else if(lts > remote.ts){
+          // El local és més nou (canvis pendents) → puja'l
+          setAssignStatus("Pujant canvis locals al núvol…");
+          await gistPush();
+        } else {
+          setAssignStatus("Sincronitzat amb el núvol");
+        }
+      }catch(e){
+        setAssignStatus("Error sincronitzant: "+e.message);
       }
     }
 
@@ -676,7 +728,10 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       return false;
     }
     function saveAssignments(){
-      try{ localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignments)); }catch(e){ /* ignora */ }
+      try{
+        localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignments));
+        localStorage.setItem(ASSIGN_TS_KEY, String(Date.now()));
+      }catch(e){ /* ignora */ }
       setAssignStatus("Desat al navegador");
     }
     function setAssignStatus(msg){
@@ -1523,10 +1578,9 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       renderAssign();
       updateCloudButton();
       setAssignStatus(hadSaved?"Carregat del navegador":"Inicialitzat des de Koalendar");
-      // Si el núvol està configurat, sincronitza l'última versió en arrencar
+      // Si el núvol està configurat, sincronitza resolent conflictes per timestamp
       if(gistToken() && gistId()){
-        setAssignStatus("Sincronitzant amb el núvol…");
-        gistPull();
+        gistSyncStartup();
       }
       document.getElementById("footer").textContent=
         `${coachRecords.length} disponibilitats de coach · ${enrollments.length} places·dia de players · Generat ${new Date().toLocaleString("ca-ES")}`;
