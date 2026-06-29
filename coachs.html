@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CB Sant Josep de Badalona · Coachs per sessió</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    :root {
+      --bg:#160f26; --card:#241836; --card-hover:#2e1f44; --text:#ece8f5;
+      --muted:#94a3b8; --accent:#a855f7; --border:#3b2f4d;
+      --lila:#a855f7; --groc:#facc15;
+      --danger:#f87171; --warn:#facc15; --ok:#c084fc;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      background:var(--bg); color:var(--text); padding:24px; line-height:1.5; }
+    header { margin-bottom:20px; display:flex; align-items:center; gap:16px;
+      border-left:6px solid var(--groc); padding-left:14px; }
+    header .logo { height:64px; width:auto; border-radius:8px; flex-shrink:0;
+      background:#fff; padding:4px; }
+    header .htext h1 { font-size:1.5rem; font-weight:800; color:var(--text); }
+    header .htext h1 .club { color:var(--groc); }
+    header .htext p { color:var(--muted); font-size:0.9rem; margin-top:4px; }
+
+    .toolbar { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:18px; }
+    .toolbar select { background:var(--card); border:1px solid var(--border); color:var(--text);
+      padding:9px 12px; border-radius:8px; font-size:0.9rem; }
+    .toolbar .sep { flex:1; }
+    .toolbar a.navlink { color:var(--accent); text-decoration:none; font-size:0.88rem;
+      border:1px solid var(--border); padding:9px 14px; border-radius:8px; }
+    .toolbar a.navlink:hover { color:var(--groc); border-color:var(--groc); }
+    .status { color:var(--muted); font-size:0.78rem; }
+
+    h2.section { font-size:1.1rem; font-weight:600; margin:8px 0 6px; }
+    p.hint { color:var(--muted); font-size:0.82rem; margin-bottom:14px; }
+
+    .day-block { background:var(--card); border:1px solid var(--border);
+      border-radius:12px; padding:18px; margin-bottom:20px; }
+    .day-head { display:flex; align-items:baseline; gap:10px; margin-bottom:12px;
+      border-bottom:1px solid var(--border); padding-bottom:10px; }
+    .day-head .date { font-size:1.15rem; font-weight:700; }
+    .day-head .wd { color:var(--accent); font-weight:600; }
+    .day-head .wk { color:var(--muted); font-size:0.82rem; margin-left:auto; }
+
+    .slot-row { display:grid; grid-template-columns:90px 1fr; gap:14px; padding:12px 0;
+      border-bottom:1px solid var(--border); }
+    .slot-row:last-child { border-bottom:none; }
+    .slot-time { font-weight:700; color:var(--groc); font-size:0.95rem; padding-top:2px; }
+    .slot-body { display:flex; flex-direction:column; gap:10px; }
+    .slot-line { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+    .slot-line .lbl { color:var(--muted); font-size:0.76rem; text-transform:uppercase;
+      letter-spacing:0.04em; min-width:64px; }
+    .badge { padding:3px 10px; border-radius:999px; font-size:0.8rem; font-weight:600; }
+    .badge.coach { background:#2e1f44; color:var(--lila); border:1px solid var(--border); }
+    .badge.player { background:#2e1f44; color:var(--lila); }
+    .badge.player.solt { background:#3d3416; color:var(--groc); }
+    .badge.empty { background:transparent; color:var(--muted); border:1px dashed var(--border); font-weight:500; }
+    .count { color:var(--muted); font-size:0.78rem; }
+    .empty { text-align:center; color:var(--muted); padding:30px; }
+    footer { margin-top:30px; color:var(--muted); font-size:0.8rem; text-align:center; }
+  </style>
+</head>
+<body>
+  <header>
+    <img class="logo" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="Escut CB Sant Josep de Badalona" />
+    <div class="htext">
+      <h1><span class="club">CB Sant Josep de Badalona</span> · Coachs per sessió</h1>
+      <p id="subtitle">Carregant dades…</p>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <select id="filterWeek"><option value="">Totes les setmanes</option></select>
+    <span class="status" id="status"></span>
+    <span class="sep"></span>
+    <a class="navlink" href="index.html">← Dashboard complet</a>
+  </div>
+
+  <h2 class="section">Planificació i coachs assignats</h2>
+  <p class="hint">Per cada dia i franja: els <strong>coachs assignats</strong> i els <strong>players</strong> que tindran.
+    <span class="badge player">Lila</span> = setmana completa · <span class="badge player solt">Groc · DS</span> = dia solt.
+    L'assignació es comparteix amb el dashboard.</p>
+
+  <div id="schedule"></div>
+  <div class="empty" id="empty" style="display:none;">No hi ha sessions amb players per a aquesta selecció.</div>
+
+  <footer id="footer"></footer>
+
+  <script>
+    // ===== Configuració i utilitats (compartides amb el dashboard) =====
+    const WEEKDAYS = ["Diumenge","Dilluns","Dimarts","Dimecres","Dijous","Divendres","Dissabte"];
+    const SLOTS = ["18:00","19:00","20:00","21:00"];
+    const SLOT_LABEL = { "18:00":"18-19h","19:00":"19-20h","20:00":"20-21h","21:00":"21-22h" };
+    const SLOT_IDX = { "18:00":0,"19:00":1,"20:00":2,"21:00":3 };
+
+    const WEEK_COLUMNS = [
+      { key:"Setmana 1: De l'1 al 3 de juliol",  days:["07/01/2026","07/02/2026","07/03/2026"], label:"Setmana 1" },
+      { key:"Setmana 2: Del 6 al 10 de juliol",  days:["07/06/2026","07/07/2026","07/08/2026","07/09/2026","07/10/2026"], label:"Setmana 2" },
+      { key:"Setmana 3: Del 13 al 17 de juliol", days:["07/13/2026","07/14/2026","07/15/2026","07/16/2026","07/17/2026"], label:"Setmana 3" },
+      { key:"Setmana 4: Del 20 al 24 de juliol", days:["07/20/2026","07/21/2026","07/22/2026","07/23/2026","07/24/2026"], label:"Setmana 4" },
+      { key:"Setmana 5: Del 27 al 31 de juliol", days:["07/27/2026","07/28/2026","07/29/2026","07/30/2026","07/31/2026"], label:"Setmana 5" },
+    ];
+    const ISO_WEEK = {};
+    WEEK_COLUMNS.forEach(wc=> wc.days.forEach(mdy=>{
+      const [m,d,y]=mdy.split("/");
+      ISO_WEEK[`${y}-${m}-${d}`]=wc.label;
+    }));
+
+    // Mateixes claus que el dashboard → comparteixen assignació i núvol
+    const ASSIGN_KEY = "tecnis-assignments-v1";
+    const GIST_TOKEN_KEY = "tecnis-gist-token";
+    const GIST_ID_KEY = "tecnis-gist-id";
+    const GIST_FILENAME = "assignacions-coachs.json";
+    const gistToken = ()=> localStorage.getItem(GIST_TOKEN_KEY)||"";
+    const gistId = ()=> localStorage.getItem(GIST_ID_KEY)||"";
+
+    let assignments = {};
+    let enrollments = [];
+    let filterWeek = "";
+
+    const PARSE_OPTS = { header:true, skipEmptyLines:true, transformHeader:h=>h.replace(/^\uFEFF+/, "").trim() };
+    const COACH_NAME_MAP = { "Pau": "Pau Laviña" };
+    function normalizeCoach(name){ const n=(name||"").trim(); return COACH_NAME_MAP[n] || n; }
+
+    function isoFromMdy(mdy){ const [m,d,y]=mdy.split("/"); return `${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`; }
+    function displayFromIso(iso){ const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
+    function weekdayFromIso(iso){ const [y,m,d]=iso.split("-").map(Number); return WEEKDAYS[new Date(Date.UTC(y,m-1,d)).getUTCDay()]; }
+    function slotFromCell(text){ const m=text&&text.match(/(\d{2}:\d{2})\s*a/); return m?m[1]:null; }
+    function categoryFromCell(text){ const m=text&&text.match(/^(.*?)\s*-\s*\d{2}:\d{2}/); return m?m[1].trim():null; }
+    function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+    function setStatus(msg){ const el=document.getElementById("status"); if(el) el.textContent=msg; }
+
+    function loadPlayers(text){
+      const data=Papa.parse(text,PARSE_OPTS).data;
+      enrollments=[];
+      data.forEach(r=>{
+        const player=`${(r["Nom"]||"").trim()} ${(r["Cognoms"]||"").trim()}`.trim();
+        if(!player) return;
+        WEEK_COLUMNS.forEach(wc=>{
+          const cell=(r[wc.key]||"").trim();
+          if(!cell || cell.toLowerCase()==="no" || cell.toLowerCase()==="cap") return;
+          const slot=slotFromCell(cell);
+          if(!slot) return;
+          const category=categoryFromCell(cell)||"";
+          wc.days.forEach(mdy=>{
+            enrollments.push({ player, dateISO:isoFromMdy(mdy), slot, category, week:wc.label });
+          });
+        });
+      });
+    }
+
+    function loadPlayersSolts(text){
+      if(!text) return;
+      const data=Papa.parse(text,PARSE_OPTS).data;
+      data.forEach(r=>{
+        const player=`${(r["Nom"]||"").trim()} ${(r["Cognoms"]||"").trim()}`.trim();
+        if(!player) return;
+        const cell=(r["Franja horària"]||"").trim();
+        const slot=slotFromCell(cell);
+        if(!slot) return;
+        const category=categoryFromCell(cell)||"";
+        const dies=(r["Dies solts"]||"").trim();
+        if(!dies) return;
+        dies.split(",").forEach(tok=>{
+          const m=tok.match(/(\d{1,2})/);
+          if(!m) return;
+          const day=parseInt(m[1],10);
+          if(!(day>=1 && day<=31)) return;
+          const dateISO=`2026-07-${String(day).padStart(2,"0")}`;
+          const week=ISO_WEEK[dateISO]||"";
+          enrollments.push({ player, dateISO, slot, category, week, solt:true });
+        });
+      });
+    }
+
+    function loadAssignments(){
+      try{
+        const raw=localStorage.getItem(ASSIGN_KEY);
+        if(raw){ assignments=JSON.parse(raw)||{}; return true; }
+      }catch(e){ /* ignora */ }
+      assignments={};
+      return false;
+    }
+
+    async function gistPull(){
+      const token=gistToken(), id=gistId();
+      if(!token || !id) return false;
+      try{
+        const res=await fetch(`https://api.github.com/gists/${id}`,{
+          headers:{ "Authorization":"token "+token, "Accept":"application/vnd.github+json" }
+        });
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        const data=await res.json();
+        const file=data.files && data.files[GIST_FILENAME];
+        if(!file) throw new Error("fitxer no trobat");
+        const parsed=JSON.parse(file.content);
+        if(parsed && typeof parsed==="object"){
+          assignments=parsed;
+          try{ localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignments)); }catch(e){}
+          render();
+          setStatus("Sincronitzat amb el núvol · "+new Date().toLocaleTimeString("ca-ES"));
+        }
+        return true;
+      }catch(e){
+        setStatus("No s'ha pogut sincronitzar amb el núvol: "+e.message);
+        return false;
+      }
+    }
+
+    // ===== Render =====
+    function populateWeeks(){
+      const sel=document.getElementById("filterWeek");
+      WEEK_COLUMNS.forEach(wc=>{
+        const o=document.createElement("option");
+        o.value=wc.label; o.textContent=wc.label;
+        sel.appendChild(o);
+      });
+      // Per defecte, Setmana 1
+      filterWeek="Setmana 1";
+      sel.value=filterWeek;
+      sel.addEventListener("change",e=>{ filterWeek=e.target.value; render(); });
+    }
+
+    function playersFor(dateISO, slot){
+      return enrollments
+        .filter(e=>e.dateISO===dateISO && e.slot===slot)
+        .map(e=>({ name:e.player, solt:!!e.solt }))
+        .sort((a,b)=>a.name.localeCompare(b.name));
+    }
+
+    function render(){
+      const schedule=document.getElementById("schedule");
+      const empty=document.getElementById("empty");
+
+      // Dies a mostrar: tots els que tenen players o coachs assignats
+      const dayset=new Set();
+      enrollments.forEach(e=>dayset.add(e.dateISO));
+      Object.keys(assignments).forEach(k=>dayset.add(k.split("|")[0]));
+      let days=[...dayset].filter(Boolean).sort();
+      if(filterWeek) days=days.filter(d=>ISO_WEEK[d]===filterWeek);
+
+      const blocks=[];
+      days.forEach(d=>{
+        const rows=[];
+        SLOTS.forEach(sl=>{
+          const key=d+"|"+sl;
+          const coaches=(assignments[key]||[]).slice().sort((a,b)=>a.localeCompare(b));
+          const players=playersFor(d,sl);
+          if(coaches.length===0 && players.length===0) return; // franja buida
+          rows.push({ slot:sl, coaches, players });
+        });
+        if(rows.length) blocks.push({ dateISO:d, rows });
+      });
+
+      if(!blocks.length){
+        schedule.innerHTML="";
+        empty.style.display="block";
+        return;
+      }
+      empty.style.display="none";
+
+      schedule.innerHTML=blocks.map(b=>{
+        const head=`<div class="day-head">
+          <span class="date">${displayFromIso(b.dateISO)}</span>
+          <span class="wd">${weekdayFromIso(b.dateISO)}</span>
+          <span class="wk">${ISO_WEEK[b.dateISO]||""}</span>
+        </div>`;
+        const rows=b.rows.map(r=>{
+          const coachBadges = r.coaches.length
+            ? r.coaches.map(c=>`<span class="badge coach">${esc(c)}</span>`).join(" ")
+            : `<span class="badge empty">Sense coach assignat</span>`;
+          const playerBadges = r.players.length
+            ? r.players.map(p=>`<span class="badge player${p.solt?" solt":""}" title="${p.solt?"Dia solt":"Setmana completa"}">${esc(p.name)}${p.solt?' · DS':''}</span>`).join(" ")
+            : `<span class="badge empty">Sense players</span>`;
+          return `<div class="slot-row">
+            <div class="slot-time">${SLOT_LABEL[r.slot]}</div>
+            <div class="slot-body">
+              <div class="slot-line"><span class="lbl">Coachs</span>${coachBadges} <span class="count">(${r.coaches.length})</span></div>
+              <div class="slot-line"><span class="lbl">Players</span>${playerBadges} <span class="count">(${r.players.length})</span></div>
+            </div>
+          </div>`;
+        }).join("");
+        return `<div class="day-block">${head}${rows}</div>`;
+      }).join("");
+
+      const totalDays=blocks.length;
+      const totalSlots=blocks.reduce((s,b)=>s+b.rows.length,0);
+      document.getElementById("footer").textContent=
+        `${totalDays} dies · ${totalSlots} franges · Generat ${new Date().toLocaleString("ca-ES")}`;
+    }
+
+    // Extreu el contingut d'un bloc <script id="..."> del HTML del dashboard
+    function extractBlock(html, id){
+      const re=new RegExp(`<script id="${id}"[^>]*>([\\s\\S]*?)<\\/script>`,"i");
+      const m=html.match(re);
+      return m ? m[1].trim() : "";
+    }
+    function extractLogo(html){
+      const m=html.match(/<img class="logo" src="(data:image\/[^"]+)"/i);
+      return m ? m[1] : "";
+    }
+
+    // ===== Arrencada =====
+    function init(){
+      document.getElementById("subtitle").textContent="Tecnificació Juliol 2026 · La Plana";
+      populateWeeks();
+      const hadSaved=loadAssignments();
+      render();
+      setStatus(hadSaved?"Assignació carregada del navegador":"Sense assignació desada");
+      if(gistToken() && gistId()){
+        setStatus("Sincronitzant amb el núvol…");
+        gistPull();
+      }
+    }
+
+    // Les dades de players viuen incrustades a index.html (única font de
+    // veritat). Les llegim d'allà perquè sempre estiguin sincronitzades.
+    (function start(){
+      fetch("index.html").then(r=>r.text()).then(html=>{
+        loadPlayers(extractBlock(html,"playersCsv"));
+        loadPlayersSolts(extractBlock(html,"playersSoltsCsv"));
+        const logo=extractLogo(html);
+        if(logo){ document.querySelector("header .logo").src=logo; }
+        init();
+      }).catch(e=>{
+        setStatus("No s'han pogut carregar les dades: "+e.message);
+        init();
+      });
+    })();
+  </script>
+</body>
+</html>
