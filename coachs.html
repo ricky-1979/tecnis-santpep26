@@ -114,8 +114,11 @@
     const GIST_TOKEN_KEY = "tecnis-gist-token";
     const GIST_ID_KEY = "tecnis-gist-id";
     const GIST_FILENAME = "assignacions-coachs.json";
+    // ID del Gist públic amb l'assignació. Permet que qualsevol coach vegi
+    // l'assignació sense token (els Gists són llegibles per ID sense auth).
+    const DEFAULT_GIST_ID = "532f3367c329c3540d74c957f9c408b8";
     const gistToken = ()=> localStorage.getItem(GIST_TOKEN_KEY)||"";
-    const gistId = ()=> localStorage.getItem(GIST_ID_KEY)||"";
+    const gistId = ()=> localStorage.getItem(GIST_ID_KEY)||DEFAULT_GIST_ID;
 
     let assignments = {};
     let enrollments = [];
@@ -196,13 +199,16 @@
       return false;
     }
 
+    // Llegeix l'assignació del Gist. NO cal token: els Gists són llegibles
+    // per ID sense autenticació, així cada coach veu l'assignació sense
+    // configurar res. Si hi ha token, s'usa (límit de rate més alt).
     async function gistPull(){
       const token=gistToken(), id=gistId();
-      if(!token || !id) return false;
+      if(!id) return false;
       try{
-        const res=await fetch(`https://api.github.com/gists/${id}`,{
-          headers:{ "Authorization":"token "+token, "Accept":"application/vnd.github+json" }
-        });
+        const headers={ "Accept":"application/vnd.github+json" };
+        if(token) headers["Authorization"]="token "+token;
+        const res=await fetch(`https://api.github.com/gists/${id}`,{ headers });
         if(!res.ok) throw new Error("HTTP "+res.status);
         const data=await res.json();
         const file=data.files && data.files[GIST_FILENAME];
@@ -212,11 +218,11 @@
           assignments=parsed;
           try{ localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignments)); }catch(e){}
           render();
-          setStatus("Sincronitzat amb el núvol · "+new Date().toLocaleTimeString("ca-ES"));
+          setStatus("Assignació actualitzada · "+new Date().toLocaleTimeString("ca-ES"));
         }
         return true;
       }catch(e){
-        setStatus("No s'ha pogut sincronitzar amb el núvol: "+e.message);
+        setStatus("No s'ha pogut carregar l'assignació: "+e.message);
         return false;
       }
     }
@@ -322,12 +328,14 @@
     function init(){
       document.getElementById("subtitle").textContent="Tecnificació Juliol 2026 · La Plana";
       populateWeeks();
-      const hadSaved=loadAssignments();
+      loadAssignments();
       render();
-      setStatus(hadSaved?"Assignació carregada del navegador":"Sense assignació desada");
-      if(gistToken() && gistId()){
-        setStatus("Sincronitzant amb el núvol…");
+      // Sempre baixa l'última assignació del Gist (sense token cal).
+      if(gistId()){
+        setStatus("Carregant assignació…");
         gistPull();
+      } else {
+        setStatus("Sense assignació disponible");
       }
     }
 
