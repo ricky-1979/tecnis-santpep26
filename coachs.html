@@ -48,7 +48,7 @@
     .slot-row:last-child { border-bottom:none; }
     .slot-time { font-weight:700; color:var(--groc); font-size:0.95rem; padding-top:2px; }
     .slot-body { display:flex; flex-direction:column; gap:10px; }
-    .slot-line { display:grid; grid-template-columns:72px 1fr auto; gap:8px; align-items:start; }
+    .slot-line { display:grid; grid-template-columns:72px auto 1fr; gap:8px; align-items:start; }
     .slot-line .lbl { color:var(--muted); font-size:0.76rem; text-transform:uppercase;
       letter-spacing:0.04em; padding-top:4px; }
     .slot-line .names { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
@@ -289,8 +289,8 @@
           return `<div class="slot-row">
             <div class="slot-time">${SLOT_LABEL[r.slot]}</div>
             <div class="slot-body">
-              <div class="slot-line"><span class="lbl">Coachs</span><span class="names">${coachBadges}</span><span class="count">(${r.coaches.length})</span></div>
-              <div class="slot-line"><span class="lbl">Players</span><span class="names">${playerBadges}</span><span class="count">(${r.players.length})</span></div>
+              <div class="slot-line"><span class="lbl">Coachs</span><span class="count">(${r.coaches.length})</span><span class="names">${coachBadges}</span></div>
+              <div class="slot-line"><span class="lbl">Players</span><span class="count">(${r.players.length})</span><span class="names">${playerBadges}</span></div>
             </div>
           </div>`;
         }).join("");
