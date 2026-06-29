@@ -217,7 +217,7 @@
 
   <div class="grid-card">
     <h2 class="section">Ocupació per sessió</h2>
-    <p class="hint">Cada cel·la mostra <strong>players inscrits</strong> i <strong>coachs disponibles</strong>.</p>
+    <p class="hint">Cada cel·la mostra <strong>players inscrits</strong> i <strong>coachs disponibles</strong>. Objectiu: 4 coachs per cada 16 players.</p>
     <div class="filters">
       <select id="filterHmWeek"><option value="">Totes les setmanes</option></select>
       <select id="filterHmCategory"><option value="">Totes les categories</option></select>
@@ -871,7 +871,7 @@ Aniol,Abrisqueta López,,uabrisqueta@hotmail.com,M,,No,,Infantil/Cadet - 19:00 a
       const page=coachRecords[0]?.page||"Tecnificació";
       const loc=coachRecords[0]?.location||"";
       document.getElementById("subtitle").textContent=
-        `${page}${loc?" · "+loc:""} · objectiu ${COACHES_PER_BLOCK} coachs per cada ${PLAYERS_PER_BLOCK} players`;
+        `${page}${loc?" · "+loc:""}`;
     }
 
     // ---- Heatmap ----
