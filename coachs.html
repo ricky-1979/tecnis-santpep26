@@ -48,9 +48,11 @@
     .slot-row:last-child { border-bottom:none; }
     .slot-time { font-weight:700; color:var(--groc); font-size:0.95rem; padding-top:2px; }
     .slot-body { display:flex; flex-direction:column; gap:10px; }
-    .slot-line { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+    .slot-line { display:grid; grid-template-columns:72px 1fr auto; gap:8px; align-items:start; }
     .slot-line .lbl { color:var(--muted); font-size:0.76rem; text-transform:uppercase;
-      letter-spacing:0.04em; min-width:64px; }
+      letter-spacing:0.04em; padding-top:4px; }
+    .slot-line .names { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+    .slot-line .count { padding-top:4px; }
     .badge { padding:3px 10px; border-radius:999px; font-size:0.8rem; font-weight:600; }
     .badge.coach { background:#2e1f44; color:var(--lila); border:1px solid var(--border); }
     .badge.player { background:#2e1f44; color:var(--lila); }
@@ -287,8 +289,8 @@
           return `<div class="slot-row">
             <div class="slot-time">${SLOT_LABEL[r.slot]}</div>
             <div class="slot-body">
-              <div class="slot-line"><span class="lbl">Coachs</span>${coachBadges} <span class="count">(${r.coaches.length})</span></div>
-              <div class="slot-line"><span class="lbl">Players</span>${playerBadges} <span class="count">(${r.players.length})</span></div>
+              <div class="slot-line"><span class="lbl">Coachs</span><span class="names">${coachBadges}</span><span class="count">(${r.coaches.length})</span></div>
+              <div class="slot-line"><span class="lbl">Players</span><span class="names">${playerBadges}</span><span class="count">(${r.players.length})</span></div>
             </div>
           </div>`;
         }).join("");
