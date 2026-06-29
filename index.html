@@ -1333,7 +1333,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           <td>${g.weekday}</td>
           <td><strong>${g.slotLabel}</strong></td>
           <td>${g.count}</td>
-          <td class="coach-chips">${g.players.map(p=>`<span class="badge ${p.solt?"under":"ok"}" title="${p.solt?"Dia solt":"Setmana completa"}">${p.name}${p.solt?' <span class="add">· DS</span>':''}</span>`).join(" ")}</td>
+          <td class="coach-chips">${g.players.map(p=>`<span class="badge ${p.solt?"under":"ok"}" title="${p.solt?"Dia solt":"Setmana completa"}">${p.name}</span>`).join(" ")}</td>
         </tr>`).join("");
     }
 

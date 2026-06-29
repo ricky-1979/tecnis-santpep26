@@ -297,7 +297,7 @@
             ? r.coaches.map(c=>`<span class="badge coach">${esc(c)}</span>`).join(" ")
             : `<span class="badge empty">Sense coach assignat</span>`;
           const playerBadges = r.players.length
-            ? r.players.map(p=>`<span class="badge player${p.solt?" solt":""}" title="${p.solt?"Dia solt":"Setmana completa"}">${esc(p.name)}${p.solt?' · DS':''}</span>`).join(" ")
+            ? r.players.map(p=>`<span class="badge player${p.solt?" solt":""}" title="${p.solt?"Dia solt":"Setmana completa"}">${esc(p.name)}</span>`).join(" ")
             : `<span class="badge empty">Sense players</span>`;
           return `<div class="slot-row">
             <div class="slot-time">${SLOT_LABEL[r.slot]}</div>
