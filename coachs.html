@@ -399,8 +399,8 @@
           let playerLines;
           if(!r.players.length){
             playerLines = `<div class="slot-line"><span class="lbl">Grup</span><span class="count">(0)</span><span class="names"><span class="badge empty">Sense players</span></span></div>`;
-          } else if(r.players.length < 4){
-            // Menys de 4 players: un sol grup
+          } else if(r.players.length <= 4){
+            // 4 players o menys: un sol grup
             playerLines = groupLine("Grup", r.players);
           } else if(r.players.length > 8){
             // Més de 8 players: repartir per la meitat. Grup 1 = meitat
@@ -413,7 +413,7 @@
             const g2 = r.players.filter(p=>!g1.includes(p));
             playerLines = groupLine("Grup 1", g1) + groupLine("Grup 2", g2);
           } else {
-            // 4 a 8 players: dos grups segons el mapa
+            // 5 a 8 players: dos grups segons el mapa
             let g1 = r.players.filter(p=>p.grp==="1");
             let g2 = r.players.filter(p=>p.grp!=="1");
             // Si el mapa no els reparteix (tots al mateix grup),
