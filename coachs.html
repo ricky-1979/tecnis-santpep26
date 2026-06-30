@@ -62,6 +62,14 @@
     .badge.player.solt { background:#3d3416; color:var(--groc); }
     .badge.empty { background:transparent; color:var(--muted); border:1px dashed var(--border); font-weight:500; }
     .count { color:var(--muted); font-size:0.78rem; }
+    .workplan { background:var(--card); border:1px solid var(--border);
+      border-radius:12px; padding:18px; margin-bottom:20px; }
+    .workplan h3 { margin:0 0 12px; font-size:1.05rem; }
+    .workplan ul { list-style:none; margin:0; padding:0; display:flex;
+      flex-direction:column; gap:8px; }
+    .workplan li { display:grid; grid-template-columns:56px 1fr; gap:12px;
+      align-items:baseline; }
+    .workplan .t { font-weight:700; color:var(--groc); }
     .empty { text-align:center; color:var(--muted); padding:30px; }
     footer { margin-top:30px; color:var(--muted); font-size:0.8rem; text-align:center; }
   </style>
@@ -86,6 +94,16 @@
   <p class="hint">Per cada dia i franja: els <strong>coachs assignats</strong> i els <strong>players</strong> que tindran.
     <span class="badge player">Lila</span> = setmana completa · <span class="badge player solt">Groc · DS</span> = dia solt.
     L'assignació es comparteix amb el dashboard.</p>
+
+  <div id="workplan" class="workplan" style="display:none;">
+    <h3>Treball a fer a les sessions de tecnificació</h3>
+    <ul>
+      <li><span class="t">15'</span><span>mecànica de tir</span></li>
+      <li><span class="t">15'</span><span>passada</span></li>
+      <li><span class="t">20'</span><span>finalitzacions</span></li>
+      <li><span class="t">10'</span><span>integrar els 3 continguts anteriors</span></li>
+    </ul>
+  </div>
 
   <div id="schedule"></div>
   <div class="empty" id="empty" style="display:none;">No hi ha sessions amb players per a aquesta selecció.</div>
@@ -258,6 +276,10 @@
     function render(){
       const schedule=document.getElementById("schedule");
       const empty=document.getElementById("empty");
+
+      // El pla de treball només aplica a la Setmana 1
+      const wp=document.getElementById("workplan");
+      if(wp) wp.style.display = filterWeek==="Setmana 1" ? "" : "none";
 
       // Dies a mostrar: tots els que tenen players o coachs assignats
       const dayset=new Set();
