@@ -831,10 +831,8 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     // afegeixen sessions puntuals d'un player. Persisteixen encara que es
     // reimporti el CSV. Clau d'eliminació: "Nom Cognoms|YYYY-MM-DD|HH:MM".
     const ENROLLMENT_REMOVALS = [
-      "Joana Pla|2026-07-03|20:00",
     ];
     const ENROLLMENT_ADDITIONS = [
-      { player:"Joana Pla", dateISO:"2026-07-02", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 1" },
     ];
     function applyEnrollmentExceptions(){
       const rm=new Set(ENROLLMENT_REMOVALS);
