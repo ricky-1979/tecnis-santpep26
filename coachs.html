@@ -389,34 +389,34 @@
           <span class="wk">${ISO_WEEK[b.dateISO]||""}</span>
         </div>`;
         const rows=b.rows.map(r=>{
-          const coachBadges = r.coaches.length
-            ? r.coaches.map(c=>`<span class="badge coach">${esc(c)}</span>`).join(" ")
-            : `<span class="badge empty">Sense coach assignat</span>`;
           const badge = p=>`<span class="badge player${p.solt?" solt":""}" title="${p.solt?"Dia solt":"Setmana completa"}">${esc(p.name)}</span>`;
-          const groupLine = (lbl, arr)=> arr.length
-            ? `<div class="slot-line"><span class="lbl">${lbl}</span><span class="count">(${arr.length})</span><span class="names">${arr.map(badge).join(" ")}</span></div>`
+          const coachBadge = name=>`<span class="badge coach" title="Coach">${esc(name)}</span>`;
+          // Línia de grup: coach(s) davant dels noms dels players.
+          const groupLine = (lbl, arr, coaches)=> arr.length
+            ? `<div class="slot-line"><span class="lbl">${lbl}</span><span class="count">(${arr.length})</span><span class="names">${(coaches||[]).map(coachBadge).join(" ")}${arr.map(badge).join(" ")}</span></div>`
             : "";
           let playerLines;
           if(!r.players.length){
             playerLines = `<div class="slot-line"><span class="lbl">Grup</span><span class="count">(0)</span><span class="names"><span class="badge empty">Sense players</span></span></div>`;
           } else if(r.players.length <= 5){
-            // 5 players o menys: un sol grup
-            playerLines = groupLine("Grup", r.players);
+            // 5 players o menys: un sol grup amb tots els coaches assignats
+            playerLines = groupLine("Grup", r.players, r.coaches);
           } else {
             // Més de 5 players: repartir per la meitat. Grup 1 = meitat
             // (els marcats "1" primer, completant amb la resta); Grup 2 = resta.
+            // Un coach a cada grup: el 1r al Grup 1, els següents al Grup 2.
             const half   = Math.ceil(r.players.length/2);
             const marked = r.players.filter(p=>p.grp==="1");
             const rest   = r.players.filter(p=>p.grp!=="1");
             const g1 = marked.slice(0,half);
             while(g1.length<half && rest.length){ g1.push(rest.shift()); }
             const g2 = r.players.filter(p=>!g1.includes(p));
-            playerLines = groupLine("Grup 1", g1) + groupLine("Grup 2", g2);
+            playerLines = groupLine("Grup 1", g1, r.coaches.slice(0,1))
+              + groupLine("Grup 2", g2, r.coaches.slice(1));
           }
           return `<div class="slot-row">
             <div class="slot-time">${SLOT_LABEL[r.slot]}</div>
             <div class="slot-body">
-              <div class="slot-line"><span class="lbl">Coachs</span><span class="count">(${r.coaches.length})</span><span class="names">${coachBadges}</span></div>
               ${playerLines}
             </div>
           </div>`;
