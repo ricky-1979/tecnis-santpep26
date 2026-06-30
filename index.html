@@ -701,10 +701,11 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         else localStorage.removeItem(GIST_ID_KEY);
       }
       updateCloudButton();
-      // La sincronització és automàtica: si ja hi ha un Gist, baixa l'última
-      // versió; si no, puja l'actual per crear-lo.
+      // La sincronització és automàtica i resol conflictes per timestamp:
+      // si el local és més nou (canvis pendents) es puja; si el núvol és
+      // més nou, es baixa. Així no es perden els canvis fets sense token.
       if(gistToken()){
-        if(gistId()){ setAssignStatus("Sincronitzant amb el núvol…"); gistPull(); }
+        if(gistId()){ gistSyncStartup(); }
         else { setAssignStatus("Creant el Gist al núvol…"); gistPush(); }
       } else {
         setAssignStatus("Token del núvol esborrat");
@@ -1451,6 +1452,8 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         clearTimeout(cloudSyncTimer);
         setAssignStatus("Desat · pujant al núvol…");
         cloudSyncTimer=setTimeout(()=>gistPush(),1200);
+      } else {
+        setAssignStatus("⚠️ Desat només en aquest navegador. Sense token els coachs NO ho veuen.");
       }
     }
 
@@ -1580,10 +1583,14 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       renderPlayers();
       renderAssign();
       updateCloudButton();
-      setAssignStatus(hadSaved?"Carregat del navegador":"Inicialitzat des de Koalendar");
       // Si el núvol està configurat, sincronitza resolent conflictes per timestamp
       if(gistToken() && gistId()){
+        setAssignStatus("Sincronitzant amb el núvol…");
         gistSyncStartup();
+      } else if(!gistToken()){
+        setAssignStatus("⚠️ Sense token: els canvis NO es publiquen per als coachs. Clica 'Sincronitzar al núvol…'");
+      } else {
+        setAssignStatus(hadSaved?"Carregat del navegador":"Inicialitzat des de Koalendar");
       }
       document.getElementById("footer").textContent=
         `${coachRecords.length} disponibilitats de coach · ${enrollments.length} places·dia de players · Generat ${new Date().toLocaleString("ca-ES")}`;
