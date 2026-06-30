@@ -637,17 +637,19 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       "Júlia Planell Cisa":"1","Karim Garcia":"1","Laia Cobarsi Sánchez":"2",
       "Miquel Villarreal Morales":"1","Oriol Azuaza Sampedro":"2","Maria Santana":"2",
     };
-    // Grup d'un player PER SETMANA. Prioritat: assignació manual d'aquella
-    // setmana ("Nom|Setmana X") → assignació global antiga ("Nom") → defecte
-    // estàtic → "1". Així es manté la compatibilitat amb les dades existents.
-    function groupOf(name, week){
+    // Grup d'un player PER SETMANA I FRANJA. Prioritat: manual setmana+franja
+    // ("Nom|Setmana X|18:00") → manual setmana ("Nom|Setmana X") → global antic
+    // ("Nom") → defecte estàtic → "1". Així cada franja és independent i es
+    // manté la compatibilitat amb les dades existents.
+    function groupOf(name, week, slot){
+      if(week && slot && playerGroups[name+"|"+week+"|"+slot]) return playerGroups[name+"|"+week+"|"+slot];
       if(week && playerGroups[name+"|"+week]) return playerGroups[name+"|"+week];
       return playerGroups[name] || PLAYER_GROUP_DEFAULTS[name] || "1";
     }
-    // Cert si el grup d'aquesta setmana s'ha fixat manualment (per setmana o
-    // globalment). Si no, el player "flota" i s'equilibra automàticament.
-    function groupIsManual(name, week){
-      return !!(playerGroups[name+"|"+week] || playerGroups[name]);
+    // Cert si el grup d'aquesta setmana+franja s'ha fixat manualment (a
+    // qualsevol nivell). Si no, el player "flota" i s'equilibra automàticament.
+    function groupIsManual(name, week, slot){
+      return !!((week&&slot&&playerGroups[name+"|"+week+"|"+slot]) || (week&&playerGroups[name+"|"+week]) || playerGroups[name]);
     }
 
     // Grup de treball del coach, PER FRANJA. Clau: "dateISO|slot|coach".
@@ -883,13 +885,14 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         if(c) coachGroups=JSON.parse(c)||{};
       }catch(e){ coachGroups={}; }
     }
-    // Fixa el grup d'un player per a la setmana seleccionada. La clau inclou
-    // la setmana ("Nom|Setmana X") perquè cada setmana sigui independent.
-    function setPlayerGroup(name, grp){
+    // Fixa el grup d'un player per a la setmana+franja seleccionada. La clau
+    // inclou setmana i franja ("Nom|Setmana X|18:00") perquè cada franja sigui
+    // independent (un player pot anar a franges diferents la mateixa setmana).
+    function setPlayerGroup(name, slot, grp){
       const wk=groupsWeek;
-      if(!wk) return;
-      if(groupOf(name,wk)===grp && groupIsManual(name,wk)) return;
-      playerGroups[name+"|"+wk]=grp;
+      if(!wk || !slot) return;
+      if(groupOf(name,wk,slot)===grp && groupIsManual(name,wk,slot)) return;
+      playerGroups[name+"|"+wk+"|"+slot]=grp;
       afterAssignChange();
       renderGroups();
     }
@@ -1556,12 +1559,12 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         const names=[...bySlot.get(sl)].sort((a,b)=>a.localeCompare(b));
         if(!names.length) return;
         const rows=names.map(n=>{
-          const g=groupOf(n,wk);
+          const g=groupOf(n,wk,sl);
           return `<div class="grp-row">
             <span class="grp-name" title="${esc(n)}">${esc(n)}</span>
-            <span class="grp-toggle" data-name="${esc(n)}">
-              <button type="button" class="gbtn${g==="1"?" on":""}" data-name="${esc(n)}" data-grp="1">G1</button>
-              <button type="button" class="gbtn g2${g==="2"?" on":""}" data-name="${esc(n)}" data-grp="2">G2</button>
+            <span class="grp-toggle" data-name="${esc(n)}" data-slot="${esc(sl)}">
+              <button type="button" class="gbtn${g==="1"?" on":""}" data-name="${esc(n)}" data-slot="${esc(sl)}" data-grp="1">G1</button>
+              <button type="button" class="gbtn g2${g==="2"?" on":""}" data-name="${esc(n)}" data-slot="${esc(sl)}" data-grp="2">G2</button>
             </span>
           </div>`;
         }).join("");
@@ -1572,7 +1575,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       });
       wrap.innerHTML = html || `<p class="hint">No hi ha players inscrits aquesta setmana.</p>`;
       wrap.querySelectorAll(".gbtn").forEach(b=>{
-        b.addEventListener("click",()=>setPlayerGroup(b.dataset.name, b.dataset.grp));
+        b.addEventListener("click",()=>setPlayerGroup(b.dataset.name, b.dataset.slot, b.dataset.grp));
       });
     }
 
