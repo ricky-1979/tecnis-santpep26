@@ -142,6 +142,7 @@
     const gistId = ()=> localStorage.getItem(GIST_ID_KEY)||DEFAULT_GIST_ID;
 
     let assignments = {};
+    let playerGroups = {}; // override sincronitzat des del dashboard
     let enrollments = [];
     let filterWeek = "";
 
@@ -158,9 +159,9 @@
       return PLAYER_SLOT_OVERRIDES[`${player}|${week}`] || slot;
     }
 
-    // Grup de treball de cada player: "1" o "2". Clau: "Nom Cognoms".
-    // Els que no hi siguin (o buit) es mostren a "Players" sense grup.
-    const PLAYER_GROUP = {
+    // Grup de treball per defecte de cada player: "1" o "2". Clau: "Nom
+    // Cognoms". El dashboard pot sobreescriure-ho i ho sincronitza pel Gist.
+    const PLAYER_GROUP_DEFAULTS = {
       // Infantil (18:00)
       "Adrià Durante Masa": "2",
       "Alvaro Alvarez Romero": "2",
@@ -213,7 +214,8 @@
       "Miquel Villarreal Morales": "1",
       "Oriol Azuaza Sampedro": "2",
     };
-    function groupOf(name){ return PLAYER_GROUP[name] || ""; }
+    // Prioritat: override sincronitzat del dashboard → defecte estàtic → "1".
+    function groupOf(name){ return playerGroups[name] || PLAYER_GROUP_DEFAULTS[name] || "1"; }
 
     // Excepcions per dia concret (sincronitzades amb el dashboard).
     const ENROLLMENT_REMOVALS = [
@@ -287,6 +289,10 @@
 
     function loadAssignments(){
       try{
+        const g=localStorage.getItem("tecnis-playergroups-v1");
+        if(g) playerGroups=JSON.parse(g)||{};
+      }catch(e){ /* ignora */ }
+      try{
         const raw=localStorage.getItem(ASSIGN_KEY);
         if(raw){ assignments=JSON.parse(raw)||{}; return true; }
       }catch(e){ /* ignora */ }
@@ -310,9 +316,12 @@
         const file=data.files && data.files[GIST_FILENAME];
         if(!file) throw new Error("fitxer no trobat");
         const parsed=JSON.parse(file.content);
-        // Format nou: { _ts, assignments }. Format antic: assignacions directes.
+        // Format nou: { _ts, assignments, playerGroups }. Antic: assignacions directes.
         let next=null;
-        if(parsed && parsed.assignments && typeof parsed.assignments==="object") next=parsed.assignments;
+        if(parsed && parsed.assignments && typeof parsed.assignments==="object"){
+          next=parsed.assignments;
+          if(parsed.playerGroups && typeof parsed.playerGroups==="object") playerGroups=parsed.playerGroups;
+        }
         else if(parsed && typeof parsed==="object") next=parsed;
         if(next){
           assignments=next;
