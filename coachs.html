@@ -402,8 +402,8 @@
           } else if(r.players.length <= 4){
             // 4 players o menys: un sol grup
             playerLines = groupLine("Grup", r.players);
-          } else if(r.players.length > 8){
-            // Més de 8 players: repartir per la meitat. Grup 1 = meitat
+          } else {
+            // Més de 4 players: repartir per la meitat. Grup 1 = meitat
             // (els marcats "1" primer, completant amb la resta); Grup 2 = resta.
             const half   = Math.ceil(r.players.length/2);
             const marked = r.players.filter(p=>p.grp==="1");
@@ -411,17 +411,6 @@
             const g1 = marked.slice(0,half);
             while(g1.length<half && rest.length){ g1.push(rest.shift()); }
             const g2 = r.players.filter(p=>!g1.includes(p));
-            playerLines = groupLine("Grup 1", g1) + groupLine("Grup 2", g2);
-          } else {
-            // 5 a 8 players: dos grups segons el mapa
-            let g1 = r.players.filter(p=>p.grp==="1");
-            let g2 = r.players.filter(p=>p.grp!=="1");
-            // Si el mapa no els reparteix (tots al mateix grup),
-            // fes un grup de 4 i un grup amb la resta.
-            if(g1.length===0 || g2.length===0){
-              g1 = r.players.slice(0,4);
-              g2 = r.players.slice(4);
-            }
             playerLines = groupLine("Grup 1", g1) + groupLine("Grup 2", g2);
           }
           return `<div class="slot-row">
