@@ -158,63 +158,6 @@
       return PLAYER_SLOT_OVERRIDES[`${player}|${week}`] || slot;
     }
 
-    // Tipus de player: "interior" o "exterior". Clau: "Nom Cognoms".
-    // Els que no hi siguin es mostren com a "sense classificar".
-    const PLAYER_POSITION = {
-      // Infantil (18:00)
-      "Adrià Durante Masa": "exterior",
-      "Alvaro Alvarez Romero": "exterior",
-      "Elma López Rendón": "exterior",
-      "Elsa Aranda Carbón": "exterior",
-      "Joel González Gutiérrez": "exterior",
-      "Lluc Sabater Deulofeu": "exterior",
-      "Pau Piè Bilbao": "exterior",
-      "Roc Arbonès López": "exterior",
-      // Infantil/Cadet (19:00)
-      "Arnau Albaigés Belsué": "exterior",
-      "Blai Abrisqueta López": "exterior",
-      "Demian Amat Sanguino": "exterior",
-      "Efrén Armenteros Roldán": "exterior",
-      "Hugo Morales Gómez de Segura": "exterior",
-      "Hugo Parvez Salvador": "exterior",
-      "Yago Morales Gómez de Segura": "exterior",
-      // Cadet/Júnior (20:00)
-      "Ainhoa Espinal lopez": "exterior",
-      "Aniol Abrisqueta López": "exterior",
-      "Carla Perramón Navarro": "interior",
-      "David Garcia Guerra": "interior",
-      "Huàscar Ezcurra Parera": "exterior",
-      "Ivana Benito Polo": "exterior",
-      "Jan Benedicto López": "exterior",
-      "Jan Rodríguez González": "exterior",
-      "Joana Pla": "interior",
-      "Lluc Muñoz Casals": "exterior",
-      "Luc Ramos Echegaray": "exterior",
-      "Martina Carrillo Bach": "interior",
-      "Martí Ordóñez Pla": "exterior",
-      "Miquel Lopez Serrano": "exterior",
-      "Oriol Ortega Alos": "exterior",
-      "Pol Simón Reyes": "interior",
-      "Queralt Gratacós Canals": "exterior",
-      "Sofía Carabajal Palau": "exterior",
-      "Sílvia Muñoz Afuera": "exterior",
-      "Teo Bigas Romo": "exterior",
-      "Thaïs Sampera Cerdà": "exterior",
-      // Júnior/Sènior (21:00)
-      "Abril Barrau Puig": "interior",
-      "Aina Parera Roca": "exterior",
-      "Alex Rojas Torres": "exterior",
-      "Hugo Alvarez Romero": "exterior",
-      "Ignasi Zanui Mitjana": "exterior",
-      "Jana Llibre Tossas": "exterior",
-      "Júlia Planell Cisa": "interior",
-      "Karim Garcia": "exterior",
-      "Laia Cobarsi Sánchez": "exterior",
-      "Miquel Villarreal Morales": "interior",
-      "Oriol Azuaza Sampedro": "exterior",
-    };
-    function positionOf(name){ return PLAYER_POSITION[name] || ""; }
-
     // Excepcions per dia concret (sincronitzades amb el dashboard).
     const ENROLLMENT_REMOVALS = [
       "Joana Pla|2026-07-03|20:00",
@@ -343,7 +286,7 @@
     function playersFor(dateISO, slot){
       return enrollments
         .filter(e=>e.dateISO===dateISO && e.slot===slot)
-        .map(e=>({ name:e.player, solt:!!e.solt, pos:positionOf(e.player) }))
+        .map(e=>({ name:e.player, solt:!!e.solt }))
         .sort((a,b)=>a.name.localeCompare(b.name));
     }
 
@@ -392,21 +335,14 @@
           const coachBadges = r.coaches.length
             ? r.coaches.map(c=>`<span class="badge coach">${esc(c)}</span>`).join(" ")
             : `<span class="badge empty">Sense coach assignat</span>`;
-          const badge = p=>`<span class="badge player${p.solt?" solt":""}" title="${p.solt?"Dia solt":"Setmana completa"}">${esc(p.name)}</span>`;
-          const interiors = r.players.filter(p=>p.pos==="interior");
-          const exteriors = r.players.filter(p=>p.pos==="exterior");
-          const others    = r.players.filter(p=>!p.pos);
-          const groupLine = (lbl, arr)=> arr.length
-            ? `<div class="slot-line"><span class="lbl">${lbl}</span><span class="count">(${arr.length})</span><span class="names">${arr.map(badge).join(" ")}</span></div>`
-            : "";
-          const playerLines = r.players.length
-            ? groupLine("Interiors", interiors) + groupLine("Exteriors", exteriors) + groupLine("Sense classif.", others)
-            : `<div class="slot-line"><span class="lbl">Players</span><span class="count">(0)</span><span class="names"><span class="badge empty">Sense players</span></span></div>`;
+          const playerBadges = r.players.length
+            ? r.players.map(p=>`<span class="badge player${p.solt?" solt":""}" title="${p.solt?"Dia solt":"Setmana completa"}">${esc(p.name)}</span>`).join(" ")
+            : `<span class="badge empty">Sense players</span>`;
           return `<div class="slot-row">
             <div class="slot-time">${SLOT_LABEL[r.slot]}</div>
             <div class="slot-body">
               <div class="slot-line"><span class="lbl">Coachs</span><span class="count">(${r.coaches.length})</span><span class="names">${coachBadges}</span></div>
-              ${playerLines}
+              <div class="slot-line"><span class="lbl">Players</span><span class="count">(${r.players.length})</span><span class="names">${playerBadges}</span></div>
             </div>
           </div>`;
         }).join("");
