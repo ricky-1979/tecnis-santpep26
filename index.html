@@ -778,6 +778,25 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       return PLAYER_SLOT_OVERRIDES[`${player}|${week}`] || slot;
     }
 
+    // Excepcions per dia concret (no per setmana sencera): eliminen o
+    // afegeixen sessions puntuals d'un player. Persisteixen encara que es
+    // reimporti el CSV. Clau d'eliminació: "Nom Cognoms|YYYY-MM-DD|HH:MM".
+    const ENROLLMENT_REMOVALS = [
+      "Joana Pla|2026-07-03|20:00",
+    ];
+    const ENROLLMENT_ADDITIONS = [
+      { player:"Joana Pla", dateISO:"2026-07-02", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 1" },
+    ];
+    function applyEnrollmentExceptions(){
+      const rm=new Set(ENROLLMENT_REMOVALS);
+      enrollments=enrollments.filter(e=>!rm.has(`${e.player}|${e.dateISO}|${e.slot}`));
+      ENROLLMENT_ADDITIONS.forEach(a=>{
+        if(!enrollments.some(e=>e.player===a.player && e.dateISO===a.dateISO && e.slot===a.slot)){
+          enrollments.push({ ...a });
+        }
+      });
+    }
+
     function getEmbedded(id){
       const t=(document.getElementById(id)?.textContent||"").trim();
       return (t && !t.startsWith("__")) ? t : "";
@@ -1605,11 +1624,12 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         loadCoaches(cText);
         loadPlayers(pText);
         loadPlayersSolts(sText);
+        applyEnrollmentExceptions();
         init();
         return;
       }
       // Fallback via fetch (necessita servidor)
-      let pending=3; const done=()=>{ if(--pending<=0) init(); };
+      let pending=3; const done=()=>{ if(--pending<=0){ applyEnrollmentExceptions(); init(); } };
       Papa.parse("koalendar-bookings-2026-06-29-upcoming.csv",{download:true,...PARSE_OPTS,
         complete:r=>{ loadCoaches(Papa.unparse(r.data)); done(); }});
       Papa.parse("TECNIFICACIONS JULIOL 26-submissions.csv",{download:true,...PARSE_OPTS,

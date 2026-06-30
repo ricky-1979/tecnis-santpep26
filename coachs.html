@@ -158,6 +158,23 @@
       return PLAYER_SLOT_OVERRIDES[`${player}|${week}`] || slot;
     }
 
+    // Excepcions per dia concret (sincronitzades amb el dashboard).
+    const ENROLLMENT_REMOVALS = [
+      "Joana Pla|2026-07-03|20:00",
+    ];
+    const ENROLLMENT_ADDITIONS = [
+      { player:"Joana Pla", dateISO:"2026-07-02", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 1" },
+    ];
+    function applyEnrollmentExceptions(){
+      const rm=new Set(ENROLLMENT_REMOVALS);
+      enrollments=enrollments.filter(e=>!rm.has(`${e.player}|${e.dateISO}|${e.slot}`));
+      ENROLLMENT_ADDITIONS.forEach(a=>{
+        if(!enrollments.some(e=>e.player===a.player && e.dateISO===a.dateISO && e.slot===a.slot)){
+          enrollments.push({ ...a });
+        }
+      });
+    }
+
     function isoFromMdy(mdy){ const [m,d,y]=mdy.split("/"); return `${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`; }
     function displayFromIso(iso){ const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
     function weekdayFromIso(iso){ const [y,m,d]=iso.split("-").map(Number); return WEEKDAYS[new Date(Date.UTC(y,m-1,d)).getUTCDay()]; }
@@ -374,6 +391,7 @@
       fetch("index.html?t="+Date.now(),{cache:"no-store"}).then(r=>r.text()).then(html=>{
         loadPlayers(extractBlock(html,"playersCsv"));
         loadPlayersSolts(extractBlock(html,"playersSoltsCsv"));
+        applyEnrollmentExceptions();
         const logo=extractLogo(html);
         if(logo){ document.querySelector("header .logo").src=logo; }
         const cartell=extractCartell(html);
