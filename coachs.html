@@ -352,7 +352,9 @@
     function playersFor(dateISO, slot){
       return enrollments
         .filter(e=>e.dateISO===dateISO && e.slot===slot)
-        .map(e=>({ name:e.player, solt:!!e.solt, grp:groupOf(e.player) }))
+        // manual = assignat explícitament des del dashboard (té prioritat i es
+        // fixa al grup); si no, grp és el valor per defecte i es pot equilibrar.
+        .map(e=>({ name:e.player, solt:!!e.solt, grp:groupOf(e.player), manual:!!playerGroups[e.player] }))
         .sort((a,b)=>a.name.localeCompare(b.name));
     }
 
@@ -407,19 +409,33 @@
           let playerLines;
           if(!r.players.length){
             playerLines = `<div class="slot-line"><span class="lbl">Grup</span><span class="count">(0)</span><span class="names"><span class="badge empty">Sense players</span></span></div>`;
+          } else if(r.players.length <= 5){
+            // 5 players o menys: un sol grup amb tots els coaches assignats
+            playerLines = groupLine("Grup", r.players, r.coaches);
           } else {
-            // Repartiment estricte segons el grup assignat a cada player
-            // (manual des del dashboard o per defecte). Grup 1 = marcats "1";
-            // Grup 2 = la resta. Un coach a cada grup: el 1r al Grup 1, els
-            // següents al Grup 2. Si tots són del mateix grup, un sol "Grup".
-            const g1 = r.players.filter(p=>p.grp==="1");
-            const g2 = r.players.filter(p=>p.grp!=="1");
-            if(g1.length && g2.length){
-              playerLines = groupLine("Grup 1", g1, r.coaches.slice(0,1))
-                + groupLine("Grup 2", g2, r.coaches.slice(1));
-            } else {
-              playerLines = groupLine("Grup", r.players, r.coaches);
-            }
+            // Repartiment en dos grups equilibrats (meitats) RESPECTANT les
+            // assignacions manuals fetes des del dashboard: els players amb
+            // grup manual queden fixats al seu grup; la resta s'equilibra
+            // automàticament fins a omplir cada meitat. Un coach a cada grup:
+            // el 1r al Grup 1, els següents al Grup 2.
+            const half = Math.ceil(r.players.length/2);
+            const g1=[], g2=[], floats=[];
+            r.players.forEach(p=>{
+              if(p.manual && p.grp==="1") g1.push(p);
+              else if(p.manual && p.grp==="2") g2.push(p);
+              else floats.push(p); // grup per defecte → es pot reubicar
+            });
+            // Reparteix els no-fixats: primer omple el Grup 1 fins a la meitat
+            // prioritzant els que tenen "1" per defecte; la resta al Grup 2.
+            const fMarked = floats.filter(p=>p.grp==="1");
+            const fRest   = floats.filter(p=>p.grp!=="1");
+            const ordered = fMarked.concat(fRest);
+            ordered.forEach(p=>{ if(g1.length<half) g1.push(p); else g2.push(p); });
+            // Manté l'ordre alfabètic dins de cada grup
+            g1.sort((a,b)=>a.name.localeCompare(b.name));
+            g2.sort((a,b)=>a.name.localeCompare(b.name));
+            playerLines = groupLine("Grup 1", g1, r.coaches.slice(0,1))
+              + groupLine("Grup 2", g2, r.coaches.slice(1));
           }
           return `<div class="slot-row">
             <div class="slot-time">${SLOT_LABEL[r.slot]}</div>
