@@ -158,62 +158,62 @@
       return PLAYER_SLOT_OVERRIDES[`${player}|${week}`] || slot;
     }
 
-    // Tipus de player: "interior" o "exterior". Clau: "Nom Cognoms".
-    // Els que no hi siguin es mostren com a "sense classificar".
-    const PLAYER_POSITION = {
+    // Grup de treball de cada player: "1" o "2". Clau: "Nom Cognoms".
+    // Els que no hi siguin (o buit) es mostren a "Players" sense grup.
+    const PLAYER_GROUP = {
       // Infantil (18:00)
-      "Adrià Durante Masa": "exterior",
-      "Alvaro Alvarez Romero": "exterior",
-      "Elma López Rendón": "exterior",
-      "Elsa Aranda Carbón": "exterior",
-      "Joel González Gutiérrez": "exterior",
-      "Lluc Sabater Deulofeu": "exterior",
-      "Pau Piè Bilbao": "exterior",
-      "Roc Arbonès López": "exterior",
+      "Adrià Durante Masa": "2",
+      "Alvaro Alvarez Romero": "2",
+      "Elma López Rendón": "2",
+      "Elsa Aranda Carbón": "2",
+      "Joel González Gutiérrez": "2",
+      "Lluc Sabater Deulofeu": "2",
+      "Pau Piè Bilbao": "2",
+      "Roc Arbonès López": "2",
       // Infantil/Cadet (19:00)
-      "Arnau Albaigés Belsué": "exterior",
-      "Blai Abrisqueta López": "exterior",
-      "Demian Amat Sanguino": "exterior",
-      "Efrén Armenteros Roldán": "exterior",
-      "Hugo Morales Gómez de Segura": "exterior",
-      "Hugo Parvez Salvador": "exterior",
-      "Yago Morales Gómez de Segura": "exterior",
+      "Arnau Albaigés Belsué": "2",
+      "Blai Abrisqueta López": "2",
+      "Demian Amat Sanguino": "2",
+      "Efrén Armenteros Roldán": "2",
+      "Hugo Morales Gómez de Segura": "2",
+      "Hugo Parvez Salvador": "2",
+      "Yago Morales Gómez de Segura": "2",
       // Cadet/Júnior (20:00)
-      "Ainhoa Espinal lopez": "exterior",
-      "Aniol Abrisqueta López": "exterior",
-      "Carla Perramón Navarro": "interior",
-      "David Garcia Guerra": "interior",
-      "Huàscar Ezcurra Parera": "exterior",
-      "Ivana Benito Polo": "exterior",
-      "Jan Benedicto López": "exterior",
-      "Jan Rodríguez González": "exterior",
-      "Joana Pla": "interior",
-      "Lluc Muñoz Casals": "exterior",
-      "Luc Ramos Echegaray": "exterior",
-      "Martina Carrillo Bach": "interior",
-      "Martí Ordóñez Pla": "exterior",
-      "Miquel Lopez Serrano": "exterior",
-      "Oriol Ortega Alos": "exterior",
-      "Pol Simón Reyes": "interior",
-      "Queralt Gratacós Canals": "exterior",
-      "Sofía Carabajal Palau": "exterior",
-      "Sílvia Muñoz Afuera": "exterior",
-      "Teo Bigas Romo": "exterior",
-      "Thaïs Sampera Cerdà": "exterior",
+      "Ainhoa Espinal lopez": "2",
+      "Aniol Abrisqueta López": "2",
+      "Carla Perramón Navarro": "1",
+      "David Garcia Guerra": "1",
+      "Huàscar Ezcurra Parera": "2",
+      "Ivana Benito Polo": "2",
+      "Jan Benedicto López": "2",
+      "Jan Rodríguez González": "2",
+      "Joana Pla": "1",
+      "Lluc Muñoz Casals": "2",
+      "Luc Ramos Echegaray": "2",
+      "Martina Carrillo Bach": "1",
+      "Martí Ordóñez Pla": "2",
+      "Miquel Lopez Serrano": "2",
+      "Oriol Ortega Alos": "2",
+      "Pol Simón Reyes": "1",
+      "Queralt Gratacós Canals": "2",
+      "Sofía Carabajal Palau": "2",
+      "Sílvia Muñoz Afuera": "2",
+      "Teo Bigas Romo": "2",
+      "Thaïs Sampera Cerdà": "2",
       // Júnior/Sènior (21:00)
-      "Abril Barrau Puig": "interior",
-      "Aina Parera Roca": "exterior",
-      "Alex Rojas Torres": "exterior",
-      "Hugo Alvarez Romero": "exterior",
-      "Ignasi Zanui Mitjana": "exterior",
-      "Jana Llibre Tossas": "exterior",
-      "Júlia Planell Cisa": "interior",
-      "Karim Garcia": "exterior",
-      "Laia Cobarsi Sánchez": "exterior",
-      "Miquel Villarreal Morales": "interior",
-      "Oriol Azuaza Sampedro": "exterior",
+      "Abril Barrau Puig": "1",
+      "Aina Parera Roca": "2",
+      "Alex Rojas Torres": "2",
+      "Hugo Alvarez Romero": "2",
+      "Ignasi Zanui Mitjana": "2",
+      "Jana Llibre Tossas": "2",
+      "Júlia Planell Cisa": "1",
+      "Karim Garcia": "2",
+      "Laia Cobarsi Sánchez": "2",
+      "Miquel Villarreal Morales": "1",
+      "Oriol Azuaza Sampedro": "2",
     };
-    function positionOf(name){ return PLAYER_POSITION[name] || ""; }
+    function groupOf(name){ return PLAYER_GROUP[name] || ""; }
 
     // Excepcions per dia concret (sincronitzades amb el dashboard).
     const ENROLLMENT_REMOVALS = [
@@ -343,7 +343,7 @@
     function playersFor(dateISO, slot){
       return enrollments
         .filter(e=>e.dateISO===dateISO && e.slot===slot)
-        .map(e=>({ name:e.player, solt:!!e.solt, pos:positionOf(e.player) }))
+        .map(e=>({ name:e.player, solt:!!e.solt, grp:groupOf(e.player) }))
         .sort((a,b)=>a.name.localeCompare(b.name));
     }
 
@@ -393,18 +393,27 @@
             ? r.coaches.map(c=>`<span class="badge coach">${esc(c)}</span>`).join(" ")
             : `<span class="badge empty">Sense coach assignat</span>`;
           const badge = p=>`<span class="badge player${p.solt?" solt":""}" title="${p.solt?"Dia solt":"Setmana completa"}">${esc(p.name)}</span>`;
-          const interiors = r.players.filter(p=>p.pos==="interior");
-          const exteriors = r.players.filter(p=>p.pos==="exterior");
-          const others    = r.players.filter(p=>!p.pos);
           const groupLine = (lbl, arr)=> arr.length
             ? `<div class="slot-line"><span class="lbl">${lbl}</span><span class="count">(${arr.length})</span><span class="names">${arr.map(badge).join(" ")}</span></div>`
             : "";
-          const bothGroups = interiors.length>0 && exteriors.length>0;
-          const playerLines = r.players.length
-            ? groupLine(bothGroups?"Players G1":"Players", interiors)
-              + groupLine(bothGroups?"Players G2":"Players", exteriors)
-              + groupLine("Players", others)
-            : `<div class="slot-line"><span class="lbl">Players</span><span class="count">(0)</span><span class="names"><span class="badge empty">Sense players</span></span></div>`;
+          let playerLines;
+          if(!r.players.length){
+            playerLines = `<div class="slot-line"><span class="lbl">Grup</span><span class="count">(0)</span><span class="names"><span class="badge empty">Sense players</span></span></div>`;
+          } else if(r.players.length < 4){
+            // Menys de 4 players: un sol grup
+            playerLines = groupLine("Grup", r.players);
+          } else {
+            // 4 o més: dos grups segons el mapa
+            let g1 = r.players.filter(p=>p.grp==="1");
+            let g2 = r.players.filter(p=>p.grp!=="1");
+            // Si el mapa no els reparteix (tots al mateix grup),
+            // fes un grup de 4 i un grup amb la resta.
+            if(g1.length===0 || g2.length===0){
+              g1 = r.players.slice(0,4);
+              g2 = r.players.slice(4);
+            }
+            playerLines = groupLine("Grup 1", g1) + groupLine("Grup 2", g2);
+          }
           return `<div class="slot-row">
             <div class="slot-time">${SLOT_LABEL[r.slot]}</div>
             <div class="slot-body">
