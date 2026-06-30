@@ -212,7 +212,10 @@
 
   <div class="table-card">
     <h2 class="section">Grups de treball</h2>
-    <p class="hint">Tria si cada player va al <strong>Grup 1</strong> o al <strong>Grup 2</strong>. L'assignació és per player (es manté tots els dies) i es mostra a la pàgina dels coachs. Els canvis es desen i se sincronitzen automàticament.</p>
+    <p class="hint">Tria si cada player va al <strong>Grup 1</strong> o al <strong>Grup 2</strong> per a la setmana seleccionada. Es mostra a la pàgina dels coachs. Els canvis es desen i se sincronitzen automàticament.</p>
+    <div class="assign-toolbar">
+      <select id="groupsWeek"></select>
+    </div>
     <div class="assign-overwrap">
       <div class="groups-wrap" id="groupsWrap"></div>
     </div>
@@ -607,9 +610,10 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     const GROUPS_KEY = "tecnis-playergroups-v1";
     const CGROUPS_KEY = "tecnis-coachgroups-v1";
     let assignments = {}; // "dateISO|slot" -> [coach, ...]
-    let playerGroups = {}; // "Nom Cognoms" -> "1" | "2"
+    let playerGroups = {}; // "Nom|Setmana X" o "Nom" (antic) -> "1" | "2"
     let coachGroups = {}; // "dateISO|slot|coach" -> "1" | "2"
     let assignWeek = "";
+    let groupsWeek = ""; // setmana seleccionada a la secció Grups de treball
     let dragInfo = null;  // { from:"dateISO|slot", coach }
 
     // Grup de treball per defecte de cada player ("1" o "2"). Es pot
@@ -633,7 +637,18 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       "Júlia Planell Cisa":"1","Karim Garcia":"1","Laia Cobarsi Sánchez":"2",
       "Miquel Villarreal Morales":"1","Oriol Azuaza Sampedro":"2","Maria Santana":"2",
     };
-    function groupOf(name){ return playerGroups[name] || PLAYER_GROUP_DEFAULTS[name] || "1"; }
+    // Grup d'un player PER SETMANA. Prioritat: assignació manual d'aquella
+    // setmana ("Nom|Setmana X") → assignació global antiga ("Nom") → defecte
+    // estàtic → "1". Així es manté la compatibilitat amb les dades existents.
+    function groupOf(name, week){
+      if(week && playerGroups[name+"|"+week]) return playerGroups[name+"|"+week];
+      return playerGroups[name] || PLAYER_GROUP_DEFAULTS[name] || "1";
+    }
+    // Cert si el grup d'aquesta setmana s'ha fixat manualment (per setmana o
+    // globalment). Si no, el player "flota" i s'equilibra automàticament.
+    function groupIsManual(name, week){
+      return !!(playerGroups[name+"|"+week] || playerGroups[name]);
+    }
 
     // Grup de treball del coach, PER FRANJA. Clau: "dateISO|slot|coach".
     // Per defecte el 1r coach (ordre alfabètic) de la franja va al Grup 1 i
@@ -868,9 +883,13 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         if(c) coachGroups=JSON.parse(c)||{};
       }catch(e){ coachGroups={}; }
     }
+    // Fixa el grup d'un player per a la setmana seleccionada. La clau inclou
+    // la setmana ("Nom|Setmana X") perquè cada setmana sigui independent.
     function setPlayerGroup(name, grp){
-      if(groupOf(name)===grp) return;
-      playerGroups[name]=grp;
+      const wk=groupsWeek;
+      if(!wk) return;
+      if(groupOf(name,wk)===grp && groupIsManual(name,wk)) return;
+      playerGroups[name+"|"+wk]=grp;
       afterAssignChange();
       renderGroups();
     }
@@ -1508,20 +1527,32 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     }
     function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
+    // Selector de setmana de la secció Grups de treball
+    function buildGroupsWeekSelect(){
+      const sel=document.getElementById("groupsWeek");
+      if(!sel) return;
+      const weeks=WEEK_COLUMNS.map(w=>w.label).filter(w=> enrollments.some(e=>e.week===w));
+      if(!weeks.length){ sel.innerHTML=""; groupsWeek=""; return; }
+      if(!groupsWeek || !weeks.includes(groupsWeek)) groupsWeek=weeks[0];
+      sel.innerHTML=weeks.map(w=>`<option value="${esc(w)}"${w===groupsWeek?" selected":""}>${esc(w)}</option>`).join("");
+    }
+
     // Editor de grups de treball: un player per fila amb commutador G1/G2,
-    // agrupat per franja horària. L'assignació és per player (tots els dies).
+    // agrupat per franja horària, per a la setmana seleccionada.
     function renderGroups(){
       const wrap=document.getElementById("groupsWrap");
       if(!wrap) return;
-      // Players únics per franja (independentment del dia)
+      buildGroupsWeekSelect();
+      const wk=groupsWeek;
+      // Players únics per franja inscrits a la setmana seleccionada
       const bySlot=new Map(); SLOTS.forEach(sl=>bySlot.set(sl,new Set()));
-      enrollments.forEach(e=>{ if(bySlot.has(e.slot)) bySlot.get(e.slot).add(e.player); });
+      enrollments.forEach(e=>{ if(e.week===wk && bySlot.has(e.slot)) bySlot.get(e.slot).add(e.player); });
       let html="";
       SLOTS.forEach(sl=>{
         const names=[...bySlot.get(sl)].sort((a,b)=>a.localeCompare(b));
         if(!names.length) return;
         const rows=names.map(n=>{
-          const g=groupOf(n);
+          const g=groupOf(n,wk);
           return `<div class="grp-row">
             <span class="grp-name" title="${esc(n)}">${esc(n)}</span>
             <span class="grp-toggle" data-name="${esc(n)}">
@@ -1535,7 +1566,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           <div class="grp-list">${rows}</div>
         </div>`;
       });
-      wrap.innerHTML = html || `<p class="hint">No hi ha players inscrits.</p>`;
+      wrap.innerHTML = html || `<p class="hint">No hi ha players inscrits aquesta setmana.</p>`;
       wrap.querySelectorAll(".gbtn").forEach(b=>{
         b.addEventListener("click",()=>setPlayerGroup(b.dataset.name, b.dataset.grp));
       });
@@ -1768,6 +1799,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       });
       // Assignació editable
       document.getElementById("assignWeek").addEventListener("change",e=>{ assignWeek=e.target.value; renderAssign(); });
+      document.getElementById("groupsWeek").addEventListener("change",e=>{ groupsWeek=e.target.value; renderGroups(); });
       document.getElementById("assignReset").addEventListener("click",resetAssignments);
       // Sincronització al núvol (Gist) — configuració manual només si cal
       document.getElementById("assignCloud").addEventListener("click",configureCloud);

@@ -216,8 +216,15 @@
       "Oriol Azuaza Sampedro": "2",
       "Maria Santana": "2",
     };
-    // Prioritat: override sincronitzat del dashboard → defecte estàtic → "1".
-    function groupOf(name){ return playerGroups[name] || PLAYER_GROUP_DEFAULTS[name] || "1"; }
+    // Grup d'un player per setmana. Prioritat: manual d'aquella setmana
+    // ("Nom|Setmana X") → manual global antic ("Nom") → defecte estàtic → "1".
+    function groupOf(name, week){
+      if(week && playerGroups[name+"|"+week]) return playerGroups[name+"|"+week];
+      return playerGroups[name] || PLAYER_GROUP_DEFAULTS[name] || "1";
+    }
+    function groupIsManual(name, week){
+      return !!(playerGroups[name+"|"+week] || playerGroups[name]);
+    }
 
     // Grup de treball del coach per franja. Override del dashboard o, per
     // defecte, el 1r coach (alfabètic) al Grup 1 i la resta al Grup 2.
@@ -368,11 +375,13 @@
     }
 
     function playersFor(dateISO, slot){
+      const wk=ISO_WEEK[dateISO]||"";
       return enrollments
         .filter(e=>e.dateISO===dateISO && e.slot===slot)
-        // manual = assignat explícitament des del dashboard (té prioritat i es
-        // fixa al grup); si no, grp és el valor per defecte i es pot equilibrar.
-        .map(e=>({ name:e.player, solt:!!e.solt, grp:groupOf(e.player), manual:!!playerGroups[e.player] }))
+        // manual = assignat explícitament des del dashboard per a aquella
+        // setmana (té prioritat i es fixa al grup); si no, grp és el valor per
+        // defecte i es pot equilibrar automàticament.
+        .map(e=>({ name:e.player, solt:!!e.solt, grp:groupOf(e.player,wk), manual:groupIsManual(e.player,wk) }))
         .sort((a,b)=>a.name.localeCompare(b.name));
     }
 
