@@ -99,6 +99,10 @@
     .assign-cell .pill.dragging { opacity:0.4; }
     .assign-cell .pill .rm { cursor:pointer; color:var(--muted); font-weight:700; line-height:1; padding:0 2px; }
     .assign-cell .pill .rm:hover { color:var(--danger); }
+    .assign-cell .pill .cgtoggle { display:inline-flex; border:1px solid var(--border); border-radius:999px; overflow:hidden; margin-left:2px; }
+    .assign-cell .pill .cgtoggle .cgbtn { background:transparent; border:none; color:var(--muted); padding:0 5px; font-size:0.66rem; font-weight:700; cursor:pointer; line-height:1.5; }
+    .assign-cell .pill .cgtoggle .cgbtn.on { background:var(--accent); color:#160f26; }
+    .assign-cell .pill .cgtoggle .cgbtn.on.g2 { background:var(--groc); color:#160f26; }
     .assign-cell .addbtn { border:1px dashed var(--border); background:transparent; color:var(--muted);
       border-radius:999px; padding:2px 8px; font-size:0.74rem; cursor:pointer; }
     .assign-cell .addbtn:hover { color:var(--groc); border-color:var(--groc); }
@@ -601,8 +605,10 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     // ---- Assignació editable (persistida al navegador) ----
     const ASSIGN_KEY = "tecnis-assignments-v1";
     const GROUPS_KEY = "tecnis-playergroups-v1";
+    const CGROUPS_KEY = "tecnis-coachgroups-v1";
     let assignments = {}; // "dateISO|slot" -> [coach, ...]
     let playerGroups = {}; // "Nom Cognoms" -> "1" | "2"
+    let coachGroups = {}; // "dateISO|slot|coach" -> "1" | "2"
     let assignWeek = "";
     let dragInfo = null;  // { from:"dateISO|slot", coach }
 
@@ -629,6 +635,16 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     };
     function groupOf(name){ return playerGroups[name] || PLAYER_GROUP_DEFAULTS[name] || "1"; }
 
+    // Grup de treball del coach, PER FRANJA. Clau: "dateISO|slot|coach".
+    // Per defecte el 1r coach (ordre alfabètic) de la franja va al Grup 1 i
+    // la resta al Grup 2 (com el repartiment automàtic). Es pot sobreescriure.
+    function coachGroupOf(dateISO, slot, coach, slotCoaches){
+      const k=dateISO+"|"+slot+"|"+coach;
+      if(coachGroups[k]) return coachGroups[k];
+      const sorted=(slotCoaches||[]).slice().sort((a,b)=>a.localeCompare(b));
+      return sorted[0]===coach ? "1" : "2";
+    }
+
     // ---- Sincronització al núvol via GitHub Gist ----
     // El token i l'id del gist es desen NOMÉS al localStorage d'aquest
     // navegador; mai s'incrusten a la pàgina pública.
@@ -645,7 +661,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       if(!token){ setAssignStatus("Configura primer el núvol"); return false; }
       // Inclou un timestamp dins el fitxer per resoldre conflictes en arrencar
       const ts=localTs()||Date.now();
-      const payload={ _ts:ts, assignments, playerGroups };
+      const payload={ _ts:ts, assignments, playerGroups, coachGroups };
       const body={
         description:"Assignació de coachs · Tecnificació SantPep",
         files:{ [GIST_FILENAME]:{ content:JSON.stringify(payload,null,2) } }
@@ -708,10 +724,11 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       // Format nou: { _ts, assignments, playerGroups }. Antic: assignacions directes.
       if(parsed && parsed.assignments && typeof parsed.assignments==="object"){
         return { ts:parsed._ts||0, assignments:parsed.assignments,
-                 playerGroups:(parsed.playerGroups&&typeof parsed.playerGroups==="object")?parsed.playerGroups:null };
+                 playerGroups:(parsed.playerGroups&&typeof parsed.playerGroups==="object")?parsed.playerGroups:null,
+                 coachGroups:(parsed.coachGroups&&typeof parsed.coachGroups==="object")?parsed.coachGroups:null };
       }
       if(parsed && typeof parsed==="object"){
-        return { ts:0, assignments:parsed, playerGroups:null };
+        return { ts:0, assignments:parsed, playerGroups:null, coachGroups:null };
       }
       return null;
     }
@@ -724,6 +741,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         if(remote){
           assignments=remote.assignments;
           if(remote.playerGroups) playerGroups=remote.playerGroups;
+          if(remote.coachGroups) coachGroups=remote.coachGroups;
           saveAssignments();
           refreshFromAssignments();
           setAssignStatus("Descarregat del núvol · "+new Date().toLocaleTimeString("ca-ES"));
@@ -752,8 +770,10 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           // El núvol és més nou → aplica'l
           assignments=remote.assignments;
           if(remote.playerGroups) playerGroups=remote.playerGroups;
+          if(remote.coachGroups) coachGroups=remote.coachGroups;
           try{ localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignments)); }catch(e){}
           try{ localStorage.setItem(GROUPS_KEY, JSON.stringify(playerGroups)); }catch(e){}
+          try{ localStorage.setItem(CGROUPS_KEY, JSON.stringify(coachGroups)); }catch(e){}
           try{ localStorage.setItem(ASSIGN_TS_KEY, String(remote.ts)); }catch(e){}
           refreshFromAssignments();
           setAssignStatus("Descarregat del núvol · "+new Date().toLocaleTimeString("ca-ES"));
@@ -833,6 +853,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       try{
         localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignments));
         localStorage.setItem(GROUPS_KEY, JSON.stringify(playerGroups));
+        localStorage.setItem(CGROUPS_KEY, JSON.stringify(coachGroups));
         localStorage.setItem(ASSIGN_TS_KEY, String(Date.now()));
       }catch(e){ /* ignora */ }
       setAssignStatus("Desat al navegador");
@@ -840,15 +861,25 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     function loadPlayerGroups(){
       try{
         const raw=localStorage.getItem(GROUPS_KEY);
-        if(raw){ playerGroups=JSON.parse(raw)||{}; return; }
-      }catch(e){ /* ignora */ }
-      playerGroups={};
+        if(raw) playerGroups=JSON.parse(raw)||{};
+      }catch(e){ playerGroups={}; }
+      try{
+        const c=localStorage.getItem(CGROUPS_KEY);
+        if(c) coachGroups=JSON.parse(c)||{};
+      }catch(e){ coachGroups={}; }
     }
     function setPlayerGroup(name, grp){
       if(groupOf(name)===grp) return;
       playerGroups[name]=grp;
       afterAssignChange();
       renderGroups();
+    }
+    // Fixa el grup d'un coach en una franja concreta i ho desa/sincronitza.
+    function setCoachGroup(dateISO, slot, coach, grp){
+      const slotCoaches=assignments[dateISO+"|"+slot]||[];
+      if(coachGroupOf(dateISO,slot,coach,slotCoaches)===grp) return;
+      coachGroups[dateISO+"|"+slot+"|"+coach]=grp;
+      afterAssignChange();
     }
     function setAssignStatus(msg){
       const el=document.getElementById("assignStatus");
@@ -1527,9 +1558,10 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           const coaches=assignments[key]||[];
           const players=playersBySlot.get(key)||0;
           const needed=coachesNeeded(players);
-          const pills=coaches.map(c=>
-            `<span class="pill" draggable="true" data-key="${esc(key)}" data-coach="${esc(c)}">${esc(c)}<span class="rm" data-key="${esc(key)}" data-coach="${esc(c)}" title="Treure">×</span></span>`
-          ).join("");
+          const pills=coaches.map(c=>{
+            const cg=coachGroupOf(d,sl,c,coaches);
+            return `<span class="pill" draggable="true" data-key="${esc(key)}" data-coach="${esc(c)}">${esc(c)}<span class="cgtoggle" title="Grup de treball del coach"><button type="button" class="cgbtn${cg==="1"?" on":""}" data-date="${esc(d)}" data-slot="${esc(sl)}" data-coach="${esc(c)}" data-grp="1">1</button><button type="button" class="cgbtn g2${cg==="2"?" on":""}" data-date="${esc(d)}" data-slot="${esc(sl)}" data-coach="${esc(c)}" data-grp="2">2</button></span><span class="rm" data-key="${esc(key)}" data-coach="${esc(c)}" title="Treure">×</span></span>`;
+          }).join("");
           const countTxt=players>0 ? `${coaches.length}/${needed} · ${players} pl.` : `${coaches.length}`;
           html+=`<div class="assign-cell" data-key="${esc(key)}">
             <span class="cell-count">${countTxt}</span>
@@ -1559,6 +1591,18 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           e.stopPropagation();
           removeCoach(x.dataset.key, x.dataset.coach);
         });
+      });
+      // grup de treball del coach (G1/G2)
+      grid.querySelectorAll(".cgbtn").forEach(b=>{
+        b.addEventListener("click",e=>{
+          e.stopPropagation();
+          setCoachGroup(b.dataset.date, b.dataset.slot, b.dataset.coach, b.dataset.grp);
+        });
+      });
+      // evita que el toggle inicii un drag de la pill
+      grid.querySelectorAll(".cgtoggle").forEach(t=>{
+        t.addEventListener("mousedown",e=>e.stopPropagation());
+        t.setAttribute("draggable","false");
       });
       // afegir
       grid.querySelectorAll(".addbtn").forEach(b=>{

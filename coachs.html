@@ -143,6 +143,7 @@
 
     let assignments = {};
     let playerGroups = {}; // override sincronitzat des del dashboard
+    let coachGroups = {}; // "dateISO|slot|coach" -> "1"|"2" (override del dashboard)
     let enrollments = [];
     let filterWeek = "";
 
@@ -216,6 +217,15 @@
     };
     // Prioritat: override sincronitzat del dashboard → defecte estàtic → "1".
     function groupOf(name){ return playerGroups[name] || PLAYER_GROUP_DEFAULTS[name] || "1"; }
+
+    // Grup de treball del coach per franja. Override del dashboard o, per
+    // defecte, el 1r coach (alfabètic) al Grup 1 i la resta al Grup 2.
+    function coachGroupOf(dateISO, slot, coach, slotCoaches){
+      const k=dateISO+"|"+slot+"|"+coach;
+      if(coachGroups[k]) return coachGroups[k];
+      const sorted=(slotCoaches||[]).slice().sort((a,b)=>a.localeCompare(b));
+      return sorted[0]===coach ? "1" : "2";
+    }
 
     // Excepcions per dia concret (sincronitzades amb el dashboard).
     const ENROLLMENT_REMOVALS = [
@@ -293,6 +303,10 @@
         if(g) playerGroups=JSON.parse(g)||{};
       }catch(e){ /* ignora */ }
       try{
+        const cg=localStorage.getItem("tecnis-coachgroups-v1");
+        if(cg) coachGroups=JSON.parse(cg)||{};
+      }catch(e){ /* ignora */ }
+      try{
         const raw=localStorage.getItem(ASSIGN_KEY);
         if(raw){ assignments=JSON.parse(raw)||{}; return true; }
       }catch(e){ /* ignora */ }
@@ -321,6 +335,7 @@
         if(parsed && parsed.assignments && typeof parsed.assignments==="object"){
           next=parsed.assignments;
           if(parsed.playerGroups && typeof parsed.playerGroups==="object") playerGroups=parsed.playerGroups;
+          if(parsed.coachGroups && typeof parsed.coachGroups==="object") coachGroups=parsed.coachGroups;
         }
         else if(parsed && typeof parsed==="object") next=parsed;
         if(next){
@@ -406,6 +421,10 @@
           const groupLine = (lbl, arr, coaches)=> arr.length
             ? `<div class="slot-line"><span class="lbl">${lbl}</span><span class="count">(${arr.length})</span><span class="names">${(coaches||[]).map(coachBadge).join(" ")}${arr.map(badge).join(" ")}</span></div>`
             : "";
+          // Coaches per grup segons l'assignació manual (o el repartiment per
+          // defecte: 1r alfabètic al Grup 1, la resta al Grup 2).
+          const c1 = r.coaches.filter(c=>coachGroupOf(b.dateISO,r.slot,c,r.coaches)==="1");
+          const c2 = r.coaches.filter(c=>coachGroupOf(b.dateISO,r.slot,c,r.coaches)!=="1");
           let playerLines;
           if(!r.players.length){
             playerLines = `<div class="slot-line"><span class="lbl">Grup</span><span class="count">(0)</span><span class="names"><span class="badge empty">Sense players</span></span></div>`;
@@ -434,8 +453,8 @@
             // Manté l'ordre alfabètic dins de cada grup
             g1.sort((a,b)=>a.name.localeCompare(b.name));
             g2.sort((a,b)=>a.name.localeCompare(b.name));
-            playerLines = groupLine("Grup 1", g1, r.coaches.slice(0,1))
-              + groupLine("Grup 2", g2, r.coaches.slice(1));
+            playerLines = groupLine("Grup 1", g1, c1)
+              + groupLine("Grup 2", g2, c2);
           }
           return `<div class="slot-row">
             <div class="slot-time">${SLOT_LABEL[r.slot]}</div>
