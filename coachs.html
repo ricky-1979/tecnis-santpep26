@@ -407,21 +407,19 @@
           let playerLines;
           if(!r.players.length){
             playerLines = `<div class="slot-line"><span class="lbl">Grup</span><span class="count">(0)</span><span class="names"><span class="badge empty">Sense players</span></span></div>`;
-          } else if(r.players.length <= 5){
-            // 5 players o menys: un sol grup amb tots els coaches assignats
-            playerLines = groupLine("Grup", r.players, r.coaches);
           } else {
-            // Més de 5 players: repartir per la meitat. Grup 1 = meitat
-            // (els marcats "1" primer, completant amb la resta); Grup 2 = resta.
-            // Un coach a cada grup: el 1r al Grup 1, els següents al Grup 2.
-            const half   = Math.ceil(r.players.length/2);
-            const marked = r.players.filter(p=>p.grp==="1");
-            const rest   = r.players.filter(p=>p.grp!=="1");
-            const g1 = marked.slice(0,half);
-            while(g1.length<half && rest.length){ g1.push(rest.shift()); }
-            const g2 = r.players.filter(p=>!g1.includes(p));
-            playerLines = groupLine("Grup 1", g1, r.coaches.slice(0,1))
-              + groupLine("Grup 2", g2, r.coaches.slice(1));
+            // Repartiment estricte segons el grup assignat a cada player
+            // (manual des del dashboard o per defecte). Grup 1 = marcats "1";
+            // Grup 2 = la resta. Un coach a cada grup: el 1r al Grup 1, els
+            // següents al Grup 2. Si tots són del mateix grup, un sol "Grup".
+            const g1 = r.players.filter(p=>p.grp==="1");
+            const g2 = r.players.filter(p=>p.grp!=="1");
+            if(g1.length && g2.length){
+              playerLines = groupLine("Grup 1", g1, r.coaches.slice(0,1))
+                + groupLine("Grup 2", g2, r.coaches.slice(1));
+            } else {
+              playerLines = groupLine("Grup", r.players, r.coaches);
+            }
           }
           return `<div class="slot-row">
             <div class="slot-time">${SLOT_LABEL[r.slot]}</div>
