@@ -399,8 +399,11 @@
           const groupLine = (lbl, arr)=> arr.length
             ? `<div class="slot-line"><span class="lbl">${lbl}</span><span class="count">(${arr.length})</span><span class="names">${arr.map(badge).join(" ")}</span></div>`
             : "";
+          const bothGroups = interiors.length>0 && exteriors.length>0;
           const playerLines = r.players.length
-            ? groupLine("Grup 1", interiors) + groupLine("Grup 2", exteriors) + groupLine("Sense classif.", others)
+            ? groupLine(bothGroups?"Players G1":"Players", interiors)
+              + groupLine(bothGroups?"Players G2":"Players", exteriors)
+              + groupLine("Players", others)
             : `<div class="slot-line"><span class="lbl">Players</span><span class="count">(0)</span><span class="names"><span class="badge empty">Sense players</span></span></div>`;
           return `<div class="slot-row">
             <div class="slot-time">${SLOT_LABEL[r.slot]}</div>
