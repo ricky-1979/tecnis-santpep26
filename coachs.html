@@ -402,8 +402,17 @@
           } else if(r.players.length < 4){
             // Menys de 4 players: un sol grup
             playerLines = groupLine("Grup", r.players);
+          } else if(r.players.length > 8){
+            // Més de 8 players: Grup 1 limitat a 4 (els marcats "1",
+            // completant fins a 4 amb la resta si en falten); resta al Grup 2.
+            const marked = r.players.filter(p=>p.grp==="1");
+            const rest   = r.players.filter(p=>p.grp!=="1");
+            const g1 = marked.slice(0,4);
+            while(g1.length<4 && rest.length){ g1.push(rest.shift()); }
+            const g2 = r.players.filter(p=>!g1.includes(p));
+            playerLines = groupLine("Grup 1", g1) + groupLine("Grup 2", g2);
           } else {
-            // 4 o més: dos grups segons el mapa
+            // 4 a 8 players: dos grups segons el mapa
             let g1 = r.players.filter(p=>p.grp==="1");
             let g2 = r.players.filter(p=>p.grp!=="1");
             // Si el mapa no els reparteix (tots al mateix grup),
