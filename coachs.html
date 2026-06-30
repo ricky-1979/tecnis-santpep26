@@ -403,12 +403,13 @@
             // Menys de 4 players: un sol grup
             playerLines = groupLine("Grup", r.players);
           } else if(r.players.length > 8){
-            // Més de 8 players: Grup 1 limitat a 4 (els marcats "1",
-            // completant fins a 4 amb la resta si en falten); resta al Grup 2.
+            // Més de 8 players: repartir per la meitat. Grup 1 = meitat
+            // (els marcats "1" primer, completant amb la resta); Grup 2 = resta.
+            const half   = Math.ceil(r.players.length/2);
             const marked = r.players.filter(p=>p.grp==="1");
             const rest   = r.players.filter(p=>p.grp!=="1");
-            const g1 = marked.slice(0,4);
-            while(g1.length<4 && rest.length){ g1.push(rest.shift()); }
+            const g1 = marked.slice(0,half);
+            while(g1.length<half && rest.length){ g1.push(rest.shift()); }
             const g2 = r.players.filter(p=>!g1.includes(p));
             playerLines = groupLine("Grup 1", g1) + groupLine("Grup 2", g2);
           } else {
