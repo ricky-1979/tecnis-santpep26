@@ -399,11 +399,11 @@
           let playerLines;
           if(!r.players.length){
             playerLines = `<div class="slot-line"><span class="lbl">Grup</span><span class="count">(0)</span><span class="names"><span class="badge empty">Sense players</span></span></div>`;
-          } else if(r.players.length <= 4){
-            // 4 players o menys: un sol grup
+          } else if(r.players.length <= 5){
+            // 5 players o menys: un sol grup
             playerLines = groupLine("Grup", r.players);
           } else {
-            // Més de 4 players: repartir per la meitat. Grup 1 = meitat
+            // Més de 5 players: repartir per la meitat. Grup 1 = meitat
             // (els marcats "1" primer, completant amb la resta); Grup 2 = resta.
             const half   = Math.ceil(r.players.length/2);
             const marked = r.players.filter(p=>p.grp==="1");
