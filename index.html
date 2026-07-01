@@ -1763,9 +1763,29 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     }
 
     function resetAssignments(){
-      if(!confirm("Reiniciar les assignacions amb la disponibilitat de Koalendar? Es perdran els canvis manuals.")) return;
-      assignments=defaultAssignments();
-      saveAssignments(); refreshFromAssignments(); setAssignStatus("Reiniciat des de Koalendar");
+      // Si hi ha una setmana seleccionada, només es reinicia aquella setmana
+      // (es conserven les assignacions manuals de la resta de setmanes). Sense
+      // setmana seleccionada, es reinicia tot el calendari.
+      const wk=assignWeek;
+      const scope = wk ? `la ${wk}` : "totes les setmanes";
+      if(!confirm(`Reiniciar ${scope} amb la disponibilitat de Koalendar? Es perdran els canvis manuals${wk?" d'aquesta setmana":""}.`)) return;
+
+      const fresh=defaultAssignments();
+      if(wk){
+        // Substitueix només les cel·les de la setmana seleccionada.
+        Object.keys(assignments).forEach(k=>{
+          const dateISO=k.split("|")[0];
+          if(ISO_WEEK[dateISO]===wk) delete assignments[k];
+        });
+        Object.entries(fresh).forEach(([k,arr])=>{
+          const dateISO=k.split("|")[0];
+          if(ISO_WEEK[dateISO]===wk) assignments[k]=arr;
+        });
+      } else {
+        assignments=fresh;
+      }
+      saveAssignments(); refreshFromAssignments();
+      setAssignStatus(wk ? `Reiniciada ${wk} des de Koalendar` : "Reiniciat des de Koalendar");
     }
 
     function wireEvents(){
