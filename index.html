@@ -615,6 +615,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     let assignments = {}; // "dateISO|slot" -> [coach, ...]
     let playerGroups = {}; // "Nom|Setmana X" o "Nom" (antic) -> "1" | "2"
     let coachGroups = {}; // "dateISO|slot|coach" -> "1" | "2"
+    let sessionNotes = {}; // "dateISO|slot" -> nota escrita pels coachs (només es preserva)
     let assignWeek = "";
     let groupsWeek = ""; // setmana seleccionada a la secció Grups de treball
     let dragInfo = null;  // { from:"dateISO|slot", coach }
@@ -681,7 +682,13 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       if(!token){ setAssignStatus("Configura primer el núvol"); return false; }
       // Inclou un timestamp dins el fitxer per resoldre conflictes en arrencar
       const ts=localTs()||Date.now();
-      const payload={ _ts:ts, assignments, playerGroups, coachGroups };
+      // Les notes de sessió les escriuen els coachs; abans de pujar, rellegeix
+      // les remotes i fusiona-les amb les locals per no trepitjar-ne cap.
+      try{
+        const remote=await gistFetch();
+        if(remote && remote.sessionNotes) sessionNotes=Object.assign({}, remote.sessionNotes, sessionNotes);
+      }catch(e){ /* si falla la relectura, es puja l'estat local */ }
+      const payload={ _ts:ts, assignments, playerGroups, coachGroups, sessionNotes };
       const body={
         description:"Assignació de coachs · Tecnificació SantPep",
         files:{ [GIST_FILENAME]:{ content:JSON.stringify(payload,null,2) } }
@@ -745,10 +752,11 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       if(parsed && parsed.assignments && typeof parsed.assignments==="object"){
         return { ts:parsed._ts||0, assignments:parsed.assignments,
                  playerGroups:(parsed.playerGroups&&typeof parsed.playerGroups==="object")?parsed.playerGroups:null,
-                 coachGroups:(parsed.coachGroups&&typeof parsed.coachGroups==="object")?parsed.coachGroups:null };
+                 coachGroups:(parsed.coachGroups&&typeof parsed.coachGroups==="object")?parsed.coachGroups:null,
+                 sessionNotes:(parsed.sessionNotes&&typeof parsed.sessionNotes==="object")?parsed.sessionNotes:null };
       }
       if(parsed && typeof parsed==="object"){
-        return { ts:0, assignments:parsed, playerGroups:null, coachGroups:null };
+        return { ts:0, assignments:parsed, playerGroups:null, coachGroups:null, sessionNotes:null };
       }
       return null;
     }
@@ -762,6 +770,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           assignments=remote.assignments;
           if(remote.playerGroups) playerGroups=remote.playerGroups;
           if(remote.coachGroups) coachGroups=remote.coachGroups;
+          if(remote.sessionNotes) sessionNotes=remote.sessionNotes;
           saveAssignments();
           refreshFromAssignments();
           setAssignStatus("Descarregat del núvol · "+new Date().toLocaleTimeString("ca-ES"));
@@ -786,6 +795,9 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           if(lts) await gistPush();
           return;
         }
+        // Sempre conserva les notes remotes en memòria: les gestionen els
+        // coachs i el dashboard només les ha de preservar en el proper push.
+        if(remote.sessionNotes) sessionNotes=remote.sessionNotes;
         if(remote.ts > lts){
           // El núvol és més nou → aplica'l
           assignments=remote.assignments;

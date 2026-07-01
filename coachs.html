@@ -56,6 +56,17 @@
       letter-spacing:0.04em; padding-top:4px; }
     .slot-line .names { display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
     .slot-line .count { padding-top:4px; }
+    .slot-note { margin-top:2px; }
+    .slot-note label { display:block; color:var(--muted); font-size:0.72rem;
+      text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px; }
+    .slot-note textarea { width:100%; box-sizing:border-box; resize:vertical;
+      background:var(--bg); color:var(--text); border:1px solid var(--border);
+      border-radius:8px; padding:8px 10px; font:inherit; font-size:0.88rem; }
+    .slot-note textarea:focus { outline:none; border-color:var(--groc); }
+    .toolbar button.navlink { background:transparent; cursor:pointer; color:var(--accent);
+      text-decoration:none; font-size:0.88rem; border:1px solid var(--border);
+      border-radius:8px; padding:9px 14px; }
+    .toolbar button.navlink:hover { color:var(--groc); border-color:var(--groc); }
     .badge { padding:3px 10px; border-radius:999px; font-size:0.8rem; font-weight:600; }
     .badge.coach { background:#2e1f44; color:var(--text); border:1px solid var(--border); }
     .badge.player { background:#2e1f44; color:var(--lila); }
@@ -63,9 +74,6 @@
     .badge.empty { background:transparent; color:var(--muted); border:1px dashed var(--border); font-weight:500; }
     .badge.hit { outline:2px solid var(--groc); outline-offset:1px; }
     .toolbar select:disabled { opacity:0.45; cursor:not-allowed; }
-    .toolbar button.navlink { background:transparent; cursor:pointer; color:var(--accent);
-      text-decoration:none; font-size:0.88rem; border:1px solid var(--border); border-radius:8px; padding:6px 12px; }
-    .toolbar button.navlink:hover { color:var(--groc); border-color:var(--groc); }
     .count { color:var(--muted); font-size:0.78rem; }
     .workplan { background:var(--card); border:1px solid var(--border);
       border-radius:12px; padding:18px; margin-bottom:20px; }
@@ -93,6 +101,7 @@
     <select id="filterCoach"><option value="">Tots els coachs</option></select>
     <select id="filterPlayer"><option value="">Tots els players</option></select>
     <button id="clearFilters" class="navlink" style="display:none;">✕ Neteja filtres</button>
+    <button id="cloudBtn" class="navlink" type="button">☁️ Sincronitzar</button>
     <span class="status" id="status"></span>
     <span class="sep"></span>
     <a class="navlink" id="cartellLink" href="#" target="_blank" rel="noopener" download="Tecnis 26.jpeg" style="display:none;">📄 Continguts Tecnificació Individual</a>
@@ -101,7 +110,8 @@
   <h2 class="section">Planificació i coachs assignats</h2>
   <p class="hint">Per cada dia i franja: els <strong>coachs assignats</strong> i els <strong>players</strong> que tindran.
     <span class="badge player">Lila</span> = setmana completa · <span class="badge player solt">Groc</span> = dia solt.
-    L'assignació es comparteix amb el dashboard.</p>
+    L'assignació es comparteix amb el dashboard.
+    Podeu apuntar el <strong>treball realitzat</strong> a cada franja; per compartir-lo entre dispositius, configureu el token amb <strong>☁️ Sincronitzar</strong>.</p>
 
   <div id="workplan" class="workplan" style="display:none;">
     <h3>Continguts Tecnificació</h3>
@@ -143,6 +153,7 @@
     const GIST_TOKEN_KEY = "tecnis-gist-token";
     const GIST_ID_KEY = "tecnis-gist-id";
     const GIST_FILENAME = "assignacions-coachs.json";
+    const NOTES_KEY = "tecnis-sessionnotes-v1";
     // ID del Gist públic amb l'assignació. Permet que qualsevol coach vegi
     // l'assignació sense token (els Gists són llegibles per ID sense auth).
     const DEFAULT_GIST_ID = "532f3367c329c3540d74c957f9c408b8";
@@ -152,6 +163,7 @@
     let assignments = {};
     let playerGroups = {}; // override sincronitzat des del dashboard
     let coachGroups = {}; // "dateISO|slot|coach" -> "1"|"2" (override del dashboard)
+    let sessionNotes = {}; // "dateISO|slot" -> text que escriuen els coachs
     let enrollments = [];
     let filterWeek = "";
     let filterCoach = "";
@@ -348,6 +360,10 @@
         if(cg) coachGroups=JSON.parse(cg)||{};
       }catch(e){ /* ignora */ }
       try{
+        const nt=localStorage.getItem(NOTES_KEY);
+        if(nt) sessionNotes=JSON.parse(nt)||{};
+      }catch(e){ /* ignora */ }
+      try{
         const raw=localStorage.getItem(ASSIGN_KEY);
         if(raw){ assignments=JSON.parse(raw)||{}; return true; }
       }catch(e){ /* ignora */ }
@@ -377,6 +393,10 @@
           next=parsed.assignments;
           if(parsed.playerGroups && typeof parsed.playerGroups==="object") playerGroups=parsed.playerGroups;
           if(parsed.coachGroups && typeof parsed.coachGroups==="object") coachGroups=parsed.coachGroups;
+          if(parsed.sessionNotes && typeof parsed.sessionNotes==="object"){
+            sessionNotes=parsed.sessionNotes;
+            try{ localStorage.setItem(NOTES_KEY, JSON.stringify(sessionNotes)); }catch(e){}
+          }
         }
         else if(parsed && typeof parsed==="object") next=parsed;
         if(next){
@@ -390,6 +410,58 @@
         setStatus("No s'ha pogut carregar l'assignació: "+e.message);
         return false;
       }
+    }
+
+    // Puja al Gist. Cal token (escriptura). Per no trepitjar canvis d'altres
+    // coachs ni del dashboard, primer es rellegeix l'estat remot, s'hi fusionen
+    // NOMÉS les notes de sessió (l'assignació la gestiona el dashboard) i es
+    // torna a desar el document sencer.
+    async function gistPush(){
+      const token=gistToken(), id=gistId();
+      if(!token){ setStatus("Cal configurar el token per desar (clica ☁️ Sincronitzar)"); return false; }
+      try{
+        // 1) Rellegeix l'estat remot més recent.
+        const headers={ "Accept":"application/vnd.github+json", "Authorization":"token "+token };
+        const res=await fetch(`https://api.github.com/gists/${id}?t=${Date.now()}`,{ headers, cache:"no-store" });
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        const data=await res.json();
+        const file=data.files && data.files[GIST_FILENAME];
+        let doc={};
+        if(file){ try{ doc=JSON.parse(file.content)||{}; }catch(e){ doc={}; } }
+        // Normalitza a format nou.
+        if(!doc.assignments && typeof doc==="object" && !doc._ts){ doc={ assignments:doc }; }
+        // 2) Fusiona només les notes locals sobre les remotes.
+        doc.sessionNotes = Object.assign({}, doc.sessionNotes||{}, sessionNotes);
+        sessionNotes = doc.sessionNotes;
+        doc._ts = Date.now();
+        // 3) Desa el document sencer.
+        const body={
+          description:"Assignació de coachs · Tecnificació SantPep",
+          files:{ [GIST_FILENAME]:{ content:JSON.stringify(doc,null,2) } }
+        };
+        const put=await fetch(`https://api.github.com/gists/${id}`,{
+          method:"PATCH", headers, body:JSON.stringify(body)
+        });
+        if(!put.ok) throw new Error("HTTP "+put.status);
+        try{ localStorage.setItem(NOTES_KEY, JSON.stringify(sessionNotes)); }catch(e){}
+        setStatus("Desat al núvol · "+new Date().toLocaleTimeString("ca-ES"));
+        return true;
+      }catch(e){
+        setStatus("No s'ha pogut desar: "+e.message);
+        return false;
+      }
+    }
+
+    // Configura el token (una vegada per dispositiu) i sincronitza.
+    async function cloudConfig(){
+      const cur=gistToken();
+      const t=prompt("Enganxa el teu token de GitHub (permís 'gist') per poder desar les notes.\n\nDeixa-ho buit per treure'l.", cur);
+      if(t===null) return; // cancel·lat
+      const tok=t.trim();
+      if(tok) localStorage.setItem(GIST_TOKEN_KEY, tok);
+      else localStorage.removeItem(GIST_TOKEN_KEY);
+      if(tok){ await gistPull(); await gistPush(); }
+      else setStatus("Token tret · les notes només es desen en aquest dispositiu");
     }
 
     // ===== Render =====
@@ -555,15 +627,35 @@
             playerLines = groupLine("Grup 1", g1, c1)
               + groupLine("Grup 2", g2, c2);
           }
+          const noteKey=b.dateISO+"|"+r.slot;
+          const noteVal=sessionNotes[noteKey]||"";
+          const noteBox=`<div class="slot-note">
+            <label>Treball realitzat a la sessió</label>
+            <textarea data-note="${esc(noteKey)}" rows="2" placeholder="Escriu què heu treballat…">${esc(noteVal)}</textarea>
+          </div>`;
           return `<div class="slot-row">
             <div class="slot-time">${SLOT_LABEL[r.slot]}</div>
             <div class="slot-body">
               ${playerLines}
+              ${noteBox}
             </div>
           </div>`;
         }).join("");
         return `<div class="day-block">${head}${rows}</div>`;
       }).join("");
+
+      // Connecta el desat de les notes de sessió. En sortir del camp (blur),
+      // es desa localment i, si hi ha token, es puja al núvol.
+      schedule.querySelectorAll("textarea[data-note]").forEach(ta=>{
+        ta.addEventListener("blur",()=>{
+          const k=ta.getAttribute("data-note");
+          const v=ta.value.trim();
+          if(v) sessionNotes[k]=v; else delete sessionNotes[k];
+          try{ localStorage.setItem(NOTES_KEY, JSON.stringify(sessionNotes)); }catch(e){}
+          if(gistToken()) gistPush();
+          else setStatus("Nota desada en aquest dispositiu · configura ☁️ per compartir");
+        });
+      });
 
       const totalDays=blocks.length;
       const totalSlots=blocks.reduce((s,b)=>s+b.rows.length,0);
@@ -589,6 +681,8 @@
     // ===== Arrencada =====
     function init(){
       document.getElementById("subtitle").textContent="Tecnificació Juliol 2026 · La Plana";
+      const cloudBtn=document.getElementById("cloudBtn");
+      if(cloudBtn) cloudBtn.addEventListener("click",cloudConfig);
       populateWeeks();
       loadAssignments();
       populateFilters();
