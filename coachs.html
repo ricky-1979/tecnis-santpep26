@@ -111,7 +111,7 @@
   <p class="hint">Per cada dia i franja: els <strong>coachs assignats</strong> i els <strong>players</strong> que tindran.
     <span class="badge player">Lila</span> = setmana completa · <span class="badge player solt">Groc</span> = dia solt.
     L'assignació es comparteix amb el dashboard.
-    Podeu apuntar el <strong>treball realitzat</strong> a cada franja; per compartir-lo entre dispositius, configureu el token amb <strong>☁️ Sincronitzar</strong>.</p>
+    Podeu apuntar el <strong>treball realitzat</strong> a cada franja: es desa i es comparteix automàticament.</p>
 
   <div id="workplan" class="workplan" style="display:none;">
     <h3>Continguts Tecnificació</h3>
@@ -154,6 +154,10 @@
     const GIST_ID_KEY = "tecnis-gist-id";
     const GIST_FILENAME = "assignacions-coachs.json";
     const NOTES_KEY = "tecnis-sessionnotes-v1";
+    // URL del Cloudflare Worker que desa les notes sense token (vegeu worker/).
+    // Quan està definida, els coachs desen automàticament sense configurar res.
+    // Si es deixa buida, es fa servir el mètode antic (token per coach).
+    const NOTES_WORKER_URL = "";
     // ID del Gist públic amb l'assignació. Permet que qualsevol coach vegi
     // l'assignació sense token (els Gists són llegibles per ID sense auth).
     const DEFAULT_GIST_ID = "532f3367c329c3540d74c957f9c408b8";
@@ -412,6 +416,58 @@
       }
     }
 
+    // ¿Hi ha Worker configurat? Si és així, els coachs desen sense token.
+    const hasWorker = ()=> !!NOTES_WORKER_URL;
+
+    // Llegeix les notes des del Worker (sense token).
+    async function workerPull(){
+      try{
+        const res=await fetch(`${NOTES_WORKER_URL}?t=${Date.now()}`,{ cache:"no-store" });
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        const data=await res.json();
+        if(data && data.sessionNotes && typeof data.sessionNotes==="object"){
+          sessionNotes=data.sessionNotes;
+          try{ localStorage.setItem(NOTES_KEY, JSON.stringify(sessionNotes)); }catch(e){}
+        }
+        return true;
+      }catch(e){
+        setStatus("No s'han pogut carregar les notes: "+e.message);
+        return false;
+      }
+    }
+
+    // Desa les notes via Worker (sense token). El Worker fa read-merge-write,
+    // així que només cal enviar-li les notes locals.
+    async function workerPush(){
+      try{
+        const res=await fetch(NOTES_WORKER_URL,{
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body:JSON.stringify({ sessionNotes })
+        });
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        const data=await res.json();
+        if(data && data.sessionNotes && typeof data.sessionNotes==="object"){
+          sessionNotes=data.sessionNotes;
+          try{ localStorage.setItem(NOTES_KEY, JSON.stringify(sessionNotes)); }catch(e){}
+        }
+        setStatus("Notes desades · "+new Date().toLocaleTimeString("ca-ES"));
+        return true;
+      }catch(e){
+        setStatus("No s'han pogut desar les notes: "+e.message);
+        return false;
+      }
+    }
+
+    // Desa les notes pel millor mètode disponible: Worker (sense token) si està
+    // configurat; si no, Gist amb token (mètode antic).
+    async function saveNotes(){
+      if(hasWorker()) return workerPush();
+      if(gistToken()) return gistPush();
+      setStatus("Nota desada en aquest dispositiu · configura ☁️ per compartir");
+      return false;
+    }
+
     // Puja al Gist. Cal token (escriptura). Per no trepitjar canvis d'altres
     // coachs ni del dashboard, primer es rellegeix l'estat remot, s'hi fusionen
     // NOMÉS les notes de sessió (l'assignació la gestiona el dashboard) i es
@@ -652,8 +708,7 @@
           const v=ta.value.trim();
           if(v) sessionNotes[k]=v; else delete sessionNotes[k];
           try{ localStorage.setItem(NOTES_KEY, JSON.stringify(sessionNotes)); }catch(e){}
-          if(gistToken()) gistPush();
-          else setStatus("Nota desada en aquest dispositiu · configura ☁️ per compartir");
+          saveNotes();
         });
       });
 
@@ -682,15 +737,20 @@
     function init(){
       document.getElementById("subtitle").textContent="Tecnificació Juliol 2026 · La Plana";
       const cloudBtn=document.getElementById("cloudBtn");
-      if(cloudBtn) cloudBtn.addEventListener("click",cloudConfig);
+      // Amb Worker configurat no cal token: s'amaga el botó de sincronització.
+      if(cloudBtn){
+        if(hasWorker()) cloudBtn.style.display="none";
+        else cloudBtn.addEventListener("click",cloudConfig);
+      }
       populateWeeks();
       loadAssignments();
       populateFilters();
       render();
-      // Sempre baixa l'última assignació del Gist (sense token cal).
+      // Baixa l'assignació del Gist (sense token). Les notes venen del Worker
+      // si està configurat; si no, ja arriben dins el Gist via gistPull.
       if(gistId()){
         setStatus("Carregant assignació…");
-        gistPull();
+        gistPull().then(()=>{ if(hasWorker()) return workerPull().then(render); });
       } else {
         setStatus("Sense assignació disponible");
       }
