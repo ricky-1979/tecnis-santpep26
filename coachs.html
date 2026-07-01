@@ -75,6 +75,9 @@
     .workplan li { display:grid; grid-template-columns:56px 1fr; gap:12px;
       align-items:baseline; }
     .workplan .t { font-weight:700; color:var(--groc); }
+    .workplan a.navlink { display:inline-block; margin-top:14px; color:var(--accent);
+      text-decoration:none; font-size:0.88rem; border:1px solid var(--border); border-radius:8px; padding:6px 12px; }
+    .workplan a.navlink:hover { color:var(--groc); border-color:var(--groc); }
     .empty { text-align:center; color:var(--muted); padding:30px; }
     footer { margin-top:30px; color:var(--muted); font-size:0.8rem; text-align:center; }
   </style>
@@ -94,8 +97,6 @@
     <select id="filterPlayer"><option value="">Tots els players</option></select>
     <button id="clearFilters" class="navlink" style="display:none;">✕ Neteja filtres</button>
     <span class="status" id="status"></span>
-    <span class="sep"></span>
-    <a class="navlink" id="cartellLink" href="#" target="_blank" rel="noopener" download="Tecnis 26.jpeg" style="display:none;">📄 Continguts Tecnificació Individual</a>
   </div>
 
   <h2 class="section">Planificació i coachs assignats</h2>
@@ -104,13 +105,14 @@
     L'assignació es comparteix amb el dashboard.</p>
 
   <div id="workplan" class="workplan" style="display:none;">
-    <h3>Treball a fer a cada sessió</h3>
+    <h3>Continguts Tecnificació</h3>
     <ul>
       <li><span class="t">15'</span><span>mecànica de tir</span></li>
       <li><span class="t">15'</span><span>passada</span></li>
       <li><span class="t">20'</span><span>finalitzacions</span></li>
       <li><span class="t">10'</span><span>integrar els 3 continguts anteriors</span></li>
     </ul>
+    <a class="navlink" id="cartellLink" href="#" target="_blank" rel="noopener" download="Tecnis 26.jpeg" style="display:none;">📄 Continguts Tecnificació Individual</a>
   </div>
 
   <div id="schedule"></div>
