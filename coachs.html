@@ -61,6 +61,11 @@
     .badge.player { background:#2e1f44; color:var(--lila); }
     .badge.player.solt { background:#3d3416; color:var(--groc); }
     .badge.empty { background:transparent; color:var(--muted); border:1px dashed var(--border); font-weight:500; }
+    .badge.hit { outline:2px solid var(--groc); outline-offset:1px; }
+    .toolbar select:disabled { opacity:0.45; cursor:not-allowed; }
+    .toolbar button.navlink { background:transparent; cursor:pointer; color:var(--accent);
+      text-decoration:none; font-size:0.88rem; border:1px solid var(--border); border-radius:8px; padding:6px 12px; }
+    .toolbar button.navlink:hover { color:var(--groc); border-color:var(--groc); }
     .count { color:var(--muted); font-size:0.78rem; }
     .workplan { background:var(--card); border:1px solid var(--border);
       border-radius:12px; padding:18px; margin-bottom:20px; }
@@ -85,6 +90,9 @@
 
   <div class="toolbar">
     <select id="filterWeek"><option value="">Totes les setmanes</option></select>
+    <select id="filterCoach"><option value="">Tots els coachs</option></select>
+    <select id="filterPlayer"><option value="">Tots els players</option></select>
+    <button id="clearFilters" class="navlink" style="display:none;">✕ Neteja filtres</button>
     <span class="status" id="status"></span>
     <span class="sep"></span>
     <a class="navlink" id="cartellLink" href="#" target="_blank" rel="noopener" download="Tecnis 26.jpeg" style="display:none;">📄 Continguts Tecnificació Individual</a>
@@ -146,6 +154,8 @@
     let coachGroups = {}; // "dateISO|slot|coach" -> "1"|"2" (override del dashboard)
     let enrollments = [];
     let filterWeek = "";
+    let filterCoach = "";
+    let filterPlayer = "";
 
     const PARSE_OPTS = { header:true, skipEmptyLines:true, transformHeader:h=>h.replace(/^\uFEFF+/, "").trim() };
     const COACH_NAME_MAP = { "Pau": "Pau Laviña" };
@@ -371,6 +381,7 @@
         else if(parsed && typeof parsed==="object") next=parsed;
         if(next){
           assignments=next;
+          populateFilters();
           render();
           setStatus("Assignació actualitzada · "+new Date().toLocaleTimeString("ca-ES"));
         }
@@ -395,6 +406,47 @@
       sel.addEventListener("change",e=>{ filterWeek=e.target.value; render(); });
     }
 
+    // Omple els selects de coach i player amb els valors únics presents a les
+    // dades i connecta els esdeveniments de canvi. Es torna a cridar quan
+    // arriben dades noves del Gist per mantenir les llistes al dia.
+    function populateFilters(){
+      const coachSel=document.getElementById("filterCoach");
+      const playerSel=document.getElementById("filterPlayer");
+      const clearBtn=document.getElementById("clearFilters");
+
+      const coaches=new Set();
+      Object.values(assignments).forEach(arr=>(arr||[]).forEach(c=>coaches.add(c)));
+      const players=new Set(enrollments.map(e=>e.player));
+
+      const fill=(sel,values,keep)=>{
+        const first=sel.querySelector("option");
+        sel.innerHTML="";
+        sel.appendChild(first);
+        [...values].sort((a,b)=>a.localeCompare(b)).forEach(v=>{
+          const o=document.createElement("option");
+          o.value=v; o.textContent=v;
+          sel.appendChild(o);
+        });
+        // Manté la selecció si encara existeix
+        sel.value=(keep && values.has(keep)) ? keep : "";
+      };
+      fill(coachSel, coaches, filterCoach);
+      fill(playerSel, players, filterPlayer);
+      filterCoach=coachSel.value;
+      filterPlayer=playerSel.value;
+
+      if(!coachSel.dataset.bound){
+        coachSel.addEventListener("change",e=>{ filterCoach=e.target.value; render(); });
+        playerSel.addEventListener("change",e=>{ filterPlayer=e.target.value; render(); });
+        clearBtn.addEventListener("click",()=>{
+          filterCoach=""; filterPlayer="";
+          coachSel.value=""; playerSel.value="";
+          render();
+        });
+        coachSel.dataset.bound="1";
+      }
+    }
+
     function playersFor(dateISO, slot){
       const wk=ISO_WEEK[dateISO]||"";
       return enrollments
@@ -410,16 +462,27 @@
       const schedule=document.getElementById("schedule");
       const empty=document.getElementById("empty");
 
-      // El pla de treball només aplica a la Setmana 1
+      // El pla de treball només aplica a la Setmana 1 i s'amaga si es filtra
+      // per coach o player (la vista passa a ser una cerca puntual).
       const wp=document.getElementById("workplan");
-      if(wp) wp.style.display = filterWeek==="Setmana 1" ? "" : "none";
+      if(wp) wp.style.display = (filterWeek==="Setmana 1" && !filterCoach && !filterPlayer) ? "" : "none";
+
+      // Mostra el botó de netejar només si hi ha algun filtre de cerca actiu.
+      const searching=!!(filterCoach||filterPlayer);
+      const clearBtn=document.getElementById("clearFilters");
+      if(clearBtn) clearBtn.style.display = searching ? "" : "none";
+      // El filtre de setmana s'ignora durant la cerca: el deshabilitem.
+      const weekSel=document.getElementById("filterWeek");
+      if(weekSel) weekSel.disabled = searching;
 
       // Dies a mostrar: tots els que tenen players o coachs assignats
       const dayset=new Set();
       enrollments.forEach(e=>dayset.add(e.dateISO));
       Object.keys(assignments).forEach(k=>dayset.add(k.split("|")[0]));
       let days=[...dayset].filter(Boolean).sort();
-      if(filterWeek) days=days.filter(d=>ISO_WEEK[d]===filterWeek);
+      // Quan es cerca per coach o player mostrem totes les setmanes (la cerca
+      // és transversal); si no, respectem el filtre de setmana.
+      if(filterWeek && !filterCoach && !filterPlayer) days=days.filter(d=>ISO_WEEK[d]===filterWeek);
 
       const blocks=[];
       days.forEach(d=>{
@@ -429,6 +492,9 @@
           const coaches=(assignments[key]||[]).slice().sort((a,b)=>a.localeCompare(b));
           const players=playersFor(d,sl);
           if(coaches.length===0 && players.length===0) return; // franja buida
+          // Filtres de coach/player: només mostra franges que hi coincideixin.
+          if(filterCoach && !coaches.includes(filterCoach)) return;
+          if(filterPlayer && !players.some(p=>p.name===filterPlayer)) return;
           rows.push({ slot:sl, coaches, players });
         });
         if(rows.length) blocks.push({ dateISO:d, rows });
@@ -448,8 +514,8 @@
           <span class="wk">${ISO_WEEK[b.dateISO]||""}</span>
         </div>`;
         const rows=b.rows.map(r=>{
-          const badge = p=>`<span class="badge player${p.solt?" solt":""}" title="${p.solt?"Dia solt":"Setmana completa"}">${esc(p.name)}</span>`;
-          const coachBadge = name=>`<span class="badge coach" title="Coach">${esc(name)}</span>`;
+          const badge = p=>`<span class="badge player${p.solt?" solt":""}${filterPlayer&&p.name===filterPlayer?" hit":""}" title="${p.solt?"Dia solt":"Setmana completa"}">${esc(p.name)}</span>`;
+          const coachBadge = name=>`<span class="badge coach${filterCoach&&name===filterCoach?" hit":""}" title="Coach">${esc(name)}</span>`;
           // Línia de grup: coach(s) davant dels noms dels players.
           const groupLine = (lbl, arr, coaches)=> arr.length
             ? `<div class="slot-line"><span class="lbl">${lbl}</span><span class="count">(${arr.length})</span><span class="names">${(coaches||[]).map(coachBadge).join(" ")}${arr.map(badge).join(" ")}</span></div>`
@@ -525,6 +591,7 @@
       document.getElementById("subtitle").textContent="Tecnificació Juliol 2026 · La Plana";
       populateWeeks();
       loadAssignments();
+      populateFilters();
       render();
       // Sempre baixa l'última assignació del Gist (sense token cal).
       if(gistId()){
