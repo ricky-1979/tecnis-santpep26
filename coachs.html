@@ -243,17 +243,27 @@
       "Hugo Morales Gómez de Segura|2026-07-01|19:00",
       "Pau Piè Bilbao|2026-07-03|18:00",
       "Lluc Sabater Deulofeu|2026-07-03|18:00",
-      "Demian Amat Sanguino|2026-07-03|19:00",
       "Miquel Lopez Serrano|2026-07-01|20:00",
       "Miquel Lopez Serrano|2026-07-02|20:00",
       "Miquel Lopez Serrano|2026-07-03|20:00",
+      // 03/07: la franja de les 18:00 es buida i es mou a les 19:00
+      "Adrià Durante Masa|2026-07-03|18:00",
+      "Elma López Rendón|2026-07-03|18:00",
+      "Elsa Aranda Carbón|2026-07-03|18:00",
+      "Joel González Gutiérrez|2026-07-03|18:00",
+      "Roc Arbonès López|2026-07-03|18:00",
     ];
     const ENROLLMENT_ADDITIONS = [
       { player:"Joana Pla", dateISO:"2026-07-08", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
-      { player:"Demian Amat Sanguino", dateISO:"2026-07-03", slot:"18:00", category:"Infantil/Cadet", week:"Setmana 1" },
       { player:"Lluc Sabater Deulofeu", dateISO:"2026-07-02", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
       { player:"Pau Piè Bilbao", dateISO:"2026-07-02", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
       { player:"Thaïs Sampera Cerdà", dateISO:"2026-07-08", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 2" },
+      // 03/07: els 5 players de les 18:00 passen a les 19:00
+      { player:"Adrià Durante Masa", dateISO:"2026-07-03", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
+      { player:"Elma López Rendón", dateISO:"2026-07-03", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
+      { player:"Elsa Aranda Carbón", dateISO:"2026-07-03", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
+      { player:"Joel González Gutiérrez", dateISO:"2026-07-03", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
+      { player:"Roc Arbonès López", dateISO:"2026-07-03", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
     ];
     function applyEnrollmentExceptions(){
       const rm=new Set(ENROLLMENT_REMOVALS);
