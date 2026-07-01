@@ -937,7 +937,6 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     // Clau: "Nom Cognoms|Setmana X" -> nova franja ("HH:MM").
     const PLAYER_SLOT_OVERRIDES = {
       "Jan Rodríguez González|Setmana 1": "19:00",
-      "Miquel Lopez Serrano|Setmana 1": "19:00",
     };
     function overrideSlot(player, week, slot){
       return PLAYER_SLOT_OVERRIDES[`${player}|${week}`] || slot;
