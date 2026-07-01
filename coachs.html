@@ -158,6 +158,13 @@
     // Quan està definida, els coachs desen automàticament sense configurar res.
     // Si es deixa buida, es fa servir el mètode antic (token per coach).
     const NOTES_WORKER_URL = "";
+    // URL base de Firebase Realtime Database (escriptura anònima). Exemple:
+    //   https://EL-TEU-PROJECTE-default-rtdb.europe-west1.firebasedatabase.app
+    // Quan està definida, les notes es desen/carreguen automàticament aquí,
+    // sense token. Té prioritat sobre el Worker si totes dues estan definides.
+    const FIREBASE_DB_URL = "";
+    // Node dins la base de dades on es desen les notes.
+    const FIREBASE_NOTES_PATH = "sessionNotes";
     // ID del Gist públic amb l'assignació. Permet que qualsevol coach vegi
     // l'assignació sense token (els Gists són llegibles per ID sense auth).
     const DEFAULT_GIST_ID = "532f3367c329c3540d74c957f9c408b8";
@@ -418,6 +425,54 @@
 
     // ¿Hi ha Worker configurat? Si és així, els coachs desen sense token.
     const hasWorker = ()=> !!NOTES_WORKER_URL;
+    // ¿Hi ha Firebase configurat? Té prioritat: escriptura anònima sense token.
+    const hasFirebase = ()=> !!FIREBASE_DB_URL;
+    const fbUrl = ()=> `${FIREBASE_DB_URL.replace(/\/$/,"")}/${FIREBASE_NOTES_PATH}.json`;
+
+    // Llegeix les notes des de Firebase RTDB (REST, sense SDK ni token).
+    async function firebasePull(){
+      try{
+        const res=await fetch(`${fbUrl()}?t=${Date.now()}`,{ cache:"no-store" });
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        const data=await res.json(); // null si no hi ha res encara
+        sessionNotes=(data && typeof data==="object") ? data : {};
+        try{ localStorage.setItem(NOTES_KEY, JSON.stringify(sessionNotes)); }catch(e){}
+        return true;
+      }catch(e){
+        setStatus("No s'han pogut carregar les notes: "+e.message);
+        return false;
+      }
+    }
+
+    // Desa les notes a Firebase RTDB. Abans de desar, rellegeix i fusiona per
+    // no trepitjar notes d'altres coachs. PUT desa tot el node fusionat.
+    async function firebasePush(){
+      try{
+        // 1) Rellegeix l'estat remot i fusiona-hi les notes locals.
+        let remote={};
+        try{
+          const r=await fetch(`${fbUrl()}?t=${Date.now()}`,{ cache:"no-store" });
+          if(r.ok){ const d=await r.json(); if(d && typeof d==="object") remote=d; }
+        }catch(e){ /* si falla la relectura, es desa l'estat local */ }
+        const merged=Object.assign({}, remote, sessionNotes);
+        // Elimina claus buides (permet esborrar una nota).
+        Object.keys(merged).forEach(k=>{ if(!merged[k]) delete merged[k]; });
+        sessionNotes=merged;
+        // 2) Desa el node sencer.
+        const res=await fetch(fbUrl(),{
+          method:"PUT",
+          headers:{ "Content-Type":"application/json" },
+          body:JSON.stringify(merged)
+        });
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        try{ localStorage.setItem(NOTES_KEY, JSON.stringify(sessionNotes)); }catch(e){}
+        setStatus("Notes desades · "+new Date().toLocaleTimeString("ca-ES"));
+        return true;
+      }catch(e){
+        setStatus("No s'han pogut desar les notes: "+e.message);
+        return false;
+      }
+    }
 
     // Llegeix les notes des del Worker (sense token).
     async function workerPull(){
@@ -459,9 +514,10 @@
       }
     }
 
-    // Desa les notes pel millor mètode disponible: Worker (sense token) si està
-    // configurat; si no, Gist amb token (mètode antic).
+    // Desa les notes pel millor mètode disponible: Firebase o Worker (sense
+    // token) si estan configurats; si no, Gist amb token (mètode antic).
     async function saveNotes(){
+      if(hasFirebase()) return firebasePush();
       if(hasWorker()) return workerPush();
       if(gistToken()) return gistPush();
       setStatus("Nota desada en aquest dispositiu · configura ☁️ per compartir");
@@ -737,20 +793,23 @@
     function init(){
       document.getElementById("subtitle").textContent="Tecnificació Juliol 2026 · La Plana";
       const cloudBtn=document.getElementById("cloudBtn");
-      // Amb Worker configurat no cal token: s'amaga el botó de sincronització.
+      // Amb Firebase o Worker configurat no cal token: s'amaga el botó.
       if(cloudBtn){
-        if(hasWorker()) cloudBtn.style.display="none";
+        if(hasFirebase()||hasWorker()) cloudBtn.style.display="none";
         else cloudBtn.addEventListener("click",cloudConfig);
       }
       populateWeeks();
       loadAssignments();
       populateFilters();
       render();
-      // Baixa l'assignació del Gist (sense token). Les notes venen del Worker
-      // si està configurat; si no, ja arriben dins el Gist via gistPull.
+      // Baixa l'assignació del Gist (sense token). Les notes venen de Firebase
+      // o del Worker si estan configurats; si no, ja arriben dins el Gist.
       if(gistId()){
         setStatus("Carregant assignació…");
-        gistPull().then(()=>{ if(hasWorker()) return workerPull().then(render); });
+        gistPull().then(()=>{
+          if(hasFirebase()) return firebasePull().then(render);
+          if(hasWorker()) return workerPull().then(render);
+        });
       } else {
         setStatus("Sense assignació disponible");
       }
