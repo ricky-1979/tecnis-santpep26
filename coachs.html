@@ -444,25 +444,17 @@
       }
     }
 
-    // Desa les notes a Firebase RTDB. Abans de desar, rellegeix i fusiona per
-    // no trepitjar notes d'altres coachs. PUT desa tot el node fusionat.
-    async function firebasePush(){
+    // Desa un canvi concret a Firebase RTDB amb PATCH. PATCH només modifica les
+    // claus enviades (preserva les notes d'altres coachs) i un valor null
+    // esborra aquella clau. `delta` és { "dateISO|slot": "text" | null }.
+    async function firebasePush(delta){
       try{
-        // 1) Rellegeix l'estat remot i fusiona-hi les notes locals.
-        let remote={};
-        try{
-          const r=await fetch(`${fbUrl()}?t=${Date.now()}`,{ cache:"no-store" });
-          if(r.ok){ const d=await r.json(); if(d && typeof d==="object") remote=d; }
-        }catch(e){ /* si falla la relectura, es desa l'estat local */ }
-        const merged=Object.assign({}, remote, sessionNotes);
-        // Elimina claus buides (permet esborrar una nota).
-        Object.keys(merged).forEach(k=>{ if(!merged[k]) delete merged[k]; });
-        sessionNotes=merged;
-        // 2) Desa el node sencer.
+        // Si no ens passen un canvi concret, fusiona tot l'estat local.
+        const patch = delta || sessionNotes;
         const res=await fetch(fbUrl(),{
-          method:"PUT",
+          method:"PATCH",
           headers:{ "Content-Type":"application/json" },
-          body:JSON.stringify(merged)
+          body:JSON.stringify(patch)
         });
         if(!res.ok) throw new Error("HTTP "+res.status);
         try{ localStorage.setItem(NOTES_KEY, JSON.stringify(sessionNotes)); }catch(e){}
@@ -516,8 +508,8 @@
 
     // Desa les notes pel millor mètode disponible: Firebase o Worker (sense
     // token) si estan configurats; si no, Gist amb token (mètode antic).
-    async function saveNotes(){
-      if(hasFirebase()) return firebasePush();
+    async function saveNotes(delta){
+      if(hasFirebase()) return firebasePush(delta);
       if(hasWorker()) return workerPush();
       if(gistToken()) return gistPush();
       setStatus("Nota desada en aquest dispositiu · configura ☁️ per compartir");
@@ -762,9 +754,13 @@
         ta.addEventListener("blur",()=>{
           const k=ta.getAttribute("data-note");
           const v=ta.value.trim();
+          // No desis si no hi ha canvi respecte a l'estat actual.
+          const prev=sessionNotes[k]||"";
+          if(v===prev) return;
           if(v) sessionNotes[k]=v; else delete sessionNotes[k];
           try{ localStorage.setItem(NOTES_KEY, JSON.stringify(sessionNotes)); }catch(e){}
-          saveNotes();
+          // Envia només aquest canvi: text per desar, null per esborrar.
+          saveNotes({ [k]: v || null });
         });
       });
 
