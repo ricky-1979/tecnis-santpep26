@@ -464,27 +464,22 @@
       const schedule=document.getElementById("schedule");
       const empty=document.getElementById("empty");
 
-      // El pla de treball només aplica a la Setmana 1 i s'amaga si es filtra
-      // per coach o player (la vista passa a ser una cerca puntual).
+      // El pla de treball només aplica a la Setmana 1.
       const wp=document.getElementById("workplan");
-      if(wp) wp.style.display = (filterWeek==="Setmana 1" && !filterCoach && !filterPlayer) ? "" : "none";
+      if(wp) wp.style.display = filterWeek==="Setmana 1" ? "" : "none";
 
       // Mostra el botó de netejar només si hi ha algun filtre de cerca actiu.
       const searching=!!(filterCoach||filterPlayer);
       const clearBtn=document.getElementById("clearFilters");
       if(clearBtn) clearBtn.style.display = searching ? "" : "none";
-      // El filtre de setmana s'ignora durant la cerca: el deshabilitem.
-      const weekSel=document.getElementById("filterWeek");
-      if(weekSel) weekSel.disabled = searching;
 
-      // Dies a mostrar: tots els que tenen players o coachs assignats
+      // Dies a mostrar: tots els que tenen players o coachs assignats.
       const dayset=new Set();
       enrollments.forEach(e=>dayset.add(e.dateISO));
       Object.keys(assignments).forEach(k=>dayset.add(k.split("|")[0]));
       let days=[...dayset].filter(Boolean).sort();
-      // Quan es cerca per coach o player mostrem totes les setmanes (la cerca
-      // és transversal); si no, respectem el filtre de setmana.
-      if(filterWeek && !filterCoach && !filterPlayer) days=days.filter(d=>ISO_WEEK[d]===filterWeek);
+      // Els filtres de coach/player actuen dins de la setmana seleccionada.
+      if(filterWeek) days=days.filter(d=>ISO_WEEK[d]===filterWeek);
 
       const blocks=[];
       days.forEach(d=>{
