@@ -1768,7 +1768,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       // setmana seleccionada, es reinicia tot el calendari.
       const wk=assignWeek;
       const scope = wk ? `la ${wk}` : "totes les setmanes";
-      if(!confirm(`Reiniciar ${scope} amb la disponibilitat de Koalendar? Es perdran els canvis manuals${wk?" d'aquesta setmana":""}.`)) return;
+      if(!confirm(`Reiniciar ${scope} amb la disponibilitat original dels entrenadors? Es perdran els canvis manuals${wk?" d'aquesta setmana":""}.`)) return;
 
       const fresh=defaultAssignments();
       if(wk){
