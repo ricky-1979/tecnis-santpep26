@@ -403,7 +403,7 @@
       // Per defecte, Setmana 1
       filterWeek="Setmana 1";
       sel.value=filterWeek;
-      sel.addEventListener("change",e=>{ filterWeek=e.target.value; render(); });
+      sel.addEventListener("change",e=>{ filterWeek=e.target.value; populateFilters(); render(); });
     }
 
     // Omple els selects de coach i player amb els valors únics presents a les
@@ -414,9 +414,14 @@
       const playerSel=document.getElementById("filterPlayer");
       const clearBtn=document.getElementById("clearFilters");
 
+      // Només coachs i players de la setmana seleccionada.
+      const inWeek=dateISO=>!filterWeek || ISO_WEEK[dateISO]===filterWeek;
       const coaches=new Set();
-      Object.values(assignments).forEach(arr=>(arr||[]).forEach(c=>coaches.add(c)));
-      const players=new Set(enrollments.map(e=>e.player));
+      Object.entries(assignments).forEach(([key,arr])=>{
+        const dateISO=key.split("|")[0];
+        if(inWeek(dateISO)) (arr||[]).forEach(c=>coaches.add(c));
+      });
+      const players=new Set(enrollments.filter(e=>inWeek(e.dateISO)).map(e=>e.player));
 
       const fill=(sel,values,keep)=>{
         const first=sel.querySelector("option");
