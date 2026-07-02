@@ -1318,8 +1318,8 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       // assignació: selector de setmana (amb opció "Totes")
       const aw=document.getElementById("assignWeek");
       aw.innerHTML=`<option value="">Totes les setmanes</option>`+weeks.map(w=>`<option value="${w}">${w}</option>`).join("");
-      // Selecciona "Setmana 1" per defecte si existeix
-      const defaultWeek=weeks.includes("Setmana 1")?"Setmana 1":(weeks[0]||"");
+      // Selecciona "Setmana 2" per defecte si existeix (si no, la primera disponible)
+      const defaultWeek=weeks.includes("Setmana 2")?"Setmana 2":(weeks[0]||"");
       ["filterWeek","filterHmWeek","filterBlockWeek","filterPlayerWeek","assignWeek"].forEach(id=>{
         document.getElementById(id).value=defaultWeek;
       });
@@ -1551,7 +1551,8 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       if(!sel) return;
       const weeks=WEEK_COLUMNS.map(w=>w.label).filter(w=> enrollments.some(e=>e.week===w));
       if(!weeks.length){ sel.innerHTML=""; groupsWeek=""; return; }
-      if(!groupsWeek || !weeks.includes(groupsWeek)) groupsWeek=weeks[0];
+      // Per defecte "Setmana 2" si existeix; si no, la primera disponible
+      if(!groupsWeek || !weeks.includes(groupsWeek)) groupsWeek=weeks.includes("Setmana 2")?"Setmana 2":weeks[0];
       sel.innerHTML=weeks.map(w=>`<option value="${esc(w)}"${w===groupsWeek?" selected":""}>${esc(w)}</option>`).join("");
     }
 
