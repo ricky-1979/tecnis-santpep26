@@ -86,6 +86,10 @@
     .badge.ok { background:#2e1f44; color:var(--lila); }
     .badge.noplayers { background:#241836; color:var(--muted); }
     .coach-chips { display:flex; flex-wrap:wrap; gap:6px; }
+    /* Sessió amb sobreaforament (>8 players): destaca la fila i el recompte */
+    tr.overfull td { background:#3b1d1d; }
+    td.count-over { color:var(--danger); font-weight:700; }
+    td.count-over .warn-ico { margin-left:4px; }
     /* Assignació editable */
     .assign-grid { display:grid; grid-template-columns:130px repeat(4,1fr); gap:8px; min-width:760px; }
     .assign-grid .ah { color:var(--muted); font-weight:600; font-size:0.8rem; padding:6px 8px; position:sticky; top:0; }
@@ -222,7 +226,7 @@
 
   <div class="table-card">
     <h2 class="section">Players inscrits</h2>
-    <p class="hint">Players inscrits a cada sessió, agrupats per dia i franja horària. <span class="badge under">· DS</span> = inscripció de <strong>dia solt</strong> (no setmana completa).</p>
+    <p class="hint">Players inscrits a cada sessió, agrupats per dia i franja horària. <span class="badge under">· DS</span> = inscripció de <strong>dia solt</strong> (no setmana completa). Les sessions amb <strong>més de 8 players</strong> es marquen en <span style="color:var(--danger);font-weight:700;">vermell ⚠</span>.</p>
     <div class="filters">
       <select id="filterPlayerWeek"><option value="">Totes les setmanes</option></select>
       <select id="filterPlayerCategory"><option value="">Totes les categories</option></select>
@@ -1467,14 +1471,16 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       document.getElementById("playerCountInfo").textContent=`${data.length} sessions · ${totalPlaces} places·dia`;
       if(!data.length){ body.innerHTML=""; empty.style.display="block"; return; }
       empty.style.display="none";
-      body.innerHTML=data.map(g=>`
-        <tr>
+      body.innerHTML=data.map(g=>{
+        const over=g.count>8; // més de 8 players a la sessió: sobreaforament
+        return `
+        <tr${over?' class="overfull"':""}>
           <td>${g.dateDisplay}</td>
           <td>${g.weekday}</td>
           <td><strong>${g.slotLabel}</strong></td>
-          <td>${g.count}</td>
+          <td${over?' class="count-over"':""}>${g.count}${over?' <span class="warn-ico" title="Més de 8 players en aquesta sessió">⚠</span>':""}</td>
           <td class="coach-chips">${g.players.map(p=>`<span class="badge ${p.solt?"under":"ok"}" title="${p.solt?"Dia solt":"Setmana completa"}">${p.name}</span>`).join(" ")}</td>
-        </tr>`).join("");
+        </tr>`;}).join("");
     }
 
     // ---- Render de l'assignació editable ----
