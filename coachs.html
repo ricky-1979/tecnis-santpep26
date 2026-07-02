@@ -166,6 +166,9 @@
     const FIREBASE_DB_URL = "https://tecni-notes-default-rtdb.europe-west1.firebasedatabase.app";
     // Node dins la base de dades on es desen les notes.
     const FIREBASE_NOTES_PATH = "sessionNotes";
+    // Node on el dashboard publica l'assignació de coachs (sense token). És la
+    // via principal: substitueix el Gist per llegir qui va a cada franja.
+    const FIREBASE_ASSIGN_PATH = "coachAssignments";
     // ID del Gist públic amb l'assignació. Permet que qualsevol coach vegi
     // l'assignació sense token (els Gists són llegibles per ID sense auth).
     const DEFAULT_GIST_ID = "532f3367c329c3540d74c957f9c408b8";
@@ -429,6 +432,32 @@
     // ¿Hi ha Firebase configurat? Té prioritat: escriptura anònima sense token.
     const hasFirebase = ()=> !!FIREBASE_DB_URL;
     const fbUrl = ()=> `${FIREBASE_DB_URL.replace(/\/$/,"")}/${FIREBASE_NOTES_PATH}.json`;
+    const fbAssignUrl = ()=> `${FIREBASE_DB_URL.replace(/\/$/,"")}/${FIREBASE_ASSIGN_PATH}.json`;
+
+    // Llegeix l'assignació de coachs des de Firebase (sense token). El
+    // dashboard n'és la font de veritat i la hi publica a cada canvi. Retorna
+    // true si s'ha aplicat una assignació, false si no n'hi ha o hi ha error.
+    async function firebaseAssignPull(){
+      try{
+        const res=await fetch(`${fbAssignUrl()}?t=${Date.now()}`,{ cache:"no-store" });
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        const p=await res.json(); // null si el dashboard encara no ha publicat
+        if(p && p.assignments && typeof p.assignments==="object"){
+          assignments=p.assignments;
+          if(p.playerGroups && typeof p.playerGroups==="object") playerGroups=p.playerGroups;
+          if(p.coachGroups && typeof p.coachGroups==="object") coachGroups=p.coachGroups;
+          try{ localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignments)); }catch(e){}
+          populateFilters();
+          render();
+          setStatus("Assignació actualitzada · "+new Date().toLocaleTimeString("ca-ES"));
+          return true;
+        }
+        return false;
+      }catch(e){
+        setStatus("No s'ha pogut carregar l'assignació: "+e.message);
+        return false;
+      }
+    }
 
     // Llegeix les notes des de Firebase RTDB (REST, sense SDK ni token).
     async function firebasePull(){
@@ -799,12 +828,19 @@
       loadAssignments();
       populateFilters();
       render();
-      // Baixa l'assignació del Gist (sense token). Les notes venen de Firebase
-      // o del Worker si estan configurats; si no, ja arriben dins el Gist.
-      if(gistId()){
-        setStatus("Carregant assignació…");
+      // Via principal: Firebase (sense token). El dashboard hi publica
+      // l'assignació I les notes; les llegim d'allà. Si Firebase no torna cap
+      // assignació (encara no publicada), es recorre al Gist com a reserva.
+      setStatus("Carregant assignació…");
+      if(hasFirebase()){
+        firebaseAssignPull().then(ok=>{
+          // Les notes també venen de Firebase.
+          firebasePull().then(render);
+          // Reserva: si Firebase encara no té assignació, prova el Gist.
+          if(!ok && gistId()) gistPull();
+        });
+      } else if(gistId()){
         gistPull().then(()=>{
-          if(hasFirebase()) return firebasePull().then(render);
           if(hasWorker()) return workerPull().then(render);
         });
       } else {

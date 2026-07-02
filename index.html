@@ -654,7 +654,91 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       return sorted[0]===coach ? "1" : "2";
     }
 
-    // ---- Sincronització al núvol via GitHub Gist ----
+    // ---- Sincronització al núvol via Firebase RTDB (sense token) ----
+    // Firebase és la via principal: el dashboard escriu l'assignació aquí i
+    // coachs.html la llegeix, sense necessitat de cap token. El Gist es manté
+    // com a mètode antic de reserva (vegeu més avall).
+    const FIREBASE_DB_URL = "https://tecni-notes-default-rtdb.europe-west1.firebasedatabase.app";
+    const FIREBASE_ASSIGN_PATH = "coachAssignments";
+    const hasFirebase = ()=> !!FIREBASE_DB_URL;
+    const fbAssignUrl = ()=> `${FIREBASE_DB_URL.replace(/\/$/,"")}/${FIREBASE_ASSIGN_PATH}.json`;
+
+    // Desa tot l'estat d'assignació a Firebase (assignments, grups i notes).
+    // Escriu el document sencer amb PUT: el dashboard és la font de veritat de
+    // l'assignació. Les notes es fusionen abans (les escriuen els coachs).
+    async function firebaseAssignPush(){
+      if(!hasFirebase()) return false;
+      const ts=localTs()||Date.now();
+      const payload={ _ts:ts, assignments, playerGroups, coachGroups, sessionNotes };
+      try{
+        const res=await fetch(fbAssignUrl(),{
+          method:"PUT",
+          headers:{ "Content-Type":"application/json" },
+          body:JSON.stringify(payload)
+        });
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        setAssignStatus("Publicat per als coachs · "+new Date().toLocaleTimeString("ca-ES"));
+        return true;
+      }catch(e){
+        setAssignStatus("Error publicant a Firebase: "+e.message);
+        return false;
+      }
+    }
+
+    // Llegeix l'estat d'assignació de Firebase. Retorna { ts, assignments,
+    // playerGroups, coachGroups, sessionNotes } o null si no hi ha res.
+    async function firebaseAssignFetch(){
+      if(!hasFirebase()) return null;
+      const res=await fetch(`${fbAssignUrl()}?t=${Date.now()}`,{ cache:"no-store" });
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const p=await res.json();
+      if(p && p.assignments && typeof p.assignments==="object"){
+        return { ts:p._ts||0, assignments:p.assignments,
+                 playerGroups:(p.playerGroups&&typeof p.playerGroups==="object")?p.playerGroups:null,
+                 coachGroups:(p.coachGroups&&typeof p.coachGroups==="object")?p.coachGroups:null,
+                 sessionNotes:(p.sessionNotes&&typeof p.sessionNotes==="object")?p.sessionNotes:null };
+      }
+      return null;
+    }
+
+    // En arrencar: aplica l'estat de Firebase si és més nou que el local. Si el
+    // local té canvis més recents (o Firebase és buit), el publica. Així mai es
+    // perden canvis i els coachs sempre veuen l'última assignació.
+    async function firebaseSyncStartup(){
+      try{
+        // Conserva sempre les notes remotes (les gestionen els coachs).
+        const remote=await firebaseAssignFetch();
+        const lts=localTs();
+        if(!remote){
+          // Encara no hi ha res a Firebase → publica l'estat local actual.
+          await firebaseAssignPush();
+          return;
+        }
+        if(remote.sessionNotes) sessionNotes=remote.sessionNotes;
+        if(remote.ts > lts){
+          // El núvol és més nou → aplica'l.
+          assignments=remote.assignments;
+          if(remote.playerGroups) playerGroups=remote.playerGroups;
+          if(remote.coachGroups) coachGroups=remote.coachGroups;
+          try{ localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignments)); }catch(e){}
+          try{ localStorage.setItem(GROUPS_KEY, JSON.stringify(playerGroups)); }catch(e){}
+          try{ localStorage.setItem(CGROUPS_KEY, JSON.stringify(coachGroups)); }catch(e){}
+          try{ localStorage.setItem(ASSIGN_TS_KEY, String(remote.ts)); }catch(e){}
+          refreshFromAssignments();
+          setAssignStatus("Sincronitzat amb els coachs · "+new Date().toLocaleTimeString("ca-ES"));
+        } else if(lts > remote.ts){
+          // El local és més nou (canvis pendents) → publica'l.
+          setAssignStatus("Publicant canvis per als coachs…");
+          await firebaseAssignPush();
+        } else {
+          setAssignStatus("Sincronitzat amb els coachs");
+        }
+      }catch(e){
+        setAssignStatus("Error sincronitzant amb Firebase: "+e.message);
+      }
+    }
+
+    // ---- Sincronització al núvol via GitHub Gist (reserva, cal token) ----
     // El token i l'id del gist es desen NOMÉS al localStorage d'aquest
     // navegador; mai s'incrusten a la pàgina pública.
     const GIST_TOKEN_KEY = "tecnis-gist-token";
@@ -1720,13 +1804,18 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     function afterAssignChange(){
       saveAssignments();
       refreshFromAssignments();
-      // Si el núvol està configurat, puja automàticament (amb debounce)
-      if(gistToken() && gistId()){
+      // Firebase és la via principal: publica automàticament sense token
+      // (amb debounce) perquè els coachs ho vegin de seguida.
+      if(hasFirebase()){
+        clearTimeout(cloudSyncTimer);
+        setAssignStatus("Desat · publicant per als coachs…");
+        cloudSyncTimer=setTimeout(()=>firebaseAssignPush(),1200);
+      } else if(gistToken() && gistId()){
         clearTimeout(cloudSyncTimer);
         setAssignStatus("Desat · pujant al núvol…");
         cloudSyncTimer=setTimeout(()=>gistPush(),1200);
       } else {
-        setAssignStatus("⚠️ Desat només en aquest navegador. Sense token els coachs NO ho veuen.");
+        setAssignStatus("⚠️ Desat només en aquest navegador. Els coachs NO ho veuen.");
       }
     }
 
@@ -1787,7 +1876,9 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       } else {
         assignments=fresh;
       }
-      saveAssignments(); refreshFromAssignments();
+      // Desa, refresca I publica al núvol (Firebase) perquè els coachs vegin
+      // el reinici immediatament.
+      afterAssignChange();
       setAssignStatus(wk ? `Reiniciada ${wk} des de Koalendar` : "Reiniciat des de Koalendar");
     }
 
@@ -1879,12 +1970,14 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       renderAssign();
       renderGroups();
       updateCloudButton();
-      // Si el núvol està configurat, sincronitza resolent conflictes per timestamp
-      if(gistToken() && gistId()){
+      // Firebase és la via principal (sense token). Sincronitza resolent
+      // conflictes per timestamp; si el Gist està configurat, s'usa de reserva.
+      if(hasFirebase()){
+        setAssignStatus("Sincronitzant amb els coachs…");
+        firebaseSyncStartup();
+      } else if(gistToken() && gistId()){
         setAssignStatus("Sincronitzant amb el núvol…");
         gistSyncStartup();
-      } else if(!gistToken()){
-        setAssignStatus("⚠️ Sense token: els canvis NO es publiquen per als coachs. Clica 'Sincronitzar al núvol…'");
       } else {
         setAssignStatus(hadSaved?"Carregat del navegador":"Inicialitzat des de Koalendar");
       }
