@@ -849,6 +849,9 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       // (a ENROLLMENT_*) perquè cal preservar el 07/08, on ja tenen 2 franges.
       "Carla Perramón Navarro|Setmana 2": "21:00",
       "Clàudia Gàmiz Roset|Setmana 2": "21:00",
+      // Martina només té dies solts el 07 i 09/07 (setmana 2), que són just els
+      // dies a moure de la 3a (20:00) a la 4a franja (21:00). Override net.
+      "Martina Rueda Ramos|Setmana 2": "21:00",
     };
     function overrideSlot(player, week, slot){
       return PLAYER_SLOT_OVERRIDES[`${player}|${week}`] || slot;
