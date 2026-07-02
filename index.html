@@ -202,7 +202,6 @@
       <select id="assignWeek"></select>
       <span class="sep"></span>
       <span class="assign-status" id="assignStatus"></span>
-      <button id="assignCloud" type="button">Sincronitzar al núvol…</button>
       <button id="assignReset" type="button">Reiniciar Setmana</button>
     </div>
     <div class="assign-overwrap">
@@ -609,7 +608,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     let dragInfo = null;  // { from:"dateISO|slot", coach }
 
     // Grup de treball per defecte de cada player ("1" o "2"). Es pot
-    // sobreescriure des de la UI i se sincronitza al Gist. Clau: "Nom Cognoms".
+    // sobreescriure des de la UI i es publica a Firebase. Clau: "Nom Cognoms".
     const PLAYER_GROUP_DEFAULTS = {
       "Adrià Durante Masa":"2","Alvaro Alvarez Romero":"2","Elma López Rendón":"2",
       "Elsa Aranda Carbón":"2","Joel González Gutiérrez":"2","Lluc Sabater Deulofeu":"2",
@@ -656,8 +655,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
 
     // ---- Sincronització al núvol via Firebase RTDB (sense token) ----
     // Firebase és la via principal: el dashboard escriu l'assignació aquí i
-    // coachs.html la llegeix, sense necessitat de cap token. El Gist es manté
-    // com a mètode antic de reserva (vegeu més avall).
+    // coachs.html la llegeix, sense necessitat de cap token.
     const FIREBASE_DB_URL = "https://tecni-notes-default-rtdb.europe-west1.firebasedatabase.app";
     const FIREBASE_ASSIGN_PATH = "coachAssignments";
     const hasFirebase = ()=> !!FIREBASE_DB_URL;
@@ -738,201 +736,10 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       }
     }
 
-    // ---- Sincronització al núvol via GitHub Gist (reserva, cal token) ----
-    // El token i l'id del gist es desen NOMÉS al localStorage d'aquest
-    // navegador; mai s'incrusten a la pàgina pública.
-    const GIST_TOKEN_KEY = "tecnis-gist-token";
-    const GIST_ID_KEY = "tecnis-gist-id";
+    // Timestamp local de l'última assignació (per resoldre conflictes amb
+    // Firebase en arrencar).
     const ASSIGN_TS_KEY = "tecnis-assignments-ts";
-    const GIST_FILENAME = "assignacions-coachs.json";
-    const gistToken = ()=> localStorage.getItem(GIST_TOKEN_KEY)||"";
-    const gistId = ()=> localStorage.getItem(GIST_ID_KEY)||"";
     const localTs = ()=> parseInt(localStorage.getItem(ASSIGN_TS_KEY)||"0",10);
-
-    async function gistPush(){
-      const token=gistToken();
-      if(!token){ setAssignStatus("Configura primer el núvol"); return false; }
-      // Inclou un timestamp dins el fitxer per resoldre conflictes en arrencar
-      const ts=localTs()||Date.now();
-      // Les notes de sessió les escriuen els coachs; abans de pujar, rellegeix
-      // les remotes i fusiona-les amb les locals per no trepitjar-ne cap.
-      try{
-        const remote=await gistFetch();
-        if(remote && remote.sessionNotes) sessionNotes=Object.assign({}, remote.sessionNotes, sessionNotes);
-      }catch(e){ /* si falla la relectura, es puja l'estat local */ }
-      const payload={ _ts:ts, assignments, playerGroups, coachGroups, sessionNotes };
-      const body={
-        description:"Assignació de coachs · Tecnificació SantPep",
-        files:{ [GIST_FILENAME]:{ content:JSON.stringify(payload,null,2) } }
-      };
-      try{
-        let id=gistId(), res;
-        if(id){
-          res=await fetch(`https://api.github.com/gists/${id}`,{
-            method:"PATCH",
-            headers:{ "Authorization":"token "+token, "Accept":"application/vnd.github+json" },
-            body:JSON.stringify(body)
-          });
-        } else {
-          res=await fetch("https://api.github.com/gists",{
-            method:"POST",
-            headers:{ "Authorization":"token "+token, "Accept":"application/vnd.github+json" },
-            body:JSON.stringify({ ...body, public:false })
-          });
-        }
-        if(!res.ok) throw new Error(await gistErrMsg(res));
-        const data=await res.json();
-        if(data.id) localStorage.setItem(GIST_ID_KEY,data.id);
-        setAssignStatus("Pujat al núvol · "+new Date().toLocaleTimeString("ca-ES"));
-        return true;
-      }catch(e){
-        setAssignStatus("Error pujant al núvol: "+e.message);
-        return false;
-      }
-    }
-
-    // Construeix un missatge d'error clar a partir de la resposta de GitHub
-    async function gistErrMsg(res){
-      let detail="";
-      try{ const j=await res.json(); detail=j.message||""; }catch(e){ /* ignora */ }
-      const scopes=res.headers.get("x-oauth-scopes");
-      if(res.status===401) return "HTTP 401 · token invàlid o caducat";
-      if(res.status===403){
-        let m="HTTP 403";
-        if(scopes!==null) m+=" · scopes del token: ["+(scopes||"cap")+"] (cal 'gist')";
-        else m+=" · el token no té permís 'gist' o no s'envia bé";
-        if(detail) m+=" · "+detail;
-        return m;
-      }
-      if(res.status===404) return "HTTP 404 · gist no trobat (revisa l'ID)";
-      return "HTTP "+res.status+(detail?" · "+detail:"");
-    }
-
-    // Llegeix el Gist i retorna { ts, assignments } o null.
-    async function gistFetch(){
-      const token=gistToken(), id=gistId();
-      if(!token || !id) return null;
-      const res=await fetch(`https://api.github.com/gists/${id}`,{
-        headers:{ "Authorization":"token "+token, "Accept":"application/vnd.github+json" }
-      });
-      if(!res.ok) throw new Error(await gistErrMsg(res));
-      const data=await res.json();
-      const file=data.files && data.files[GIST_FILENAME];
-      if(!file) throw new Error("fitxer no trobat al gist");
-      const parsed=JSON.parse(file.content);
-      // Format nou: { _ts, assignments, playerGroups }. Antic: assignacions directes.
-      if(parsed && parsed.assignments && typeof parsed.assignments==="object"){
-        return { ts:parsed._ts||0, assignments:parsed.assignments,
-                 playerGroups:(parsed.playerGroups&&typeof parsed.playerGroups==="object")?parsed.playerGroups:null,
-                 coachGroups:(parsed.coachGroups&&typeof parsed.coachGroups==="object")?parsed.coachGroups:null,
-                 sessionNotes:(parsed.sessionNotes&&typeof parsed.sessionNotes==="object")?parsed.sessionNotes:null };
-      }
-      if(parsed && typeof parsed==="object"){
-        return { ts:0, assignments:parsed, playerGroups:null, coachGroups:null, sessionNotes:null };
-      }
-      return null;
-    }
-
-    async function gistPull(){
-      const token=gistToken(), id=gistId();
-      if(!token || !id){ setAssignStatus("Configura primer el núvol"); return false; }
-      try{
-        const remote=await gistFetch();
-        if(remote){
-          assignments=remote.assignments;
-          if(remote.playerGroups) playerGroups=remote.playerGroups;
-          if(remote.coachGroups) coachGroups=remote.coachGroups;
-          if(remote.sessionNotes) sessionNotes=remote.sessionNotes;
-          saveAssignments();
-          refreshFromAssignments();
-          setAssignStatus("Descarregat del núvol · "+new Date().toLocaleTimeString("ca-ES"));
-        }
-        return true;
-      }catch(e){
-        setAssignStatus("Error descarregant del núvol: "+e.message);
-        return false;
-      }
-    }
-
-    // En arrencar: aplica el Gist només si és més nou que el local. Si el
-    // local té canvis més recents (no pujats), els puja per no perdre'ls.
-    async function gistSyncStartup(){
-      const token=gistToken(), id=gistId();
-      if(!token || !id) return;
-      try{
-        setAssignStatus("Sincronitzant amb el núvol…");
-        const remote=await gistFetch();
-        const lts=localTs();
-        if(!remote){
-          if(lts) await gistPush();
-          return;
-        }
-        // Sempre conserva les notes remotes en memòria: les gestionen els
-        // coachs i el dashboard només les ha de preservar en el proper push.
-        if(remote.sessionNotes) sessionNotes=remote.sessionNotes;
-        if(remote.ts > lts){
-          // El núvol és més nou → aplica'l
-          assignments=remote.assignments;
-          if(remote.playerGroups) playerGroups=remote.playerGroups;
-          if(remote.coachGroups) coachGroups=remote.coachGroups;
-          try{ localStorage.setItem(ASSIGN_KEY, JSON.stringify(assignments)); }catch(e){}
-          try{ localStorage.setItem(GROUPS_KEY, JSON.stringify(playerGroups)); }catch(e){}
-          try{ localStorage.setItem(CGROUPS_KEY, JSON.stringify(coachGroups)); }catch(e){}
-          try{ localStorage.setItem(ASSIGN_TS_KEY, String(remote.ts)); }catch(e){}
-          refreshFromAssignments();
-          setAssignStatus("Descarregat del núvol · "+new Date().toLocaleTimeString("ca-ES"));
-        } else if(lts > remote.ts){
-          // El local és més nou (canvis pendents) → puja'l
-          setAssignStatus("Pujant canvis locals al núvol…");
-          await gistPush();
-        } else {
-          setAssignStatus("Sincronitzat amb el núvol");
-        }
-      }catch(e){
-        setAssignStatus("Error sincronitzant: "+e.message);
-      }
-    }
-
-    function configureCloud(){
-      const curToken=gistToken();
-      const t=prompt(
-        "Enganxa el GitHub token CLASSIC amb permís 'gist' (comença per ghp_).\n"+
-        (curToken?"Ja n'hi ha un de desat ("+curToken.slice(0,7)+"…). ":"")+
-        "El camp està buit: enganxa el token nou i prem OK.\n"+
-        "Deixa-ho BUIT per mantenir l'actual; escriu 'esborrar' per treure'l.",
-        "");
-      if(t===null) return;
-      const tv=t.trim();
-      if(tv.toLowerCase()==="esborrar"){
-        localStorage.removeItem(GIST_TOKEN_KEY);
-        setAssignStatus("Token del núvol esborrat");
-        return;
-      }
-      if(tv){
-        localStorage.setItem(GIST_TOKEN_KEY,tv);
-        setAssignStatus("Token desat ("+tv.slice(0,7)+"…)");
-      }
-      const curId=gistId();
-      const id=prompt(
-        "ID del Gist a compartir entre dispositius.\n"+
-        "Deixa-ho buit per crear-ne un de nou automàticament en pujar.\n"+
-        "En un segon dispositiu, enganxa aquí l'ID que et va donar el primer.",
-        curId);
-      if(id!==null){
-        if(id.trim()) localStorage.setItem(GIST_ID_KEY,id.trim());
-        else localStorage.removeItem(GIST_ID_KEY);
-      }
-      updateCloudButton();
-      // La sincronització és automàtica i resol conflictes per timestamp:
-      // si el local és més nou (canvis pendents) es puja; si el núvol és
-      // més nou, es baixa. Així no es perden els canvis fets sense token.
-      if(gistToken()){
-        if(gistId()){ gistSyncStartup(); }
-        else { setAssignStatus("Creant el Gist al núvol…"); gistPush(); }
-      } else {
-        setAssignStatus("Token del núvol esborrat");
-      }
-    }
 
     function defaultAssignments(){
       // Inicialitza des de la disponibilitat de Koalendar
@@ -1804,16 +1611,12 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     function afterAssignChange(){
       saveAssignments();
       refreshFromAssignments();
-      // Firebase és la via principal: publica automàticament sense token
-      // (amb debounce) perquè els coachs ho vegin de seguida.
+      // Publica automàticament a Firebase (sense token, amb debounce) perquè
+      // els coachs ho vegin de seguida.
       if(hasFirebase()){
         clearTimeout(cloudSyncTimer);
         setAssignStatus("Desat · publicant per als coachs…");
         cloudSyncTimer=setTimeout(()=>firebaseAssignPush(),1200);
-      } else if(gistToken() && gistId()){
-        clearTimeout(cloudSyncTimer);
-        setAssignStatus("Desat · pujant al núvol…");
-        cloudSyncTimer=setTimeout(()=>gistPush(),1200);
       } else {
         setAssignStatus("⚠️ Desat només en aquest navegador. Els coachs NO ho veuen.");
       }
@@ -1943,14 +1746,6 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       document.getElementById("assignWeek").addEventListener("change",e=>{ assignWeek=e.target.value; renderAssign(); });
       document.getElementById("groupsWeek").addEventListener("change",e=>{ groupsWeek=e.target.value; renderGroups(); });
       document.getElementById("assignReset").addEventListener("click",resetAssignments);
-      // Sincronització al núvol (Gist) — configuració manual només si cal
-      document.getElementById("assignCloud").addEventListener("click",configureCloud);
-    }
-
-    // Mostra el botó de configuració del núvol només si encara no hi ha token
-    function updateCloudButton(){
-      const btn=document.getElementById("assignCloud");
-      if(btn) btn.style.display=gistToken()?"none":"";
     }
 
     function init(){
@@ -1969,15 +1764,10 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       renderPlayers();
       renderAssign();
       renderGroups();
-      updateCloudButton();
-      // Firebase és la via principal (sense token). Sincronitza resolent
-      // conflictes per timestamp; si el Gist està configurat, s'usa de reserva.
+      // Firebase sincronitza l'assignació resolent conflictes per timestamp.
       if(hasFirebase()){
         setAssignStatus("Sincronitzant amb els coachs…");
         firebaseSyncStartup();
-      } else if(gistToken() && gistId()){
-        setAssignStatus("Sincronitzant amb el núvol…");
-        gistSyncStartup();
       } else {
         setAssignStatus(hadSaved?"Carregat del navegador":"Inicialitzat des de Koalendar");
       }
