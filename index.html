@@ -98,6 +98,9 @@
     .assign-cell { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:6px; min-height:54px;
       display:flex; flex-wrap:wrap; gap:4px; align-content:flex-start; transition:border-color .15s, background .15s; }
     .assign-cell.dragover { border-color:var(--groc); background:#241836; }
+    /* Franja amb menys de 6 players però més d'un coach: sobra entrenador */
+    .assign-cell.overstaffed { border-color:var(--danger); background:#3b1d1d; }
+    .assign-cell .cell-count.warn { color:var(--danger); font-weight:700; }
     .assign-cell .pill { display:inline-flex; align-items:center; gap:4px; background:#2e1f44; color:var(--lila);
       border:1px solid var(--border); border-radius:999px; padding:2px 6px 2px 8px; font-size:0.76rem; font-weight:600; cursor:grab; }
     .assign-cell .pill.dragging { opacity:0.4; }
@@ -201,7 +204,7 @@
 
   <div class="table-card">
     <h2 class="section">Assignació de coachs</h2>
-    <p class="hint">Arrossega un coach d'una franja a una altra per moure'l, o fes servir <strong>+ Afegir</strong> per assignar-ne un de nou. Fes clic a la <strong>×</strong> per treure'l. Els canvis es desen i se sincronitzen automàticament entre dispositius.</p>
+    <p class="hint">Arrossega un coach d'una franja a una altra per moure'l, o fes servir <strong>+ Afegir</strong> per assignar-ne un de nou. Fes clic a la <strong>×</strong> per treure'l. Els canvis es desen i se sincronitzen automàticament entre dispositius. Una cel·la en <span style="color:var(--danger);font-weight:700;">vermell ⚠</span> indica que hi ha <strong>menys de 6 players amb més d'un coach</strong> (sobra entrenador).</p>
     <div class="assign-toolbar">
       <select id="assignWeek"></select>
       <span class="sep"></span>
@@ -250,7 +253,7 @@
 
   <div class="grid-card">
     <h2 class="section">Ocupació per sessió</h2>
-    <p class="hint">Cada cel·la mostra <strong>players inscrits</strong> i <strong>coachs disponibles</strong>. Objectiu: 4 coachs per cada 16 players.</p>
+    <p class="hint">Cada cel·la mostra <strong>players inscrits</strong> i <strong>coachs disponibles</strong>. Objectiu: 1 coach fins a 5 players, 2 coachs a partir de 6.</p>
     <div class="filters">
       <select id="filterHmWeek"><option value="">Totes les setmanes</option></select>
       <select id="filterHmCategory"><option value="">Totes les categories</option></select>
@@ -565,11 +568,10 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
 
   <script>
     // ---- Configuració ----
-    // Objectiu: 4 coachs per cada 16 players (en blocs)
-    const COACHES_PER_BLOCK = 4;
-    const PLAYERS_PER_BLOCK = 16;
+    // Coaches necessaris per franja: 1 coach fins a 5 players, 2 coaches si 6+.
     function coachesNeeded(players){
-      return players>0 ? Math.ceil(players/PLAYERS_PER_BLOCK)*COACHES_PER_BLOCK : 0;
+      if(players<=0) return 0;
+      return players>5 ? 2 : 1;
     }
     const WEEKDAYS = ["Diumenge","Dilluns","Dimarts","Dimecres","Dijous","Divendres","Dissabte"];
     const SLOTS = ["18:00","19:00","20:00","21:00"];
@@ -1114,7 +1116,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         { label:"Coachs", value:totalCoaches, sub:"diferents disponibles", cls:"" },
         { label:"Sessions amb inscrits", value:sessWithPlayers.length, sub:`de ${sessions.length} programades`, cls:"" },
         { label:"Sense coach", value:crit, sub:"players sense cobrir", cls:crit?"alert":"ok" },
-        { label:"Falten coachs", value:under, sub:"per assolir 4 per cada 16", cls:under?"warn":"ok" },
+        { label:"Falten coachs", value:under, sub:"per assolir 1 (≤5 pl.) o 2 (6+ pl.)", cls:under?"warn":"ok" },
         { label:"Ràtio coberta", value:ok, sub:"sessions correctes", cls:"ok" },
         { label:"Coachs sobrecarregats", value:overloadCoaches.size,
           sub:overloadCoaches.size?`+2 sessions/dia en ${overloadDays} ${overloadDays===1?"dia":"dies"}`:"cap amb +2 sessions/dia",
@@ -1557,9 +1559,11 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
             const cg=coachGroupOf(d,sl,c,coaches);
             return `<span class="pill" draggable="true" data-key="${esc(key)}" data-coach="${esc(c)}">${esc(c)}<span class="cgtoggle" title="Grup de treball del coach"><button type="button" class="cgbtn${cg==="1"?" on":""}" data-date="${esc(d)}" data-slot="${esc(sl)}" data-coach="${esc(c)}" data-grp="1">1</button><button type="button" class="cgbtn g2${cg==="2"?" on":""}" data-date="${esc(d)}" data-slot="${esc(sl)}" data-coach="${esc(c)}" data-grp="2">2</button></span><span class="rm" data-key="${esc(key)}" data-coach="${esc(c)}" title="Treure">×</span></span>`;
           }).join("");
-          const countTxt=players>0 ? `${coaches.length}/${needed} · ${players} pl.` : `${coaches.length}`;
-          html+=`<div class="assign-cell" data-key="${esc(key)}">
-            <span class="cell-count">${countTxt}</span>
+          // Sobra entrenador: menys de 6 players (≤5) però més d'un coach.
+          const overstaffed = players>0 && players<6 && coaches.length>1;
+          const countTxt=players>0 ? `${coaches.length}/${needed} · ${players} pl.${overstaffed?" ⚠":""}` : `${coaches.length}`;
+          html+=`<div class="assign-cell${overstaffed?" overstaffed":""}" data-key="${esc(key)}"${overstaffed?' title="Menys de 6 players amb més d\'un coach: sobra entrenador"':""}>
+            <span class="cell-count${overstaffed?" warn":""}">${countTxt}</span>
             ${pills}
             <button class="addbtn" data-key="${esc(key)}" type="button">+ Afegir</button>
           </div>`;
