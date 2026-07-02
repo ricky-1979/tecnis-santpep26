@@ -61,7 +61,8 @@
       text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px; }
     .slot-note textarea { width:100%; box-sizing:border-box; resize:vertical;
       background:var(--bg); color:var(--text); border:1px solid var(--border);
-      border-radius:8px; padding:8px 10px; font:inherit; font-size:0.88rem; }
+      border-radius:8px; padding:10px 12px; font:inherit; font-size:0.88rem;
+      min-height:160px; line-height:1.5; }
     .slot-note textarea:focus { outline:none; border-color:var(--groc); }
     .toolbar button.navlink { background:transparent; cursor:pointer; color:var(--accent);
       text-decoration:none; font-size:0.88rem; border:1px solid var(--border);
@@ -735,7 +736,7 @@
           const noteVal=sessionNotes[noteKey]||"";
           const noteBox=`<div class="slot-note">
             <label>Treball realitzat a la sessió</label>
-            <textarea data-note="${esc(noteKey)}" rows="2" placeholder="Escriu què heu treballat…">${esc(noteVal)}</textarea>
+            <textarea data-note="${esc(noteKey)}" rows="6" placeholder="Escriu què heu treballat…">${esc(noteVal)}</textarea>
           </div>`;
           return `<div class="slot-row">
             <div class="slot-time">${SLOT_LABEL[r.slot]}</div>
