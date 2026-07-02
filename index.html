@@ -598,6 +598,9 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     let coachRecords = [];
     let enrollments = [];
     let sessions = [];
+    // Nombre de registres (files) llegits de cada CSV de players, per al KPI.
+    let weeklyRegistrations = 0;
+    let soltsRegistrations = 0;
     let blocks = [];
     let sortKey = "dateISO";
     let sortDir = 1;
@@ -950,9 +953,11 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     function loadPlayers(text){
       const data=Papa.parse(text,PARSE_OPTS).data;
       enrollments=[];
+      weeklyRegistrations=0;
       data.forEach(r=>{
         const player=`${(r["Nom"]||"").trim()} ${(r["Cognoms"]||"").trim()}`.trim();
         if(!player) return;
+        weeklyRegistrations++; // una fila vàlida del CSV setmanal
         WEEK_COLUMNS.forEach(wc=>{
           const cell=(r[wc.key]||"").trim();
           if(!cell || cell.toLowerCase()==="no" || cell.toLowerCase()==="cap") return;
@@ -972,6 +977,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     // Columna "Dies solts": "Dl 27,Dc 1,…" (el número és el dia de juliol).
     // Columna "Franja horària": "Infantil/Cadet - 19:00 a 20:00".
     function loadPlayersSolts(text){
+      soltsRegistrations=0;
       if(!text) return;
       const data=Papa.parse(text,PARSE_OPTS).data;
       data.forEach(r=>{
@@ -983,6 +989,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         const category=categoryFromCell(cell)||"";
         const dies=(r["Dies solts"]||"").trim();
         if(!dies) return;
+        soltsRegistrations++; // una fila vàlida del CSV de dies solts
         dies.split(",").forEach(tok=>{
           const m=tok.match(/(\d{1,2})/);
           if(!m) return;
@@ -1126,7 +1133,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       perCoachDay.forEach((n,key)=>{ if(n>2){ overloadCoaches.add(key.split("|")[0]); overloadDays++; } });
 
       const cards=[
-        { label:"Players inscrits", value:totalPlayers, sub:totalPlayers?`~${Math.round(enrollments.length/totalPlayers)} dies/player de mitjana`:"", cls:"" },
+        { label:"Players inscrits", value:totalPlayers, sub:`${weeklyRegistrations} per setmana · ${soltsRegistrations} dies solts`, cls:"" },
         { label:"Coachs", value:totalCoaches, sub:"diferents disponibles", cls:"" },
         { label:"Sessions amb inscrits", value:sessWithPlayers.length, sub:`de ${sessions.length} programades`, cls:"" },
         { label:"Sense coach", value:crit, sub:"players sense cobrir", cls:crit?"alert":"ok" },
