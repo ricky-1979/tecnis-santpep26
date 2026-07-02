@@ -836,6 +836,12 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     // Clau: "Nom Cognoms|Setmana X" -> nova franja ("HH:MM").
     const PLAYER_SLOT_OVERRIDES = {
       "Jan Rodríguez González|Setmana 1": "19:00",
+      // Setmana 2: pugen de la 3a franja (20:00) a la 4a (21:00) tota la
+      // setmana. Carla i Clàudia no tenen excepcions de dia, així que un
+      // override de setmana sencera és net. Joana i Thaïs es tracten per dia
+      // (a ENROLLMENT_*) perquè cal preservar el 07/08, on ja tenen 2 franges.
+      "Carla Perramón Navarro|Setmana 2": "21:00",
+      "Clàudia Gàmiz Roset|Setmana 2": "21:00",
     };
     function overrideSlot(player, week, slot){
       return PLAYER_SLOT_OVERRIDES[`${player}|${week}`] || slot;
@@ -846,6 +852,14 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     // reimporti el CSV. Clau d'eliminació: "Nom Cognoms|YYYY-MM-DD|HH:MM".
     const ENROLLMENT_REMOVALS = [
       "Joana Pla|2026-07-10|20:00",
+      // Setmana 2: Joana i Thaïs pugen de 20:00 a 21:00 els dies 06, 07 i 09.
+      // El 08 NO es toca: ja tenen 2 franges (20:00 + la sessió extra a 21:00).
+      "Joana Pla|2026-07-06|20:00",
+      "Joana Pla|2026-07-07|20:00",
+      "Joana Pla|2026-07-09|20:00",
+      "Thaïs Sampera Cerdà|2026-07-06|20:00",
+      "Thaïs Sampera Cerdà|2026-07-07|20:00",
+      "Thaïs Sampera Cerdà|2026-07-09|20:00",
       "Yago Morales Gómez de Segura|2026-07-01|19:00",
       "Hugo Morales Gómez de Segura|2026-07-01|19:00",
       "Pau Piè Bilbao|2026-07-03|18:00",
@@ -862,6 +876,14 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     ];
     const ENROLLMENT_ADDITIONS = [
       { player:"Joana Pla", dateISO:"2026-07-08", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      // Setmana 2: contrapartida dels removals de dalt (Joana i Thaïs de 20:00
+      // a 21:00) els dies 06, 07 i 09. El 08 ja hi és (línia de dalt / Thaïs).
+      { player:"Joana Pla", dateISO:"2026-07-06", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      { player:"Joana Pla", dateISO:"2026-07-07", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      { player:"Joana Pla", dateISO:"2026-07-09", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      { player:"Thaïs Sampera Cerdà", dateISO:"2026-07-06", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      { player:"Thaïs Sampera Cerdà", dateISO:"2026-07-07", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      { player:"Thaïs Sampera Cerdà", dateISO:"2026-07-09", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
       { player:"Lluc Sabater Deulofeu", dateISO:"2026-07-02", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
       { player:"Pau Piè Bilbao", dateISO:"2026-07-02", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
       { player:"Thaïs Sampera Cerdà", dateISO:"2026-07-08", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 2" },
