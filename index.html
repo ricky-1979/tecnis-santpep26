@@ -85,6 +85,11 @@
     .badge.under { background:#3d3416; color:var(--groc); }
     .badge.ok { background:#2e1f44; color:var(--lila); }
     .badge.noplayers { background:#241836; color:var(--muted); }
+    /* Icona de sexe (inferit pel nom) davant de cada player */
+    .gi { font-weight:700; margin-right:3px; }
+    .gi-m { color:#60a5fa; }   /* noi: blau */
+    .gi-f { color:#f472b6; }   /* noia: rosa */
+    .gi-x { color:var(--muted); }
     .coach-chips { display:flex; flex-wrap:wrap; gap:6px; }
     /* Sessió amb sobreaforament (>8 players): destaca la fila i el recompte */
     tr.overfull td { background:#3b1d1d; }
@@ -570,6 +575,32 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
 </script>
 
   <script>
+    // ---- Sexe inferit pel primer nom (les dades no tenen camp de sexe) ----
+    // Nois i noies es marquen amb una icona als llistats. La inferència es basa
+    // en el primer nom; els casos ambigus o poc habituals es fixen a NAME_SEX.
+    const NAME_SEX = {
+      // Noies
+      "Abril":"F","Aina":"F","Ainhoa":"F","Arlet":"F","Carla":"F","Elma":"F",
+      "Elsa":"F","Ivana":"F","Jana":"F","Joana":"F","Júlia":"F","Laia":"F",
+      "Maria":"F","Martina":"F","Queralt":"F","Sofía":"F","Sílvia":"F","Thaïs":"F","Clàudia":"F",
+      // Nois
+      "Adrià":"M","Alex":"M","Alvaro":"M","Aniol":"M","Arnau":"M","Blai":"M",
+      "David":"M","Demian":"M","Efrén":"M","Hugo":"M","Huàscar":"M","Ignasi":"M",
+      "Jan":"M","Joel":"M","Karim":"M","Lluc":"M","Luc":"M","Martí":"M","Miquel":"M",
+      "Oriol":"M","Pau":"M","Pol":"M","Roc":"M","Teo":"M","Yago":"M","José":"M",
+    };
+    function sexOf(fullName){
+      const first=String(fullName||"").trim().split(/\s+/)[0];
+      return NAME_SEX[first] || "?";
+    }
+    // Icona de sexe per posar davant del nom als llistats.
+    function genderIcon(fullName){
+      const s=sexOf(fullName);
+      if(s==="M") return '<span class="gi gi-m" title="Noi">♂</span>';
+      if(s==="F") return '<span class="gi gi-f" title="Noia">♀</span>';
+      return '<span class="gi gi-x" title="Sexe desconegut">·</span>';
+    }
+
     // ---- Configuració ----
     // Coaches necessaris per franja: 1 coach fins a 5 players, 2 coaches si 6+.
     function coachesNeeded(players){
@@ -1504,7 +1535,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           <td>${g.weekday}</td>
           <td><strong>${g.slotLabel}</strong></td>
           <td${over?' class="count-over"':""}>${g.count}${over?' <span class="warn-ico" title="Més de 8 players en aquesta sessió">⚠</span>':""}</td>
-          <td class="coach-chips">${g.players.map(p=>`<span class="badge ${p.solt?"under":"ok"}" title="${p.solt?"Dia solt":"Setmana completa"}">${p.name}</span>`).join(" ")}</td>
+          <td class="coach-chips">${g.players.map(p=>`<span class="badge ${p.solt?"under":"ok"}" title="${p.solt?"Dia solt":"Setmana completa"}">${genderIcon(p.name)}${p.name}</span>`).join(" ")}</td>
         </tr>`;}).join("");
     }
 
