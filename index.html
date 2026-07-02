@@ -848,10 +848,6 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       // override de setmana sencera és net. Joana i Thaïs es tracten per dia
       // (a ENROLLMENT_*) perquè cal preservar el 07/08, on ja tenen 2 franges.
       "Carla Perramón Navarro|Setmana 2": "21:00",
-      "Clàudia Gàmiz Roset|Setmana 2": "21:00",
-      // Martina només té dies solts el 07 i 09/07 (setmana 2), que són just els
-      // dies a moure de la 3a (20:00) a la 4a franja (21:00). Override net.
-      "Martina Rueda Ramos|Setmana 2": "21:00",
     };
     function overrideSlot(player, week, slot){
       return PLAYER_SLOT_OVERRIDES[`${player}|${week}`] || slot;
@@ -874,6 +870,10 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       // 2a (19:00) només aquest dia.
       "Lluc Muñoz Casals|2026-07-08|20:00",
       "Martí Ordóñez Pla|2026-07-08|20:00",
+      // 09/07: David Garcia i Lluc Muñoz baixen de la 3a franja (20:00) a la
+      // 2a (19:00) només aquest dia.
+      "David Garcia Guerra|2026-07-09|20:00",
+      "Lluc Muñoz Casals|2026-07-09|20:00",
       "Yago Morales Gómez de Segura|2026-07-01|19:00",
       "Hugo Morales Gómez de Segura|2026-07-01|19:00",
       "Pau Piè Bilbao|2026-07-03|18:00",
@@ -901,6 +901,9 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       // 08/07: contrapartida — Lluc Muñoz i Martí Ordóñez a la 2a franja (19:00).
       { player:"Lluc Muñoz Casals", dateISO:"2026-07-08", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 2" },
       { player:"Martí Ordóñez Pla", dateISO:"2026-07-08", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      // 09/07: contrapartida — David Garcia i Lluc Muñoz a la 2a franja (19:00).
+      { player:"David Garcia Guerra", dateISO:"2026-07-09", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      { player:"Lluc Muñoz Casals", dateISO:"2026-07-09", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 2" },
       { player:"Lluc Sabater Deulofeu", dateISO:"2026-07-02", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
       { player:"Pau Piè Bilbao", dateISO:"2026-07-02", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
       { player:"Thaïs Sampera Cerdà", dateISO:"2026-07-08", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 2" },
