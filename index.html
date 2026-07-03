@@ -1886,11 +1886,16 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       if(!confirm(`Reiniciar ${scope} amb la disponibilitat declarada a Reserves? Es perdran els canvis manuals${wk?" d'aquesta setmana":""}.`)) return;
 
       setAssignStatus("Llegint la disponibilitat de Reserves…");
-      // Font principal: reserves (coachAvailability). Si és buida o falla,
-      // cau a la disponibilitat de Koalendar com abans.
-      const reserves=await fetchReservesAvailability();
-      const fresh = reserves || defaultAssignments();
-      const fromReserves = !!reserves;
+      // Font ÚNICA: reserves (coachAvailability). Koalendar ja viu a la base de
+      // dades, així que el reinici parteix sempre del que declaren els coachs a
+      // reserves.html. Si el node és buit o falla, NO es toca res (no hi ha
+      // fallback a Koalendar): avisem i sortim per no esborrar assignacions.
+      const fresh=await fetchReservesAvailability();
+      if(!fresh){
+        setAssignStatus("Reserves buit o inaccessible: no s'ha reiniciat res.");
+        alert("No hi ha disponibilitat a Reserves (o no s'ha pogut llegir). No s'ha reiniciat res.");
+        return;
+      }
 
       // Aplica el reinici cel·la a cel·la, però MAI a setmanes protegides.
       const applyCell=(k,arr)=>{
@@ -1918,8 +1923,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       // Desa, refresca I publica al núvol (Firebase) perquè els coachs vegin
       // el reinici immediatament.
       afterAssignChange();
-      const src = fromReserves ? "Reserves" : "Koalendar (Reserves buit)";
-      setAssignStatus(wk ? `Reiniciada ${wk} des de ${src}` : `Reiniciat des de ${src}`);
+      setAssignStatus(wk ? `Reiniciada ${wk} des de Reserves` : "Reiniciat des de Reserves");
     }
 
     function wireEvents(){

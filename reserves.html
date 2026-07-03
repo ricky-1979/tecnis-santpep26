@@ -99,14 +99,14 @@
   <div class="toolbar">
     <select id="coachSelect"><option value="">— Tria el teu nom —</option></select>
     <input id="coachName" type="text" placeholder="Nom i cognom del coach nou" autocomplete="off" style="display:none;" />
-    <button id="loadBtn" class="primary" type="button">Entrar</button>
+    <button id="loadBtn" class="primary" type="button" style="display:none;">Entrar</button>
     <button id="newCoachBtn" class="navlink" type="button">Sóc coach nou</button>
     <span class="sep"></span>
     <span class="status" id="status"></span>
   </div>
 
   <div class="gate" id="gate">
-    <p>Tria el teu nom de la llista i prem <strong>Entrar</strong> per marcar la teva disponibilitat. Si ets un coach nou i no hi surts, fes servir <strong>Sóc coach nou</strong>.</p>
+    <p>Tria el teu nom de la llista per marcar la teva disponibilitat. Si ets un coach nou i no hi surts, fes servir <strong>Sóc coach nou</strong>.</p>
   </div>
 
   <div id="app" style="display:none;">
@@ -245,6 +245,7 @@
       $("coachName").style.display="";
       $("coachName").disabled=false;
       $("coachName").value="";
+      $("loadBtn").style.display="";   // "Entrar" només per a coach nou
       $("newCoachBtn").style.display="none";
       $("coachName").focus();
       setStatus("Escriu el teu nom i cognom per començar.");
@@ -287,11 +288,11 @@
       try{ localStorage.setItem("reserves-lastname", coach); }catch(e){}
       $("gate").style.display="none";
       $("app").style.display="";
-      $("newCoachBtn").style.display="none";
+      // "Entrar" desapareix: dins l'app es canvia de coach amb el desplegable.
+      // "Sóc coach nou" es manté visible per poder afegir-ne un en qualsevol
+      // moment. El camp de text queda ocult fins que es premi.
       $("loadBtn").style.display="none";
-      // Deixa el desplegable visible per poder canviar de coach directament.
-      // El sincronitzem amb el coach actual (buit si no és a la llista, p. ex.
-      // un coach nou). El camp de text queda ocult.
+      $("newCoachBtn").style.display="";
       $("coachName").style.display="none";
       $("coachName").value="";
       if($("coachSelect")){ $("coachSelect").style.display=""; $("coachSelect").value=isKnownCoach(coach)?coach:""; }
