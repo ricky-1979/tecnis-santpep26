@@ -10,10 +10,13 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     :root {
-      --bg:#160f26; --card:#241836; --card-hover:#2e1f44; --text:#ece8f5;
-      --muted:#94a3b8; --accent:#a855f7; --border:#3b2f4d;
-      --lila:#a855f7; --groc:#facc15;
-      --danger:#f87171; --warn:#facc15; --ok:#c084fc;
+      /* Tema clar amb colors oficials CB Sant Josep: lila #713f97, groc #fcdb20.
+         --brand: lila oficial per a fons/botons sòlids i text d'accent.
+         Fons clar amb text fosc per màxima llegibilitat. */
+      --bg:#f5f3f8; --card:#ffffff; --card-hover:#f0ebf6; --text:#1e1633;
+      --muted:#6b7280; --accent:#713f97; --border:#d9cfe6;
+      --brand:#713f97; --lila:#713f97; --groc:#fcdb20;
+      --danger:#dc2626; --warn:#b45309; --ok:#713f97;
     }
     * { box-sizing:border-box; margin:0; padding:0; }
     body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -23,7 +26,7 @@
     header .logo { height:64px; width:auto; border-radius:8px; flex-shrink:0;
       background:#fff; padding:4px; }
     header .htext h1 { font-size:1.5rem; font-weight:800; color:var(--text); }
-    header .htext h1 .club { color:var(--groc); }
+    header .htext h1 .club { color:var(--brand); }
     header .htext p { color:var(--muted); font-size:0.9rem; margin-top:4px; }
 
     .toolbar { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:18px; }
@@ -32,7 +35,7 @@
     .toolbar .sep { flex:1; }
     .toolbar a.navlink { color:var(--accent); text-decoration:none; font-size:0.88rem;
       border:1px solid var(--border); padding:9px 14px; border-radius:8px; }
-    .toolbar a.navlink:hover { color:var(--groc); border-color:var(--groc); }
+    .toolbar a.navlink:hover { color:var(--brand); border-color:var(--brand); }
     .status { color:var(--muted); font-size:0.78rem; }
 
     h2.section { font-size:1.1rem; font-weight:600; margin:8px 0 6px; }
@@ -49,7 +52,7 @@
     .slot-row { display:grid; grid-template-columns:90px 1fr; gap:14px; padding:12px 0;
       border-bottom:1px solid var(--border); }
     .slot-row:last-child { border-bottom:none; }
-    .slot-time { font-weight:700; color:var(--groc); font-size:0.95rem; padding-top:2px; }
+    .slot-time { font-weight:700; color:var(--brand); font-size:0.95rem; padding-top:2px; }
     .slot-body { display:flex; flex-direction:column; gap:10px; }
     .slot-line { display:grid; grid-template-columns:72px auto 1fr; gap:8px; align-items:start; }
     .slot-line .lbl { color:var(--muted); font-size:0.76rem; text-transform:uppercase;
@@ -63,17 +66,17 @@
       background:var(--bg); color:var(--text); border:1px solid var(--border);
       border-radius:8px; padding:10px 12px; font:inherit; font-size:0.88rem;
       min-height:160px; line-height:1.5; }
-    .slot-note textarea:focus { outline:none; border-color:var(--groc); }
+    .slot-note textarea:focus { outline:none; border-color:var(--brand); }
     .toolbar button.navlink { background:transparent; cursor:pointer; color:var(--accent);
       text-decoration:none; font-size:0.88rem; border:1px solid var(--border);
       border-radius:8px; padding:9px 14px; }
-    .toolbar button.navlink:hover { color:var(--groc); border-color:var(--groc); }
+    .toolbar button.navlink:hover { color:var(--brand); border-color:var(--brand); }
     .badge { padding:3px 10px; border-radius:999px; font-size:0.8rem; font-weight:600; }
-    .badge.coach { background:#2e1f44; color:var(--text); border:1px solid var(--border); }
-    .badge.player { background:#2e1f44; color:var(--lila); }
-    .badge.player.solt { background:#3d3416; color:var(--groc); }
+    .badge.coach { background:var(--card-hover); color:var(--text); border:1px solid var(--border); }
+    .badge.player { background:#efe6f7; color:var(--brand); }
+    .badge.player.solt { background:#fdf6d3; color:#8a6d00; }
     .badge.empty { background:transparent; color:var(--muted); border:1px dashed var(--border); font-weight:500; }
-    .badge.hit { outline:2px solid var(--groc); outline-offset:1px; }
+    .badge.hit { outline:2px solid var(--brand); outline-offset:1px; }
     .toolbar select:disabled { opacity:0.45; cursor:not-allowed; }
     .count { color:var(--muted); font-size:0.78rem; }
     .workplan { background:var(--card); border:1px solid var(--border);
@@ -83,7 +86,7 @@
       flex-direction:column; gap:8px; }
     .workplan li { display:grid; grid-template-columns:56px 1fr; gap:12px;
       align-items:baseline; }
-    .workplan .t { font-weight:700; color:var(--groc); }
+    .workplan .t { font-weight:700; color:var(--brand); }
     .empty { text-align:center; color:var(--muted); padding:30px; }
     footer { margin-top:30px; color:var(--muted); font-size:0.8rem; text-align:center; }
   </style>

@@ -9,14 +9,14 @@
   <title>CB Sant Josep de Badalona · Reserva de disponibilitat</title>
   <style>
     :root {
-      /* Colors oficials CB Sant Josep: lila #713f97, groc #fcdb20.
-         --brand: lila oficial per a fons/botons sòlids.
-         --lila/--accent: to clar per a text sobre fons fosc (llegibilitat). */
-      --bg:#160f26; --card:#241836; --card-hover:#2e1f44; --text:#ece8f5;
-      --muted:#94a3b8; --accent:#a855f7; --border:#3b2f4d;
-      --brand:#713f97; --lila:#a855f7; --groc:#fcdb20;
-      --danger:#f87171; --warn:#fcdb20; --ok:#c084fc;
-      --on:#16a34a; --on-bg:#14331f;
+      /* Tema clar amb colors oficials CB Sant Josep: lila #713f97, groc #fcdb20.
+         --brand: lila oficial per a fons/botons sòlids i text d'accent.
+         Fons clar amb text fosc per màxima llegibilitat. */
+      --bg:#f5f3f8; --card:#ffffff; --card-hover:#f0ebf6; --text:#1e1633;
+      --muted:#6b7280; --accent:#713f97; --border:#d9cfe6;
+      --brand:#713f97; --lila:#713f97; --groc:#fcdb20;
+      --danger:#dc2626; --warn:#b45309; --ok:#713f97;
+      --on:#713f97; --on-bg:#efe6f7;
     }
     * { box-sizing:border-box; margin:0; padding:0; }
     body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -26,7 +26,7 @@
     header .logo { height:64px; width:auto; border-radius:8px; flex-shrink:0;
       background:#fff; padding:4px; }
     header .htext h1 { font-size:1.5rem; font-weight:800; color:var(--text); }
-    header .htext h1 .club { color:var(--groc); }
+    header .htext h1 .club { color:var(--brand); }
     header .htext p { color:var(--muted); font-size:0.9rem; margin-top:4px; }
 
     .toolbar { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:18px; }
@@ -38,7 +38,7 @@
     .toolbar button.navlink { background:transparent; cursor:pointer; color:var(--accent);
       text-decoration:none; font-size:0.88rem; border:1px solid var(--border);
       border-radius:8px; padding:9px 14px; }
-    .toolbar button.navlink:hover { color:var(--groc); border-color:var(--groc); }
+    .toolbar button.navlink:hover { color:var(--brand); border-color:var(--brand); }
     .toolbar button.primary { background:var(--brand); color:#fff; border-color:var(--brand); font-weight:600; }
     .toolbar button.primary:hover { background:#8a4fb5; color:#fff; }
     .toolbar button:disabled { opacity:0.45; cursor:not-allowed; }
@@ -57,7 +57,7 @@
       border-bottom:1px solid var(--border); padding-bottom:10px; }
     .week-head .wk { font-size:1.1rem; font-weight:700; }
     .week-head .rng { color:var(--muted); font-size:0.82rem; margin-left:auto; }
-    .week-head .frozen { color:var(--groc); font-size:0.75rem; font-weight:600;
+    .week-head .frozen { color:var(--brand); font-size:0.75rem; font-weight:600;
       border:1px solid var(--border); border-radius:999px; padding:2px 10px; }
 
     table.grid { border-collapse:collapse; width:100%; font-size:0.82rem; }
@@ -71,7 +71,7 @@
       background:transparent; border:none; color:var(--muted); font-size:0.8rem;
       transition:background 0.12s, color 0.12s; }
     .cell:hover { background:var(--card-hover); }
-    .cell.on { background:var(--on-bg); color:#86efac; font-weight:700; }
+    .cell.on { background:var(--on-bg); color:var(--brand); font-weight:700; }
     .cell.on::after { content:"✓"; }
     .cell.off::after { content:""; }
     .cell.frozen { cursor:not-allowed; opacity:0.4; }
@@ -87,7 +87,7 @@
 
     .summary { background:var(--card); border:1px solid var(--border); border-radius:12px;
       padding:14px 18px; margin-bottom:20px; font-size:0.9rem; }
-    .summary strong { color:var(--groc); }
+    .summary strong { color:var(--brand); }
     .empty { text-align:center; color:var(--muted); padding:30px; }
     footer { margin-top:30px; color:var(--muted); font-size:0.8rem; text-align:center; }
   </style>
