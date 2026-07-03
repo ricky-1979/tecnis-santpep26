@@ -137,12 +137,21 @@
       { days:["07/27/2026","07/28/2026","07/29/2026","07/30/2026","07/31/2026"], label:"Setmana 5", rng:"Del 27 al 31 de juliol" },
     ];
 
-    // Setmana 1 congelada: només consulta (com al dashboard).
-    const FROZEN_WEEK = "Setmana 1";
-    const isWeekFrozen = (w)=> w===FROZEN_WEEK;
+    // Setmanes tancades a reserves: la Setmana 1 (congelada) i la Setmana 2
+    // (consolidada). Els coachs no hi poden marcar disponibilitat; les
+    // assignacions de la S2 es gestionen des d'"Assignació de coachs" al
+    // dashboard. Només de consulta.
+    const FROZEN_WEEKS = new Set(["Setmana 1", "Setmana 2"]);
+    const isWeekFrozen = (w)=> FROZEN_WEEKS.has(w);
 
     function isoFromMdy(mdy){ const [m,d,y]=mdy.split("/"); return `${y}-${m}-${d}`; }
     function weekdayOf(iso){ const [y,m,d]=iso.split("-").map(Number); return WEEKDAYS[new Date(Date.UTC(y,m-1,d)).getUTCDay()]; }
+
+    // Mapa dia ISO -> etiqueta de setmana, per saber si una cel·la és d'una
+    // setmana tancada (S1/S2) a partir de la seva clau "dateISO|slot".
+    const ISO_WEEK = {};
+    WEEK_COLUMNS.forEach(wc=> wc.days.forEach(mdy=> ISO_WEEK[isoFromMdy(mdy)]=wc.label));
+    const isFrozenIso = (iso)=> isWeekFrozen(ISO_WEEK[iso]);
     function dispFromIso(iso){ const [y,m,d]=iso.split("-"); return `${d}/${m}`; }
 
     // ===== Firebase (REST, sense token) =====
@@ -297,7 +306,12 @@
       // que ja tenim d'index.html (Koalendar). Editable i encara no desada.
       let prefilled=false;
       if(!fromFirebase && koalendarLoaded && koalendarByCoach[key]){
-        slots={...koalendarByCoach[key].slots};
+        // Pre-omple des de Koalendar, però exclou les setmanes tancades
+        // (S1/S2): allà no s'hi fan reserves.
+        slots={};
+        Object.keys(koalendarByCoach[key].slots).forEach(ck=>{
+          if(!isFrozenIso(ck.split("|")[0])) slots[ck]=true;
+        });
         prefilled=true;
       }
       try{ localStorage.setItem("reserves-lastname", coach); }catch(e){}
@@ -379,7 +393,7 @@
         html+=`<div class="week-block">
           <div class="week-head">
             <span class="wk">${wc.label}</span>
-            ${frozen?'<span class="frozen">🔒 congelada · només consulta</span>':""}
+            ${frozen?'<span class="frozen">🔒 tancada · només consulta</span>':""}
             <span class="rng">${wc.rng}</span>
           </div>
           <table class="grid"><thead><tr><th>Dia</th>`;
@@ -410,7 +424,7 @@
       // Resum
       const total=countTotal();
       $("summary").innerHTML=`Tens <strong>${total}</strong> franges marcades `+
-        `(la Setmana 1 està congelada i no es pot editar).`;
+        `(les setmanes 1 i 2 estan tancades i no es poden editar).`;
     }
 
     // ===== Init =====
