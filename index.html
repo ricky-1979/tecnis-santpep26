@@ -127,6 +127,9 @@
     /* Franja amb menys de 6 players però més d'un coach: sobra entrenador */
     .assign-cell.overstaffed { border-color:var(--danger); background:#fde2e2; }
     .assign-cell .cell-count.warn { color:var(--danger); font-weight:700; }
+    /* Franja amb pocs players (menys de 3): grup fluix */
+    .assign-cell.lowplayers { border-color:var(--groc); background:#fff6d6; }
+    .assign-cell .cell-count.low { color:#8a6d00; font-weight:700; }
     .assign-cell .pill { display:inline-flex; align-items:center; gap:4px; background:var(--lvl-ok-bg); color:var(--brand);
       border:1px solid var(--border); border-radius:999px; padding:2px 6px 2px 8px; font-size:0.76rem; font-weight:600; cursor:grab; }
     .assign-cell .pill.dragging { opacity:0.4; }
@@ -1883,9 +1886,17 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           }).join("");
           // Sobra entrenador: menys de 6 players (≤5) però més d'un coach.
           const overstaffed = players>0 && players<6 && coaches.length>1;
-          const countTxt=players>0 ? `${coaches.length}/${needed} · ${players} pl.${overstaffed?" ⚠":""}` : `${coaches.length}`;
-          html+=`<div class="assign-cell${overstaffed?" overstaffed":""}" data-key="${esc(key)}"${overstaffed?' title="Menys de 6 players amb més d\'un coach: sobra entrenador"':""}>
-            <span class="cell-count${overstaffed?" warn":""}">${countTxt}</span>
+          // Pocs players: franja amb 1 o 2 players (grup molt fluix).
+          const lowplayers = players>0 && players<3 && !overstaffed;
+          const cellCls = overstaffed ? " overstaffed" : (lowplayers ? " lowplayers" : "");
+          const countCls = overstaffed ? " warn" : (lowplayers ? " low" : "");
+          const marker = overstaffed ? " ⚠" : (lowplayers ? " ⚠" : "");
+          const cellTitle = overstaffed
+            ? ' title="Menys de 6 players amb més d\'un coach: sobra entrenador"'
+            : (lowplayers ? ' title="Menys de 3 players en aquesta franja"' : "");
+          const countTxt=players>0 ? `${coaches.length}/${needed} · ${players} pl.${marker}` : `${coaches.length}`;
+          html+=`<div class="assign-cell${cellCls}" data-key="${esc(key)}"${cellTitle}>
+            <span class="cell-count${countCls}">${countTxt}</span>
             ${pills}
             ${frozen?"":`<button class="addbtn" data-key="${esc(key)}" type="button">+ Afegir</button>`}
           </div>`;
