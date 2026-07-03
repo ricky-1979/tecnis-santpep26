@@ -110,6 +110,7 @@
 
   <div class="gate" id="gate">
     <p>Tria el teu nom de la llista per marcar la teva disponibilitat. Si ets un coach nou i no hi surts, fes servir <strong>Sóc coach nou</strong>.</p>
+    <p>Marca <strong>una sola franja per dia</strong>: segons la disponibilitat de tots els coachs es farà l'assignació de dia i hora.</p>
   </div>
 
   <div id="app" style="display:none;">
@@ -338,17 +339,17 @@
       }
     }
 
-    const MAX_SLOTS_PER_DAY = 2; // màxim 2h (2 franges) per dia i coach
+    const MAX_SLOTS_PER_DAY = 1; // màxim 1 franja per dia i coach
     function toggle(cellKey, week){
       if(isWeekFrozen(week)) return;
       if(slots[cellKey]){
         delete slots[cellKey];
       } else {
-        // No permetre més de 2 franges el mateix dia.
+        // Només una franja per dia: si ja n'hi ha una, no se'n pot afegir més.
         const day=cellKey.split("|")[0];
         const sameDay=Object.keys(slots).filter(k=>slots[k] && k.split("|")[0]===day).length;
         if(sameDay>=MAX_SLOTS_PER_DAY){
-          setStatus(`Màxim ${MAX_SLOTS_PER_DAY}h per dia. Desmarca una franja d'aquest dia per triar-ne una altra.`);
+          setStatus("Només pots marcar una franja per dia. Segons la disponibilitat de tots els coachs es farà l'assignació de dia i hora. Desmarca la franja d'aquest dia si en vols triar una altra.");
           return;
         }
         slots[cellKey]=true;
@@ -411,7 +412,7 @@
             const on=!!slots[ck];
             const blocked=dayFull && !on && !frozen;
             const cls="cell "+(on?"on":"off")+(frozen?" frozen":"")+(blocked?" full":"");
-            html+=`<td><button type="button" class="${cls}" data-ck="${ck}" data-wk="${wc.label}" aria-pressed="${on}"${blocked?' title="Màxim 2h per dia"':""}></button></td>`;
+            html+=`<td><button type="button" class="${cls}" data-ck="${ck}" data-wk="${wc.label}" aria-pressed="${on}"${blocked?' title="Només una franja per dia"':""}></button></td>`;
           });
           html+="</tr>";
         });
@@ -423,8 +424,8 @@
       });
       // Resum
       const total=countTotal();
-      $("summary").innerHTML=`Tens <strong>${total}</strong> franges marcades `+
-        `(les setmanes 1 i 2 estan tancades i no es poden editar).`;
+      $("summary").innerHTML=`Tens <strong>${total}</strong> dies marcats `+
+        `(una franja per dia · les setmanes 1 i 2 estan tancades).`;
     }
 
     // ===== Init =====
