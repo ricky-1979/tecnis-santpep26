@@ -9,10 +9,13 @@
   <title>CB Sant Josep de Badalona · Reserva de disponibilitat</title>
   <style>
     :root {
+      /* Colors oficials CB Sant Josep: lila #713f97, groc #fcdb20.
+         --brand: lila oficial per a fons/botons sòlids.
+         --lila/--accent: to clar per a text sobre fons fosc (llegibilitat). */
       --bg:#160f26; --card:#241836; --card-hover:#2e1f44; --text:#ece8f5;
       --muted:#94a3b8; --accent:#a855f7; --border:#3b2f4d;
-      --lila:#a855f7; --groc:#facc15;
-      --danger:#f87171; --warn:#facc15; --ok:#c084fc;
+      --brand:#713f97; --lila:#a855f7; --groc:#fcdb20;
+      --danger:#f87171; --warn:#fcdb20; --ok:#c084fc;
       --on:#16a34a; --on-bg:#14331f;
     }
     * { box-sizing:border-box; margin:0; padding:0; }
@@ -36,8 +39,8 @@
       text-decoration:none; font-size:0.88rem; border:1px solid var(--border);
       border-radius:8px; padding:9px 14px; }
     .toolbar button.navlink:hover { color:var(--groc); border-color:var(--groc); }
-    .toolbar button.primary { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600; }
-    .toolbar button.primary:hover { background:#9333ea; color:#fff; }
+    .toolbar button.primary { background:var(--brand); color:#fff; border-color:var(--brand); font-weight:600; }
+    .toolbar button.primary:hover { background:#8a4fb5; color:#fff; }
     .toolbar button:disabled { opacity:0.45; cursor:not-allowed; }
     .status { color:var(--muted); font-size:0.8rem; }
 
