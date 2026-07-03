@@ -73,6 +73,8 @@
     .cell.off::after { content:""; }
     .cell.frozen { cursor:not-allowed; opacity:0.4; }
     .cell.frozen:hover { background:transparent; }
+    .cell.full { cursor:not-allowed; opacity:0.3; }
+    .cell.full:hover { background:transparent; }
 
     .legend { display:flex; gap:16px; flex-wrap:wrap; margin:6px 0 16px; font-size:0.8rem; color:var(--muted); }
     .legend span { display:inline-flex; align-items:center; gap:6px; }
@@ -322,10 +324,21 @@
       }
     }
 
+    const MAX_SLOTS_PER_DAY = 2; // màxim 2h (2 franges) per dia i coach
     function toggle(cellKey, week){
       if(isWeekFrozen(week)) return;
-      if(slots[cellKey]) delete slots[cellKey];
-      else slots[cellKey]=true;
+      if(slots[cellKey]){
+        delete slots[cellKey];
+      } else {
+        // No permetre més de 2 franges el mateix dia.
+        const day=cellKey.split("|")[0];
+        const sameDay=Object.keys(slots).filter(k=>slots[k] && k.split("|")[0]===day).length;
+        if(sameDay>=MAX_SLOTS_PER_DAY){
+          setStatus(`Màxim ${MAX_SLOTS_PER_DAY}h per dia. Desmarca una franja d'aquest dia per triar-ne una altra.`);
+          return;
+        }
+        slots[cellKey]=true;
+      }
       DIRTY.add(cellKey);
       render();
       scheduleSave();
@@ -374,12 +387,17 @@
         html+="</tr></thead><tbody>";
         wc.days.forEach(mdy=>{
           const iso=isoFromMdy(mdy);
+          // Dia ple: ja té MAX_SLOTS_PER_DAY franges marcades. La resta de
+          // cel·les d'aquell dia queden bloquejades (no se'n pot afegir cap més).
+          const dayCount=SLOTS.filter(s=>slots[iso+"|"+s]).length;
+          const dayFull=dayCount>=MAX_SLOTS_PER_DAY;
           html+=`<tr><td class="daycell">${weekdayOf(iso)}<small>${dispFromIso(iso)}</small></td>`;
           SLOTS.forEach(sl=>{
             const ck=iso+"|"+sl;
             const on=!!slots[ck];
-            const cls="cell "+(on?"on":"off")+(frozen?" frozen":"");
-            html+=`<td><button type="button" class="${cls}" data-ck="${ck}" data-wk="${wc.label}" aria-pressed="${on}"></button></td>`;
+            const blocked=dayFull && !on && !frozen;
+            const cls="cell "+(on?"on":"off")+(frozen?" frozen":"")+(blocked?" full":"");
+            html+=`<td><button type="button" class="${cls}" data-ck="${ck}" data-wk="${wc.label}" aria-pressed="${on}"${blocked?' title="Màxim 2h per dia"':""}></button></td>`;
           });
           html+="</tr>";
         });
