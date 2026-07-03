@@ -98,15 +98,16 @@
 
   <div class="toolbar">
     <select id="coachSelect"><option value="">— Tria el teu nom —</option></select>
-    <input id="coachName" type="text" placeholder="…o escriu-lo si no hi ets" autocomplete="off" />
+    <input id="coachName" type="text" placeholder="Nom i cognom del coach nou" autocomplete="off" style="display:none;" />
     <button id="loadBtn" class="primary" type="button">Entrar</button>
+    <button id="newCoachBtn" class="navlink" type="button">Sóc coach nou</button>
     <button id="changeBtn" class="navlink" type="button" style="display:none;">Canviar de nom</button>
     <span class="sep"></span>
     <span class="status" id="status"></span>
   </div>
 
   <div class="gate" id="gate">
-    <p>Tria el teu nom de la llista (o escriu-lo si no hi surts) i prem <strong>Entrar</strong> per marcar la teva disponibilitat.</p>
+    <p>Tria el teu nom de la llista i prem <strong>Entrar</strong> per marcar la teva disponibilitat. Si ets un coach nou i no hi surts, fes servir <strong>Sóc coach nou</strong>.</p>
   </div>
 
   <div id="app" style="display:none;">
@@ -219,7 +220,10 @@
         .sort((a,b)=>a.localeCompare(b,"ca"));
       sel.innerHTML='<option value="">— Tria el teu nom —</option>'
         + names.map(n=>`<option value="${n.replace(/"/g,"&quot;")}">${n}</option>`).join("");
-      if(cur) sel.value=cur;
+      // Preselecciona el valor actual o l'últim coach usat (si surt a la llista).
+      let last=""; try{ last=localStorage.getItem("reserves-lastname")||""; }catch(e){}
+      if(cur && names.includes(cur)) sel.value=cur;
+      else if(last && names.includes(last)) sel.value=last;
     }
     // Comprova si un coach surt al desplegable (coincidència exacta pel nom).
     function isKnownCoach(name){
@@ -236,9 +240,27 @@
     const $ = (id)=> document.getElementById(id);
     function setStatus(t){ $("status").textContent=t||""; }
 
+    // Mode "coach nou": mostra el camp de text i amaga el desplegable.
+    function newCoachMode(){
+      if($("coachSelect")){ $("coachSelect").style.display="none"; $("coachSelect").value=""; }
+      $("coachName").style.display="";
+      $("coachName").disabled=false;
+      $("coachName").value="";
+      $("newCoachBtn").style.display="none";
+      $("coachName").focus();
+      setStatus("Escriu el teu nom i cognom per començar.");
+    }
+
     async function loadCoach(){
-      const raw=$("coachName").value.trim().replace(/\s+/g," ");
-      if(raw.length<3){ setStatus("Escriu el teu nom complet."); return; }
+      // El nom surt del desplegable si està visible; si no, del camp de text
+      // (mode coach nou). El camp de text NOMÉS és per a coaches que no surten
+      // a la llista.
+      const usingSelect = $("coachSelect") && $("coachSelect").style.display!=="none";
+      const raw = usingSelect
+        ? $("coachSelect").value.trim()
+        : $("coachName").value.trim().replace(/\s+/g," ");
+      if(usingSelect && !raw){ setStatus("Tria el teu nom de la llista (o fes «Sóc coach nou»)."); return; }
+      if(!usingSelect && raw.length<3){ setStatus("Escriu el teu nom complet."); return; }
       // Si hi ha un desat pendent d'un coach anterior, força'l abans de canviar.
       if(coach && saveTimer){ clearTimeout(saveTimer); await save(); }
       coach=normalizeCoach(raw); key=coachKey(coach);
@@ -267,11 +289,14 @@
       $("gate").style.display="none";
       $("app").style.display="";
       $("changeBtn").style.display="";
-      $("coachName").disabled=true;
+      $("newCoachBtn").style.display="none";
       $("loadBtn").style.display="none";
       // Deixa el desplegable visible per poder canviar de coach directament.
-      // El sincronitzem amb el coach actual (buit si no és a la llista).
-      if($("coachSelect")) $("coachSelect").value=isKnownCoach(coach)?coach:"";
+      // El sincronitzem amb el coach actual (buit si no és a la llista, p. ex.
+      // un coach nou). El camp de text queda ocult.
+      $("coachName").style.display="none";
+      $("coachName").value="";
+      if($("coachSelect")){ $("coachSelect").style.display=""; $("coachSelect").value=isKnownCoach(coach)?coach:""; }
       render();
       if(prefilled){
         // Desa immediatament el punt de partida perquè el dashboard el vegi.
@@ -285,14 +310,15 @@
     }
 
     function changeCoach(){
-      $("coachName").disabled=false;
+      // Torna a l'estat inicial: desplegable visible, camp de text ocult.
       $("coachName").value="";
+      $("coachName").style.display="none";
       $("loadBtn").style.display="";
-      if($("coachSelect")) $("coachSelect").value="";
+      $("newCoachBtn").style.display="";
+      if($("coachSelect")){ $("coachSelect").style.display=""; $("coachSelect").value=""; }
       $("changeBtn").style.display="none";
       $("app").style.display="none";
       $("gate").style.display="";
-      $("coachName").focus();
       setStatus("");
     }
 
@@ -372,15 +398,12 @@
     // ===== Init =====
     $("loadBtn").addEventListener("click", loadCoach);
     $("changeBtn").addEventListener("click", changeCoach);
+    $("newCoachBtn").addEventListener("click", newCoachMode);
     $("coachName").addEventListener("keydown", e=>{ if(e.key==="Enter") loadCoach(); });
+    // Triar al desplegable entra directament amb aquell coach.
     if($("coachSelect")) $("coachSelect").addEventListener("change", e=>{
-      const v=e.target.value;
-      if(v){ $("coachName").value=v; loadCoach(); }
+      if(e.target.value) loadCoach();
     });
-    try{
-      const last=localStorage.getItem("reserves-lastname");
-      if(last) $("coachName").value=last;
-    }catch(e){}
     $("footer").textContent="CB Sant Josep de Badalona · Tecnificacions juliol 2026";
 
     // Carrega la disponibilitat inicial (Koalendar) i el logo des d'index.html.
