@@ -912,7 +912,10 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       "Joana Pla|2026-07-06|20:00",
       "Joana Pla|2026-07-07|20:00",
       "Joana Pla|2026-07-09|20:00",
-      "Thaïs Sampera Cerdà|2026-07-06|20:00",
+      // Thaïs 07/07: no pot entrenar dimarts. La seva tecni es mou a dilluns
+      // 06/07 a la 3a franja (20:00), de manera que dilluns té 20:00 + 21:00
+      // (dues seguides). Per això NO es treu la seva 20:00 de dilluns (línia
+      // base del CSV) i s'elimina l'afegit del dimarts a 21:00 (vegeu sota).
       "Thaïs Sampera Cerdà|2026-07-07|20:00",
       "Thaïs Sampera Cerdà|2026-07-09|20:00",
       // 08/07: Lluc Muñoz i Martí Ordóñez baixen de la 3a franja (20:00) a la
@@ -949,7 +952,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       { player:"Joana Pla", dateISO:"2026-07-07", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
       { player:"Joana Pla", dateISO:"2026-07-09", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
       { player:"Thaïs Sampera Cerdà", dateISO:"2026-07-06", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
-      { player:"Thaïs Sampera Cerdà", dateISO:"2026-07-07", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      // 07/07 eliminat: Thaïs no entrena dimarts (la tecni s'ha mogut a dilluns).
       { player:"Thaïs Sampera Cerdà", dateISO:"2026-07-09", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
       // 08/07: contrapartida — Lluc Muñoz i Martí Ordóñez a la 2a franja (19:00).
       { player:"Lluc Muñoz Casals", dateISO:"2026-07-08", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 2" },
