@@ -88,6 +88,9 @@
     table.data th:hover { color:var(--accent); }
     table.data tbody tr:hover { background:var(--card-hover); }
     table.data td.wrap { white-space:normal; max-width:340px; color:var(--muted); font-size:0.82rem; }
+    /* Columnes de setmanes encara no pagables (S3-S5): to atenuat. */
+    #payTable th.pay-info, #payTable td.pay-info { color:var(--muted); background:var(--card-hover); }
+    #payTable tfoot td { border-top:2px solid var(--border); }
     .badge { padding:2px 8px; border-radius:999px; font-size:0.76rem; font-weight:600; }
     .badge.crit { background:#fde2e2; color:#b91c1c; }
     .badge.under { background:var(--lvl-under-bg); color:var(--lvl-under-fg); }
@@ -235,6 +238,28 @@
     <div class="assign-overwrap">
       <div class="assign-grid" id="assignGrid"></div>
     </div>
+  </div>
+
+  <div class="table-card">
+    <h2 class="section">Recompte de tecnificacions per coach (Setmanes 1 i 2)</h2>
+    <p class="hint">Cada tecnificació assignada es paga a <strong>15 €</strong>. Es mostren les tecnis de cada setmana, però el <strong>Total</strong> i l'<strong>Import</strong> només compten la <strong>Setmana 1</strong> i la <strong>Setmana 2</strong> (les consolidades). Les setmanes 3, 4 i 5 són informatives i encara no sumen. Es recalcula automàticament segons l'<strong>Assignació de coachs</strong>.</p>
+    <table class="data" id="payTable">
+      <thead>
+        <tr>
+          <th>Coach</th>
+          <th>S1</th>
+          <th>S2</th>
+          <th class="pay-info">S3</th>
+          <th class="pay-info">S4</th>
+          <th class="pay-info">S5</th>
+          <th>Total (S1+S2)</th>
+          <th>Import (€)</th>
+        </tr>
+      </thead>
+      <tbody id="payBody"></tbody>
+      <tfoot id="payFoot"></tfoot>
+    </table>
+    <div class="empty" id="payEmpty" style="display:none;">No hi ha tecnificacions assignades.</div>
   </div>
 
   <div class="table-card">
@@ -1643,6 +1668,71 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       sel.innerHTML=weeks.map(w=>`<option value="${esc(w)}"${w===groupsWeek?" selected":""}>${esc(w)}</option>`).join("");
     }
 
+    // Recompte de tecnificacions per coach. Cada entrada de coach a
+    // assignments[key] és una tecnificació; es paga a PRICE_PER_TECNI €.
+    // Es compten totes les setmanes de manera informativa, però el total
+    // pagable només suma les setmanes consolidades (PAYABLE_WEEKS).
+    const PRICE_PER_TECNI = 15;
+    const PAY_WEEK_LABELS = ["Setmana 1","Setmana 2","Setmana 3","Setmana 4","Setmana 5"];
+    const PAYABLE_WEEKS = ["Setmana 1","Setmana 2"];
+    function renderCoachPayments(){
+      const body=document.getElementById("payBody");
+      if(!body) return;
+      const foot=document.getElementById("payFoot");
+      const empty=document.getElementById("payEmpty");
+      // coach -> { "Setmana 1": n, ... "Setmana 5": n }
+      const counts=new Map();
+      const zero=()=>Object.fromEntries(PAY_WEEK_LABELS.map(w=>[w,0]));
+      Object.keys(assignments).forEach(key=>{
+        const dateISO=key.split("|")[0];
+        const wk=ISO_WEEK[dateISO];
+        if(!PAY_WEEK_LABELS.includes(wk)) return;
+        (assignments[key]||[]).forEach(raw=>{
+          const c=normalizeCoach(raw);
+          if(!c) return;
+          if(!counts.has(c)) counts.set(c,zero());
+          counts.get(c)[wk]++;
+        });
+      });
+      const rows=[...counts.entries()]
+        .map(([coach,w])=>{
+          const payable=PAYABLE_WEEKS.reduce((s,k)=>s+w[k],0);
+          return { coach, w, payable, euros:payable*PRICE_PER_TECNI };
+        })
+        .sort((a,b)=> b.payable-a.payable || a.coach.localeCompare(b.coach));
+      if(!rows.length){
+        body.innerHTML="";
+        if(foot) foot.innerHTML="";
+        if(empty) empty.style.display="";
+        return;
+      }
+      if(empty) empty.style.display="none";
+      body.innerHTML=rows.map(r=>`<tr>
+        <td>${esc(r.coach)}</td>
+        <td>${r.w["Setmana 1"]}</td>
+        <td>${r.w["Setmana 2"]}</td>
+        <td class="pay-info">${r.w["Setmana 3"]}</td>
+        <td class="pay-info">${r.w["Setmana 4"]}</td>
+        <td class="pay-info">${r.w["Setmana 5"]}</td>
+        <td><strong>${r.payable}</strong></td>
+        <td>${r.euros} €</td>
+      </tr>`).join("");
+      if(foot){
+        const tot=w=>rows.reduce((s,r)=>s+r.w[w],0);
+        const tPay=rows.reduce((s,r)=>s+r.payable,0);
+        foot.innerHTML=`<tr>
+          <td><strong>Total</strong></td>
+          <td><strong>${tot("Setmana 1")}</strong></td>
+          <td><strong>${tot("Setmana 2")}</strong></td>
+          <td class="pay-info"><strong>${tot("Setmana 3")}</strong></td>
+          <td class="pay-info"><strong>${tot("Setmana 4")}</strong></td>
+          <td class="pay-info"><strong>${tot("Setmana 5")}</strong></td>
+          <td><strong>${tPay}</strong></td>
+          <td><strong>${tPay*PRICE_PER_TECNI} €</strong></td>
+        </tr>`;
+      }
+    }
+
     // Editor de grups de treball: un player per fila amb commutador G1/G2,
     // agrupat per franja horària, per a la setmana seleccionada.
     function renderGroups(){
@@ -1812,6 +1902,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       buildCards();
       renderTable();
       renderAssign();
+      renderCoachPayments();
       renderGroups();
       buildBlocks();
       renderBlocks();
@@ -2019,6 +2110,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       renderBlocks();
       renderPlayers();
       renderAssign();
+      renderCoachPayments();
       renderGroups();
       updateAssignResetBtn();
       // Firebase sincronitza l'assignació resolent conflictes per timestamp.
