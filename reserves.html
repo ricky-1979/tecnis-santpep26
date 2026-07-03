@@ -101,7 +101,6 @@
     <input id="coachName" type="text" placeholder="Nom i cognom del coach nou" autocomplete="off" style="display:none;" />
     <button id="loadBtn" class="primary" type="button">Entrar</button>
     <button id="newCoachBtn" class="navlink" type="button">Sóc coach nou</button>
-    <button id="changeBtn" class="navlink" type="button" style="display:none;">Canviar de nom</button>
     <span class="sep"></span>
     <span class="status" id="status"></span>
   </div>
@@ -288,7 +287,6 @@
       try{ localStorage.setItem("reserves-lastname", coach); }catch(e){}
       $("gate").style.display="none";
       $("app").style.display="";
-      $("changeBtn").style.display="";
       $("newCoachBtn").style.display="none";
       $("loadBtn").style.display="none";
       // Deixa el desplegable visible per poder canviar de coach directament.
@@ -307,19 +305,6 @@
       } else {
         setStatus("Hola, "+coach+" · marca les franges en què pots entrenar.");
       }
-    }
-
-    function changeCoach(){
-      // Torna a l'estat inicial: desplegable visible, camp de text ocult.
-      $("coachName").value="";
-      $("coachName").style.display="none";
-      $("loadBtn").style.display="";
-      $("newCoachBtn").style.display="";
-      if($("coachSelect")){ $("coachSelect").style.display=""; $("coachSelect").value=""; }
-      $("changeBtn").style.display="none";
-      $("app").style.display="none";
-      $("gate").style.display="";
-      setStatus("");
     }
 
     function toggle(cellKey, week){
@@ -397,7 +382,6 @@
 
     // ===== Init =====
     $("loadBtn").addEventListener("click", loadCoach);
-    $("changeBtn").addEventListener("click", changeCoach);
     $("newCoachBtn").addEventListener("click", newCoachMode);
     $("coachName").addEventListener("keydown", e=>{ if(e.key==="Enter") loadCoach(); });
     // Triar al desplegable entra directament amb aquell coach.
