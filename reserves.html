@@ -214,10 +214,16 @@
     // Omple el desplegable amb els coaches que ja tenen disponibilitat carregada.
     function populateCoachSelect(){
       const sel=$("coachSelect"); if(!sel) return;
+      const cur=sel.value;
       const names=Object.values(koalendarByCoach).map(c=>c.name)
         .sort((a,b)=>a.localeCompare(b,"ca"));
       sel.innerHTML='<option value="">— Tria el teu nom —</option>'
         + names.map(n=>`<option value="${n.replace(/"/g,"&quot;")}">${n}</option>`).join("");
+      if(cur) sel.value=cur;
+    }
+    // Comprova si un coach surt al desplegable (coincidència exacta pel nom).
+    function isKnownCoach(name){
+      return Object.values(koalendarByCoach).some(c=>c.name===name);
     }
 
     // ===== Estat =====
@@ -233,6 +239,8 @@
     async function loadCoach(){
       const raw=$("coachName").value.trim().replace(/\s+/g," ");
       if(raw.length<3){ setStatus("Escriu el teu nom complet."); return; }
+      // Si hi ha un desat pendent d'un coach anterior, força'l abans de canviar.
+      if(coach && saveTimer){ clearTimeout(saveTimer); await save(); }
       coach=normalizeCoach(raw); key=coachKey(coach);
       setStatus("Carregant la teva disponibilitat…");
       slots={};
@@ -260,8 +268,10 @@
       $("app").style.display="";
       $("changeBtn").style.display="";
       $("coachName").disabled=true;
-      if($("coachSelect")) $("coachSelect").style.display="none";
       $("loadBtn").style.display="none";
+      // Deixa el desplegable visible per poder canviar de coach directament.
+      // El sincronitzem amb el coach actual (buit si no és a la llista).
+      if($("coachSelect")) $("coachSelect").value=isKnownCoach(coach)?coach:"";
       render();
       if(prefilled){
         // Desa immediatament el punt de partida perquè el dashboard el vegi.
@@ -276,8 +286,9 @@
 
     function changeCoach(){
       $("coachName").disabled=false;
+      $("coachName").value="";
       $("loadBtn").style.display="";
-      if($("coachSelect")){ $("coachSelect").style.display=""; $("coachSelect").value=""; }
+      if($("coachSelect")) $("coachSelect").value="";
       $("changeBtn").style.display="none";
       $("app").style.display="none";
       $("gate").style.display="";
