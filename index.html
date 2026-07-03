@@ -641,6 +641,12 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     const FROZEN_WEEK = "Setmana 1";
     const isWeekFrozen = (week)=> week===FROZEN_WEEK;
 
+    // Setmanes que el "Reiniciar des de reserves" NO ha de tocar mai: la
+    // Setmana 1 (congelada) i la Setmana 2 (assignacions ja consolidades).
+    // La resta de la UI d'aquestes setmanes segueix editable manualment.
+    const RESET_PROTECTED_WEEKS = new Set(["Setmana 1", "Setmana 2"]);
+    const isResetProtected = (week)=> RESET_PROTECTED_WEEKS.has(week);
+
     let coachRecords = [];
     let enrollments = [];
     let sessions = [];
@@ -719,8 +725,37 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     // coachs.html la llegeix, sense necessitat de cap token.
     const FIREBASE_DB_URL = "https://tecni-notes-default-rtdb.europe-west1.firebasedatabase.app";
     const FIREBASE_ASSIGN_PATH = "coachAssignments";
+    // Node que escriu reserves.html: disponibilitat declarada per cada coach.
+    const FIREBASE_AVAIL_PATH = "coachAvailability";
     const hasFirebase = ()=> !!FIREBASE_DB_URL;
     const fbAssignUrl = ()=> `${FIREBASE_DB_URL.replace(/\/$/,"")}/${FIREBASE_ASSIGN_PATH}.json`;
+
+    // Llegeix tota la disponibilitat de reserves.html (node coachAvailability) i
+    // la converteix a { "dateISO|slot": [coach,...] }. Retorna null si no hi ha
+    // res o si falla (aleshores el reinici cau a Koalendar com abans).
+    async function fetchReservesAvailability(){
+      if(!hasFirebase()) return null;
+      try{
+        const url=`${FIREBASE_DB_URL.replace(/\/$/,"")}/${FIREBASE_AVAIL_PATH}.json?t=${Date.now()}`;
+        const res=await fetch(url,{ cache:"no-store" });
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        const data=await res.json();
+        if(!data || typeof data!=="object") return null;
+        const cells={};
+        Object.values(data).forEach(rec=>{
+          if(!rec || !rec.name || !rec.slots || typeof rec.slots!=="object") return;
+          const coach=normalizeCoach(rec.name);
+          Object.keys(rec.slots).forEach(ck=>{
+            if(!rec.slots[ck]) return;
+            if(!cells[ck]) cells[ck]=[];
+            if(!cells[ck].includes(coach)) cells[ck].push(coach);
+          });
+        });
+        if(!Object.keys(cells).length) return null;
+        Object.values(cells).forEach(arr=>arr.sort((a,b)=>a.localeCompare(b)));
+        return cells;
+      }catch(e){ return null; }
+    }
 
     // Desa tot l'estat d'assignació a Firebase (assignments, grups i notes).
     // Escriu el document sencer amb PUT: el dashboard és la font de veritat de
@@ -1818,46 +1853,73 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       sel.addEventListener("blur",finish);
     }
 
-    // Desactiva el botó "Reiniciar" quan la setmana seleccionada està congelada.
+    // Desactiva el botó "Reiniciar" quan la setmana seleccionada està protegida
+    // (Setmana 1 congelada o Setmana 2 consolidada).
     function updateAssignResetBtn(){
       const btn=document.getElementById("assignReset");
       if(!btn) return;
-      const frozen=isWeekFrozen(assignWeek);
-      btn.disabled=frozen;
-      btn.title=frozen?`${FROZEN_WEEK} congelada: no es pot reiniciar`:"";
+      const protectedWk=isResetProtected(assignWeek);
+      btn.disabled=protectedWk;
+      btn.title = !protectedWk ? "Reinicia amb la disponibilitat de Reserves"
+        : (isWeekFrozen(assignWeek)
+            ? `${FROZEN_WEEK} congelada: no es pot reiniciar`
+            : `${assignWeek}: assignacions consolidades, no es reinicia`);
     }
 
-    function resetAssignments(){
+    async function resetAssignments(){
       // Setmana congelada: no es permet reiniciar.
       if(isWeekFrozen(assignWeek)){
         alert(`${FROZEN_WEEK} està congelada (només consulta). No es pot reiniciar.`);
         return;
       }
+      // Setmana 2: assignacions consolidades, tampoc es reinicien.
+      if(isResetProtected(assignWeek)){
+        alert(`La ${assignWeek} no es pot reiniciar: les assignacions ja estan consolidades.`);
+        return;
+      }
       // Si hi ha una setmana seleccionada, només es reinicia aquella setmana
       // (es conserven les assignacions manuals de la resta de setmanes). Sense
-      // setmana seleccionada, es reinicia tot el calendari.
+      // setmana seleccionada, es reinicien totes MENYS les protegides
+      // (Setmana 1 congelada i Setmana 2).
       const wk=assignWeek;
-      const scope = wk ? `la ${wk}` : "totes les setmanes";
-      if(!confirm(`Reiniciar ${scope} amb la disponibilitat original dels entrenadors? Es perdran els canvis manuals${wk?" d'aquesta setmana":""}.`)) return;
+      const scope = wk ? `la ${wk}` : "totes les setmanes (excepte la 1 i la 2)";
+      if(!confirm(`Reiniciar ${scope} amb la disponibilitat declarada a Reserves? Es perdran els canvis manuals${wk?" d'aquesta setmana":""}.`)) return;
 
-      const fresh=defaultAssignments();
+      setAssignStatus("Llegint la disponibilitat de Reserves…");
+      // Font principal: reserves (coachAvailability). Si és buida o falla,
+      // cau a la disponibilitat de Koalendar com abans.
+      const reserves=await fetchReservesAvailability();
+      const fresh = reserves || defaultAssignments();
+      const fromReserves = !!reserves;
+
+      // Aplica el reinici cel·la a cel·la, però MAI a setmanes protegides.
+      const applyCell=(k,arr)=>{
+        const dateISO=k.split("|")[0];
+        const week=ISO_WEEK[dateISO];
+        if(isResetProtected(week)) return;   // no toquis Setmana 1 ni 2
+        if(wk && week!==wk) return;           // fora de la setmana triada
+        if(arr && arr.length) assignments[k]=arr.slice();
+        else delete assignments[k];
+      };
+
       if(wk){
-        // Substitueix només les cel·les de la setmana seleccionada.
+        // Reinicia només la setmana triada (no pot ser protegida: ja filtrat).
         Object.keys(assignments).forEach(k=>{
-          const dateISO=k.split("|")[0];
-          if(ISO_WEEK[dateISO]===wk) delete assignments[k];
+          if(ISO_WEEK[k.split("|")[0]]===wk) delete assignments[k];
         });
-        Object.entries(fresh).forEach(([k,arr])=>{
-          const dateISO=k.split("|")[0];
-          if(ISO_WEEK[dateISO]===wk) assignments[k]=arr;
-        });
+        Object.entries(fresh).forEach(([k,arr])=> applyCell(k,arr));
       } else {
-        assignments=fresh;
+        // Reinicia totes les setmanes no protegides: neteja-les i reconstrueix.
+        Object.keys(assignments).forEach(k=>{
+          if(!isResetProtected(ISO_WEEK[k.split("|")[0]])) delete assignments[k];
+        });
+        Object.entries(fresh).forEach(([k,arr])=> applyCell(k,arr));
       }
       // Desa, refresca I publica al núvol (Firebase) perquè els coachs vegin
       // el reinici immediatament.
       afterAssignChange();
-      setAssignStatus(wk ? `Reiniciada ${wk} des de Koalendar` : "Reiniciat des de Koalendar");
+      const src = fromReserves ? "Reserves" : "Koalendar (Reserves buit)";
+      setAssignStatus(wk ? `Reiniciada ${wk} des de ${src}` : `Reiniciat des de ${src}`);
     }
 
     function wireEvents(){
