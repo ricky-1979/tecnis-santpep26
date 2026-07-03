@@ -977,6 +977,11 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       "Carla Perramón Navarro|Setmana 3": "19:00",
       // Roc estava sol a la 1a franja (18:00): puja a la 2a (19:00).
       "Roc Arbonès López|Setmana 3": "19:00",
+      // Setmana 4: reequilibri de la 3a franja (20:00). Teo puja a la 4a
+      // (21:00); Sofia i Martina baixen a la 2a (19:00).
+      "Teo Bigas Romo|Setmana 4": "21:00",
+      "Sofía Carabajal Palau|Setmana 4": "19:00",
+      "Martina Carrillo Bach|Setmana 4": "19:00",
     };
     function overrideSlot(player, week, slot){
       return PLAYER_SLOT_OVERRIDES[`${player}|${week}`] || slot;
@@ -998,6 +1003,15 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       // base del CSV) i s'elimina l'afegit del dimarts a 21:00 (vegeu sota).
       "Thaïs Sampera Cerdà|2026-07-07|20:00",
       "Thaïs Sampera Cerdà|2026-07-09|20:00",
+      // Setmana 4: Blai tenia dues inscripcions, totes dues a la 2a franja
+      // (19:00), i sortia duplicat. Es reparteix: 1a (18:00) + 2a (19:00) per
+      // dia. Aquests removals treuen les dues entrades de 19:00 de cada dia;
+      // les additions de sota tornen a posar-ne una a 18:00 i una a 19:00.
+      "Blai Abrisqueta López|2026-07-20|19:00",
+      "Blai Abrisqueta López|2026-07-21|19:00",
+      "Blai Abrisqueta López|2026-07-22|19:00",
+      "Blai Abrisqueta López|2026-07-23|19:00",
+      "Blai Abrisqueta López|2026-07-24|19:00",
       // 06/07: Martí Ordóñez baixa de la 3a franja (20:00) a la 2a (19:00)
       // per deixar 8 players a la 3a franja aquell dia.
       "Martí Ordóñez Pla|2026-07-06|20:00",
@@ -1057,6 +1071,18 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       { player:"Elsa Aranda Carbón", dateISO:"2026-07-03", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
       { player:"Joel González Gutiérrez", dateISO:"2026-07-03", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
       { player:"Roc Arbonès López", dateISO:"2026-07-03", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
+      // Setmana 4: Blai repartit a 1a (18:00) i 2a (19:00) cada dia (vegeu
+      // els removals de dalt: tenia dues inscripcions duplicades a 19:00).
+      { player:"Blai Abrisqueta López", dateISO:"2026-07-20", slot:"18:00", category:"Infantil/Cadet", week:"Setmana 4" },
+      { player:"Blai Abrisqueta López", dateISO:"2026-07-20", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 4" },
+      { player:"Blai Abrisqueta López", dateISO:"2026-07-21", slot:"18:00", category:"Infantil/Cadet", week:"Setmana 4" },
+      { player:"Blai Abrisqueta López", dateISO:"2026-07-21", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 4" },
+      { player:"Blai Abrisqueta López", dateISO:"2026-07-22", slot:"18:00", category:"Infantil/Cadet", week:"Setmana 4" },
+      { player:"Blai Abrisqueta López", dateISO:"2026-07-22", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 4" },
+      { player:"Blai Abrisqueta López", dateISO:"2026-07-23", slot:"18:00", category:"Infantil/Cadet", week:"Setmana 4" },
+      { player:"Blai Abrisqueta López", dateISO:"2026-07-23", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 4" },
+      { player:"Blai Abrisqueta López", dateISO:"2026-07-24", slot:"18:00", category:"Infantil/Cadet", week:"Setmana 4" },
+      { player:"Blai Abrisqueta López", dateISO:"2026-07-24", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 4" },
     ];
     function applyEnrollmentExceptions(){
       const rm=new Set(ENROLLMENT_REMOVALS);
