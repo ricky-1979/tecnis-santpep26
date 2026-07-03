@@ -11,13 +11,18 @@
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     :root {
-      /* Colors oficials CB Sant Josep: lila #713f97, groc #fcdb20.
-         --brand: lila oficial per a fons/botons sòlids.
-         --lila/--accent: to clar per a text sobre fons fosc (llegibilitat). */
-      --bg:#160f26; --card:#241836; --card-hover:#2e1f44; --text:#ece8f5;
-      --muted:#94a3b8; --accent:#a855f7; --border:#3b2f4d;
-      --brand:#713f97; --lila:#a855f7; --groc:#fcdb20;
-      --danger:#f87171; --warn:#fcdb20; --ok:#c084fc;
+      /* Tema clar amb colors oficials CB Sant Josep: lila #713f97, groc #fcdb20.
+         --brand: lila oficial per a fons/botons sòlids i text d'accent.
+         Fons clar amb text fosc per màxima llegibilitat. */
+      --bg:#f5f3f8; --card:#ffffff; --card-hover:#f0ebf6; --text:#1e1633;
+      --muted:#6b7280; --accent:#713f97; --border:#d9cfe6;
+      --brand:#713f97; --lila:#713f97; --groc:#fcdb20;
+      --danger:#dc2626; --warn:#b45309; --ok:#713f97;
+      /* Fons dels indicadors de nivell (badges/heatmap) en to clar */
+      --lvl-under-bg:#fdf6d3; --lvl-under-fg:#8a6d00;
+      --lvl-ok-bg:#efe6f7;    --lvl-ok-fg:#713f97;
+      --lvl-none-bg:#eceef2;  --lvl-none-fg:#6b7280;
+      --pill-fg:#160f26;
     }
     * { box-sizing:border-box; margin:0; padding:0; }
     body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -27,10 +32,10 @@
     header .logo { height:64px; width:auto; border-radius:8px; flex-shrink:0;
       background:#fff; padding:4px; }
     header .htext h1 { font-size:1.6rem; font-weight:800; color:var(--text); }
-    header .htext h1 .club { color:var(--groc); }
+    header .htext h1 .club { color:var(--brand); }
     header .htext p { color:var(--muted); font-size:0.9rem; margin-top:4px; }
     header .htext .hlinks a { color:var(--accent); text-decoration:none; font-size:0.85rem; }
-    header .htext .hlinks a:hover { color:var(--groc); text-decoration:underline; }
+    header .htext .hlinks a:hover { color:var(--brand); text-decoration:underline; }
 
     .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(175px,1fr)); gap:16px; margin-bottom:24px; }
     .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; }
@@ -56,10 +61,10 @@
     .cell { border-radius:6px; font-weight:700; line-height:1.25; }
     .cell .pj { font-size:0.92rem; }
     .cell .en { font-size:0.72rem; font-weight:600; opacity:0.95; }
-    .lvl-crit { background:#3b1d1d; color:var(--danger); }
-    .lvl-under { background:#3d3416; color:var(--groc); }
-    .lvl-ok { background:#2e1f44; color:var(--lila); }
-    .lvl-noplayers { background:#241836; color:var(--muted); }
+    .lvl-crit { background:#fde2e2; color:#b91c1c; }
+    .lvl-under { background:var(--lvl-under-bg); color:var(--lvl-under-fg); }
+    .lvl-ok { background:var(--lvl-ok-bg); color:var(--lvl-ok-fg); }
+    .lvl-noplayers { background:var(--lvl-none-bg); color:var(--lvl-none-fg); }
     .cell.dim { opacity:0.2; }
     .legend { display:flex; gap:16px; flex-wrap:wrap; margin-top:14px; font-size:0.8rem; color:var(--muted); align-items:center; }
     .legend .sw { display:inline-block; width:14px; height:14px; border-radius:4px; margin-right:6px; vertical-align:middle; }
@@ -75,7 +80,7 @@
     .filters label.chk { display:flex; align-items:center; gap:6px; color:var(--muted); font-size:0.88rem; }
     .filters button { background:transparent; border:1px solid var(--border); color:var(--muted);
       padding:9px 14px; border-radius:8px; font-size:0.88rem; cursor:pointer; }
-    .filters button:hover { color:var(--groc); border-color:var(--groc); }
+    .filters button:hover { color:var(--brand); border-color:var(--brand); }
 
     table.data { width:100%; border-collapse:collapse; font-size:0.86rem; }
     table.data th, table.data td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--border); white-space:nowrap; }
@@ -84,10 +89,10 @@
     table.data tbody tr:hover { background:var(--card-hover); }
     table.data td.wrap { white-space:normal; max-width:340px; color:var(--muted); font-size:0.82rem; }
     .badge { padding:2px 8px; border-radius:999px; font-size:0.76rem; font-weight:600; }
-    .badge.crit { background:#3b1d1d; color:var(--danger); }
-    .badge.under { background:#3d3416; color:var(--groc); }
-    .badge.ok { background:#2e1f44; color:var(--lila); }
-    .badge.noplayers { background:#241836; color:var(--muted); }
+    .badge.crit { background:#fde2e2; color:#b91c1c; }
+    .badge.under { background:var(--lvl-under-bg); color:var(--lvl-under-fg); }
+    .badge.ok { background:var(--lvl-ok-bg); color:var(--lvl-ok-fg); }
+    .badge.noplayers { background:var(--lvl-none-bg); color:var(--lvl-none-fg); }
     /* Icona de sexe (inferit pel nom) davant de cada player */
     .gi { font-weight:700; margin-right:3px; }
     .gi-m { color:#60a5fa; }   /* noi: blau */
@@ -95,7 +100,7 @@
     .gi-x { color:var(--muted); }
     .coach-chips { display:flex; flex-wrap:wrap; gap:6px; }
     /* Setmana congelada (només consulta): amaga controls d'edició i marca-ho */
-    .frozen-note { display:inline-flex; align-items:center; gap:6px; background:#241836; color:var(--groc);
+    .frozen-note { display:inline-flex; align-items:center; gap:6px; background:var(--lvl-ok-bg); color:var(--brand);
       border:1px solid var(--border); border-radius:999px; padding:2px 10px; font-size:0.72rem; font-weight:600; }
     .assign-grid.frozen .pill .rm,
     .assign-grid.frozen .pill .cgtoggle,
@@ -103,7 +108,7 @@
     .assign-grid.frozen .pill { cursor:default; opacity:0.9; }
     .groups-wrap.frozen .grp-toggle { opacity:0.55; pointer-events:none; }
     /* Sessió amb sobreaforament (>8 players): destaca la fila i el recompte */
-    tr.overfull td { background:#3b1d1d; }
+    tr.overfull td { background:#fde2e2; }
     td.count-over { color:var(--danger); font-weight:700; }
     td.count-over .warn-ico { margin-left:4px; }
     /* Assignació editable */
@@ -113,22 +118,22 @@
     .assign-grid .daylbl small { color:var(--accent); }
     .assign-cell { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:6px; min-height:54px;
       display:flex; flex-wrap:wrap; gap:4px; align-content:flex-start; transition:border-color .15s, background .15s; }
-    .assign-cell.dragover { border-color:var(--groc); background:#241836; }
+    .assign-cell.dragover { border-color:var(--brand); background:var(--lvl-ok-bg); }
     /* Franja amb menys de 6 players però més d'un coach: sobra entrenador */
-    .assign-cell.overstaffed { border-color:var(--danger); background:#3b1d1d; }
+    .assign-cell.overstaffed { border-color:var(--danger); background:#fde2e2; }
     .assign-cell .cell-count.warn { color:var(--danger); font-weight:700; }
-    .assign-cell .pill { display:inline-flex; align-items:center; gap:4px; background:#2e1f44; color:var(--lila);
+    .assign-cell .pill { display:inline-flex; align-items:center; gap:4px; background:var(--lvl-ok-bg); color:var(--brand);
       border:1px solid var(--border); border-radius:999px; padding:2px 6px 2px 8px; font-size:0.76rem; font-weight:600; cursor:grab; }
     .assign-cell .pill.dragging { opacity:0.4; }
     .assign-cell .pill .rm { cursor:pointer; color:var(--muted); font-weight:700; line-height:1; padding:0 2px; }
     .assign-cell .pill .rm:hover { color:var(--danger); }
     .assign-cell .pill .cgtoggle { display:inline-flex; border:1px solid var(--border); border-radius:999px; overflow:hidden; margin-left:2px; }
     .assign-cell .pill .cgtoggle .cgbtn { background:transparent; border:none; color:var(--muted); padding:0 5px; font-size:0.66rem; font-weight:700; cursor:pointer; line-height:1.5; }
-    .assign-cell .pill .cgtoggle .cgbtn.on { background:var(--accent); color:#160f26; }
+    .assign-cell .pill .cgtoggle .cgbtn.on { background:var(--brand); color:#fff; }
     .assign-cell .pill .cgtoggle .cgbtn.on.g2 { background:var(--groc); color:#160f26; }
     .assign-cell .addbtn { border:1px dashed var(--border); background:transparent; color:var(--muted);
       border-radius:999px; padding:2px 8px; font-size:0.74rem; cursor:pointer; }
-    .assign-cell .addbtn:hover { color:var(--groc); border-color:var(--groc); }
+    .assign-cell .addbtn:hover { color:var(--brand); border-color:var(--brand); }
     .assign-cell .cell-count { width:100%; color:var(--muted); font-size:0.68rem; margin-bottom:2px; }
     .assign-overwrap { overflow-x:auto; }
     /* Grups de treball (G1/G2 per player) */
@@ -141,14 +146,14 @@
     .grp-name { font-size:0.84rem; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .grp-toggle { display:inline-flex; border:1px solid var(--border); border-radius:999px; overflow:hidden; flex:0 0 auto; }
     .grp-toggle .gbtn { background:transparent; border:none; color:var(--muted); padding:3px 10px; font-size:0.75rem; font-weight:700; cursor:pointer; }
-    .grp-toggle .gbtn.on { background:var(--accent); color:#160f26; }
+    .grp-toggle .gbtn.on { background:var(--brand); color:#fff; }
     .grp-toggle .gbtn.on.g2 { background:var(--groc); color:#160f26; }
     .assign-toolbar { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:16px; }
     .assign-toolbar select { background:var(--card); border:1px solid var(--border); color:var(--text);
       padding:9px 12px; border-radius:8px; font-size:0.9rem; }
     .assign-toolbar button { background:transparent; border:1px solid var(--border); color:var(--muted);
       padding:9px 14px; border-radius:8px; font-size:0.88rem; cursor:pointer; }
-    .assign-toolbar button:hover { color:var(--groc); border-color:var(--groc); }
+    .assign-toolbar button:hover { color:var(--brand); border-color:var(--brand); }
     .assign-toolbar .sep { flex:1; }
     .assign-status { color:var(--muted); font-size:0.78rem; }
     .badge .add { opacity:0.7; font-weight:500; font-size:0.72rem; }
