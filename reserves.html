@@ -97,7 +97,8 @@
   </header>
 
   <div class="toolbar">
-    <input id="coachName" type="text" placeholder="Escriu el teu nom i cognom…" autocomplete="off" />
+    <select id="coachSelect"><option value="">— Tria el teu nom —</option></select>
+    <input id="coachName" type="text" placeholder="…o escriu-lo si no hi ets" autocomplete="off" />
     <button id="loadBtn" class="primary" type="button">Entrar</button>
     <button id="changeBtn" class="navlink" type="button" style="display:none;">Canviar de nom</button>
     <span class="sep"></span>
@@ -105,7 +106,7 @@
   </div>
 
   <div class="gate" id="gate">
-    <p>Escriu el teu nom a dalt i prem <strong>Entrar</strong> per marcar la teva disponibilitat.</p>
+    <p>Tria el teu nom de la llista (o escriu-lo si no hi surts) i prem <strong>Entrar</strong> per marcar la teva disponibilitat.</p>
   </div>
 
   <div id="app" style="display:none;">
@@ -207,6 +208,16 @@
         koalendarByCoach[k].slots[isoFromMdy(mdy)+"|"+start]=true;
       });
       koalendarLoaded=true;
+      populateCoachSelect();
+    }
+
+    // Omple el desplegable amb els coaches que ja tenen disponibilitat carregada.
+    function populateCoachSelect(){
+      const sel=$("coachSelect"); if(!sel) return;
+      const names=Object.values(koalendarByCoach).map(c=>c.name)
+        .sort((a,b)=>a.localeCompare(b,"ca"));
+      sel.innerHTML='<option value="">— Tria el teu nom —</option>'
+        + names.map(n=>`<option value="${n.replace(/"/g,"&quot;")}">${n}</option>`).join("");
     }
 
     // ===== Estat =====
@@ -249,6 +260,7 @@
       $("app").style.display="";
       $("changeBtn").style.display="";
       $("coachName").disabled=true;
+      if($("coachSelect")) $("coachSelect").style.display="none";
       $("loadBtn").style.display="none";
       render();
       if(prefilled){
@@ -265,6 +277,7 @@
     function changeCoach(){
       $("coachName").disabled=false;
       $("loadBtn").style.display="";
+      if($("coachSelect")){ $("coachSelect").style.display=""; $("coachSelect").value=""; }
       $("changeBtn").style.display="none";
       $("app").style.display="none";
       $("gate").style.display="";
@@ -349,6 +362,10 @@
     $("loadBtn").addEventListener("click", loadCoach);
     $("changeBtn").addEventListener("click", changeCoach);
     $("coachName").addEventListener("keydown", e=>{ if(e.key==="Enter") loadCoach(); });
+    if($("coachSelect")) $("coachSelect").addEventListener("change", e=>{
+      const v=e.target.value;
+      if(v){ $("coachName").value=v; loadCoach(); }
+    });
     try{
       const last=localStorage.getItem("reserves-lastname");
       if(last) $("coachName").value=last;
