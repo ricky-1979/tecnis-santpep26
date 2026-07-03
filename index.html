@@ -1064,7 +1064,17 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         if(!map.has(k)) map.set(k,{ dateISO:iso, slot, coachNames:[], playerNames:[], categories:new Set() });
         return map.get(k);
       };
-      coachRecords.forEach(c=> ensure(c.dateISO,c.slot).coachNames.push(c.coach));
+      // Els entrenadors d'una sessió surten de l'ASSIGNACIÓ real (secció
+      // "Assignació de coachs"), no de la disponibilitat de Koalendar. Si
+      // encara no hi ha assignacions carregades, cau a la disponibilitat.
+      if(assignments && Object.keys(assignments).length>0){
+        Object.entries(assignments).forEach(([key,arr])=>{
+          const [dateISO,slot]=key.split("|");
+          (arr||[]).forEach(coach=> ensure(dateISO,slot).coachNames.push(coach));
+        });
+      } else {
+        coachRecords.forEach(c=> ensure(c.dateISO,c.slot).coachNames.push(c.coach));
+      }
       enrollments.forEach(e=>{ const s=ensure(e.dateISO,e.slot); s.playerNames.push(e.player); if(e.category) s.categories.add(e.category); });
 
       sessions=[...map.values()].map(s=>{
@@ -1737,9 +1747,13 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       const arr=ensureSlot(key);
       if(!arr.includes(coach)){ arr.push(coach); arr.sort((a,b)=>a.localeCompare(b)); }
     }
-    // Recalcula tot el que depèn de l'assignació (graella + planificació 2h +
-    // ocupació per sessió, que ara compta els entrenadors assignats).
+    // Recalcula tot el que depèn de l'assignació. Les sessions, la taula, les
+    // KPI, la planificació 2h i l'ocupació per sessió compten ara els
+    // entrenadors realment assignats (secció "Assignació de coachs").
     function refreshFromAssignments(){
+      buildSessions();
+      buildCards();
+      renderTable();
       renderAssign();
       renderGroups();
       buildBlocks();
@@ -1902,9 +1916,10 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     }
 
     function init(){
-      buildSessions();
-      // Carrega l'assignació abans de construir els blocs (que ara s'hi basen)
+      // Carrega l'assignació abans de construir les sessions i els blocs, que
+      // ara es basen en l'assignació real (no en la disponibilitat de Koalendar).
       const hadSaved=loadAssignments();
+      buildSessions();
       loadPlayerGroups();
       buildBlocks();
       populateFilters();
