@@ -679,10 +679,10 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       ISO_WEEK[`${y}-${m}-${d}`]=wc.label;
     }));
 
-    // Setmana CONGELADA: només de consulta. Ni players ni coachs es poden
+    // Setmanes CONGELADES: només de consulta. Ni players ni coachs es poden
     // editar des de la UI. Vegeu AGENTS.md ("Setmana 1 CONGELADA").
-    const FROZEN_WEEK = "Setmana 1";
-    const isWeekFrozen = (week)=> week===FROZEN_WEEK;
+    const FROZEN_WEEKS = new Set(["Setmana 1", "Setmana 2"]);
+    const isWeekFrozen = (week)=> FROZEN_WEEKS.has(week);
 
     // Setmanes que el "Reiniciar des de reserves" NO ha de tocar mai: la
     // Setmana 1 (congelada) i la Setmana 2 (assignacions ja consolidades).
@@ -1845,7 +1845,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       });
       const frozen=isWeekFrozen(wk);
       if(frozen && html){
-        html = `<p class="hint"><span class="frozen-note">🔒 ${FROZEN_WEEK} congelada · només consulta</span></p>` + html;
+        html = `<p class="hint"><span class="frozen-note">🔒 ${wk} congelada · només consulta</span></p>` + html;
       }
       wrap.innerHTML = html || `<p class="hint">No hi ha players inscrits aquesta setmana.</p>`;
       wrap.classList.toggle("frozen", frozen);
@@ -1906,7 +1906,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       grid.classList.toggle("frozen", frozen);
       if(frozen){
         // Avís visual i cap handler d'edició connectat.
-        setAssignStatus(`🔒 ${FROZEN_WEEK} congelada · només consulta`);
+        setAssignStatus(`🔒 ${assignWeek} congelada · només consulta`);
         return;
       }
       wireAssignCells();
@@ -2056,14 +2056,14 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       btn.disabled=protectedWk;
       btn.title = !protectedWk ? "Reinicia amb la disponibilitat de Reserves"
         : (isWeekFrozen(assignWeek)
-            ? `${FROZEN_WEEK} congelada: no es pot reiniciar`
+            ? `${assignWeek} congelada: no es pot reiniciar`
             : `${assignWeek}: assignacions consolidades, no es reinicia`);
     }
 
     async function resetAssignments(){
       // Setmana congelada: no es permet reiniciar.
       if(isWeekFrozen(assignWeek)){
-        alert(`${FROZEN_WEEK} està congelada (només consulta). No es pot reiniciar.`);
+        alert(`${assignWeek} està congelada (només consulta). No es pot reiniciar.`);
         return;
       }
       // Setmana 2: assignacions consolidades, tampoc es reinicien.
