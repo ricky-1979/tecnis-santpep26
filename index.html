@@ -90,6 +90,8 @@
     table.data td.wrap { white-space:normal; max-width:340px; color:var(--muted); font-size:0.82rem; }
     /* Columnes de setmanes encara no pagables (S3-S5): to atenuat. */
     #payTable th.pay-info, #payTable td.pay-info { color:var(--muted); background:var(--card-hover); }
+    /* Columnes d'estimació total (S1-S5): to lila suau, són una projecció. */
+    #payTable th.pay-est, #payTable td.pay-est { background:var(--lvl-ok-bg); color:var(--brand); }
     #payTable tfoot td { border-top:2px solid var(--border); }
     .badge { padding:2px 8px; border-radius:999px; font-size:0.76rem; font-weight:600; }
     .badge.crit { background:#fde2e2; color:#b91c1c; }
@@ -334,7 +336,7 @@
 
   <div class="table-card">
     <h2 class="section">Recompte de tecnificacions per coach (Setmanes 1 i 2)</h2>
-    <p class="hint">Cada tecnificació assignada es paga a <strong>15 €</strong>. Es mostren les tecnis de cada setmana, però el <strong>Total</strong> i l'<strong>Import</strong> només compten la <strong>Setmana 1</strong> i la <strong>Setmana 2</strong> (les consolidades). Les setmanes 3, 4 i 5 són informatives i encara no sumen. Es recalcula automàticament segons l'<strong>Assignació de coachs</strong>.</p>
+    <p class="hint">Cada tecnificació assignada es paga a <strong>15 €</strong>. El <strong>Total (S1+S2)</strong> i l'<strong>Import</strong> compten només les setmanes consolidades. El <strong>Total estimat (S1-S5)</strong> i l'<strong>Import estimat</strong> inclouen totes cinc setmanes segons l'assignació actual (poden canviar mentre s'ajusten les setmanes 3, 4 i 5). Es recalcula automàticament segons l'<strong>Assignació de coachs</strong>.</p>
     <table class="data" id="payTable">
       <thead>
         <tr>
@@ -346,6 +348,8 @@
           <th class="pay-info">S5</th>
           <th>Total (S1+S2)</th>
           <th>Import (€)</th>
+          <th class="pay-est">Total estimat (S1-S5)</th>
+          <th class="pay-est">Import estimat (€)</th>
         </tr>
       </thead>
       <tbody id="payBody"></tbody>
@@ -1697,7 +1701,9 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       const rows=[...counts.entries()]
         .map(([coach,w])=>{
           const payable=PAYABLE_WEEKS.reduce((s,k)=>s+w[k],0);
-          return { coach, w, payable, euros:payable*PRICE_PER_TECNI };
+          const estimated=PAY_WEEK_LABELS.reduce((s,k)=>s+w[k],0);
+          return { coach, w, payable, euros:payable*PRICE_PER_TECNI,
+                   estimated, eurosEst:estimated*PRICE_PER_TECNI };
         })
         .sort((a,b)=> b.payable-a.payable || a.coach.localeCompare(b.coach));
       if(!rows.length){
@@ -1716,10 +1722,13 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         <td class="pay-info">${r.w["Setmana 5"]}</td>
         <td><strong>${r.payable}</strong></td>
         <td>${r.euros} €</td>
+        <td class="pay-est"><strong>${r.estimated}</strong></td>
+        <td class="pay-est">${r.eurosEst} €</td>
       </tr>`).join("");
       if(foot){
         const tot=w=>rows.reduce((s,r)=>s+r.w[w],0);
         const tPay=rows.reduce((s,r)=>s+r.payable,0);
+        const tEst=rows.reduce((s,r)=>s+r.estimated,0);
         foot.innerHTML=`<tr>
           <td><strong>Total</strong></td>
           <td><strong>${tot("Setmana 1")}</strong></td>
@@ -1729,6 +1738,8 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           <td class="pay-info"><strong>${tot("Setmana 5")}</strong></td>
           <td><strong>${tPay}</strong></td>
           <td><strong>${tPay*PRICE_PER_TECNI} €</strong></td>
+          <td class="pay-est"><strong>${tEst}</strong></td>
+          <td class="pay-est"><strong>${tEst*PRICE_PER_TECNI} €</strong></td>
         </tr>`;
       }
     }
