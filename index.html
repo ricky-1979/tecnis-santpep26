@@ -1217,9 +1217,16 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         if(fcat && e.category!==fcat) return;
         ensure(e.dateISO+"|"+e.slot).players++;
       });
-      coachRecords.forEach(c=>{
-        if(fcoach && c.coach!==fcoach) return;
-        ensure(c.dateISO+"|"+c.slot).coachNames.push(c.coach);
+      // Els entrenadors surten de l'ASSIGNACIÓ real (secció "Assignació de
+      // coachs"), no de la disponibilitat de Koalendar. Així una franja sense
+      // ningú assignat mostra 0 entrenadors encara que hi hagi coaches
+      // disponibles.
+      Object.entries(assignments).forEach(([key,arr])=>{
+        const [dateISO,slot]=key.split("|");
+        (arr||[]).forEach(coach=>{
+          if(fcoach && coach!==fcoach) return;
+          ensure(dateISO+"|"+slot).coachNames.push(coach);
+        });
       });
 
       // Dies a mostrar (tots els de les sessions, respectant el filtre de setmana)
@@ -1730,12 +1737,14 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       const arr=ensureSlot(key);
       if(!arr.includes(coach)){ arr.push(coach); arr.sort((a,b)=>a.localeCompare(b)); }
     }
-    // Recalcula tot el que depèn de l'assignació (graella + planificació 2h)
+    // Recalcula tot el que depèn de l'assignació (graella + planificació 2h +
+    // ocupació per sessió, que ara compta els entrenadors assignats).
     function refreshFromAssignments(){
       renderAssign();
       renderGroups();
       buildBlocks();
       renderBlocks();
+      buildHeatmap();
     }
     let cloudSyncTimer=null;
     function afterAssignChange(){
