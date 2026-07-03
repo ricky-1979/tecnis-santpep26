@@ -666,7 +666,7 @@
           const key=d+"|"+sl;
           const coaches=(assignments[key]||[]).slice().sort((a,b)=>a.localeCompare(b));
           const players=playersFor(d,sl);
-          if(coaches.length===0 && players.length===0) return; // franja buida
+          if(coaches.length===0 || players.length===0) return; // franja buida de coachs o de players
           // Filtres de coach/player: només mostra franges que hi coincideixin.
           if(filterCoach && !coaches.includes(filterCoach)) return;
           if(filterPlayer && !players.some(p=>p.name===filterPlayer)) return;
