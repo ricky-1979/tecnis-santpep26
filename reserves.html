@@ -158,6 +158,57 @@
                  : `${base}/${FIREBASE_AVAIL_PATH}.json`;
     }
 
+    // ===== Disponibilitat inicial des d'index.html (Koalendar) =====
+    // reserves.html no té dades pròpies: la disponibilitat que ja tenim carregada
+    // (via CSV al dashboard) viu al bloc coachesCsv d'index.html. La llegim
+    // d'allà per pre-omplir la graella d'un coach la PRIMERA vegada que entra
+    // (si encara no ha desat res a Firebase). A partir d'aquí, mana Firebase.
+    const COACH_NAME_MAP = { "Pau": "Pau Laviña" }; // coherent amb el dashboard
+    function normalizeCoach(name){ const n=(name||"").trim(); return COACH_NAME_MAP[n] || n; }
+    // Mapa: coachKey normalitzat -> { name, slots:{ "dateISO|slot":true } }
+    let koalendarByCoach = {};
+    let koalendarLoaded = false;
+
+    function extractBlock(html, id){
+      const re=new RegExp(`<script id="${id}"[^>]*>([\\s\\S]*?)<\\/script>`,"i");
+      const m=html.match(re); return m ? m[1].trim() : "";
+    }
+    function extractLogo(html){
+      const m=html.match(/<img[^>]*class="logo"[^>]*src="([^"]+)"/i)
+            || html.match(/src="(data:image\/png;base64,[^"]+)"/i);
+      return m ? m[1] : "";
+    }
+    // Parser CSV mínim (respecta cometes) — evita dependre de PapaParse.
+    function parseCSV(text){
+      const rows=[]; let row=[], cur="", q=false;
+      for(let i=0;i<text.length;i++){
+        const c=text[i];
+        if(c==='"'){ if(q && text[i+1]==='"'){ cur+='"'; i++; } else q=!q; }
+        else if(c===',' && !q){ row.push(cur); cur=""; }
+        else if((c==='\n'||c==='\r') && !q){ if(cur!==""||row.length){ row.push(cur); rows.push(row); row=[]; cur=""; } if(c==='\r'&&text[i+1]==='\n') i++; }
+        else cur+=c;
+      }
+      if(cur!==""||row.length){ row.push(cur); rows.push(row); }
+      if(!rows.length) return [];
+      const hdr=rows[0].map(h=>h.trim());
+      return rows.slice(1).filter(r=>r.some(x=>x&&x.trim())).map(r=>{
+        const o={}; hdr.forEach((h,i)=>o[h]=(r[i]||"").trim()); return o;
+      });
+    }
+    function loadKoalendar(csv){
+      koalendarByCoach={};
+      parseCSV(csv).forEach(r=>{
+        const rawName=r["Invitee Name"]; if(!rawName) return;
+        const mdy=(r["Meeting Date"]||"").trim(); const start=(r["Meeting Start"]||"").trim();
+        if(!mdy||!start) return;
+        const name=normalizeCoach(rawName);
+        const k=coachKey(name);
+        if(!koalendarByCoach[k]) koalendarByCoach[k]={ name, slots:{} };
+        koalendarByCoach[k].slots[isoFromMdy(mdy)+"|"+start]=true;
+      });
+      koalendarLoaded=true;
+    }
+
     // ===== Estat =====
     let coach = "";           // nom visible
     let key = "";             // clau Firebase
@@ -171,17 +222,27 @@
     async function loadCoach(){
       const raw=$("coachName").value.trim().replace(/\s+/g," ");
       if(raw.length<3){ setStatus("Escriu el teu nom complet."); return; }
-      coach=raw; key=coachKey(raw);
+      coach=normalizeCoach(raw); key=coachKey(coach);
       setStatus("Carregant la teva disponibilitat…");
       slots={};
+      let fromFirebase=false;
       if(hasFirebase()){
         try{
           const res=await fetch(`${availUrl(key)}?t=${Date.now()}`,{ cache:"no-store" });
           if(res.ok){
             const data=await res.json();
-            if(data && data.slots && typeof data.slots==="object") slots={...data.slots};
+            if(data && data.slots && typeof data.slots==="object"){
+              slots={...data.slots}; fromFirebase=true;
+            }
           }
         }catch(e){ setStatus("No s'ha pogut carregar: "+e.message); }
+      }
+      // Primer cop (encara no ha desat res): pre-omple amb la disponibilitat
+      // que ja tenim d'index.html (Koalendar). Editable i encara no desada.
+      let prefilled=false;
+      if(!fromFirebase && koalendarLoaded && koalendarByCoach[key]){
+        slots={...koalendarByCoach[key].slots};
+        prefilled=true;
       }
       try{ localStorage.setItem("reserves-lastname", coach); }catch(e){}
       $("gate").style.display="none";
@@ -190,7 +251,15 @@
       $("coachName").disabled=true;
       $("loadBtn").style.display="none";
       render();
-      setStatus("Hola, "+coach+" · els canvis es desen automàticament.");
+      if(prefilled){
+        // Desa immediatament el punt de partida perquè el dashboard el vegi.
+        scheduleSave();
+        setStatus("Hola, "+coach+" · hem carregat la teva disponibilitat actual. Revisa-la i ajusta el que calgui.");
+      } else if(fromFirebase){
+        setStatus("Hola, "+coach+" · els canvis es desen automàticament.");
+      } else {
+        setStatus("Hola, "+coach+" · marca les franges en què pots entrenar.");
+      }
     }
 
     function changeCoach(){
@@ -285,6 +354,19 @@
       if(last) $("coachName").value=last;
     }catch(e){}
     $("footer").textContent="CB Sant Josep de Badalona · Tecnificacions juliol 2026";
+
+    // Carrega la disponibilitat inicial (Koalendar) i el logo des d'index.html.
+    // Si falla, la pàgina segueix funcionant: el coach marca des de zero.
+    (function loadFromDashboard(){
+      fetch("index.html?t="+Date.now(),{ cache:"no-store" })
+        .then(r=>r.ok?r.text():Promise.reject(new Error("HTTP "+r.status)))
+        .then(html=>{
+          loadKoalendar(extractBlock(html,"coachesCsv"));
+          const logo=extractLogo(html);
+          if(logo){ const el=document.querySelector("header .logo"); if(el) el.src=logo; }
+        })
+        .catch(()=>{ /* sense pre-càrrega: el coach marca manualment */ });
+    })();
   </script>
 </body>
 </html>
