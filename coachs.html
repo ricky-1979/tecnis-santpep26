@@ -175,6 +175,11 @@
     // Excepcions manuals de franja per player+setmana (igual que el dashboard).
     const PLAYER_SLOT_OVERRIDES = {
       "Jan Rodríguez González|Setmana 1": "19:00",
+      // Setmana 2: pugen de la 3a franja (20:00) a la 4a (21:00) tota la
+      // setmana. Carla i Clàudia no tenen excepcions de dia, així que un
+      // override de setmana sencera és net. Joana i Thaïs es tracten per dia
+      // (a ENROLLMENT_*) perquè cal preservar el 07/08, on ja tenen 2 franges.
+      "Carla Perramón Navarro|Setmana 2": "21:00",
     };
     function overrideSlot(player, week, slot){
       return PLAYER_SLOT_OVERRIDES[`${player}|${week}`] || slot;
@@ -260,6 +265,32 @@
     // Excepcions per dia concret (sincronitzades amb el dashboard).
     const ENROLLMENT_REMOVALS = [
       "Joana Pla|2026-07-10|20:00",
+      // Setmana 2: Joana i Thaïs pugen de 20:00 a 21:00 els dies 06, 07 i 09.
+      // El 08 NO es toca: ja tenen 2 franges (20:00 + la sessió extra a 21:00).
+      "Joana Pla|2026-07-06|20:00",
+      "Joana Pla|2026-07-07|20:00",
+      "Joana Pla|2026-07-09|20:00",
+      // Thaïs 07/07: no pot entrenar dimarts. La seva tecni es mou a dilluns
+      // 06/07 a la 3a franja (20:00), de manera que dilluns té 20:00 + 21:00
+      // (dues seguides). Per això NO es treu la seva 20:00 de dilluns (línia
+      // base del CSV) i s'elimina l'afegit del dimarts a 21:00 (vegeu sota).
+      "Thaïs Sampera Cerdà|2026-07-07|20:00",
+      "Thaïs Sampera Cerdà|2026-07-09|20:00",
+      // 06/07: Martí Ordóñez baixa de la 3a franja (20:00) a la 2a (19:00)
+      // per deixar 8 players a la 3a franja aquell dia.
+      "Martí Ordóñez Pla|2026-07-06|20:00",
+      // 08/07: Lluc Muñoz i Martí Ordóñez baixen de la 3a franja (20:00) a la
+      // 2a (19:00) només aquest dia.
+      "Lluc Muñoz Casals|2026-07-08|20:00",
+      "Martí Ordóñez Pla|2026-07-08|20:00",
+      // 07/07: David Garcia i Lluc Muñoz baixen de la 3a franja (20:00) a la
+      // 2a (19:00) només aquest dia.
+      "David Garcia Guerra|2026-07-07|20:00",
+      "Lluc Muñoz Casals|2026-07-07|20:00",
+      // 09/07: David Garcia i Lluc Muñoz baixen de la 3a franja (20:00) a la
+      // 2a (19:00) només aquest dia.
+      "David Garcia Guerra|2026-07-09|20:00",
+      "Lluc Muñoz Casals|2026-07-09|20:00",
       "Yago Morales Gómez de Segura|2026-07-01|19:00",
       "Hugo Morales Gómez de Segura|2026-07-01|19:00",
       "Pau Piè Bilbao|2026-07-03|18:00",
@@ -276,6 +307,25 @@
     ];
     const ENROLLMENT_ADDITIONS = [
       { player:"Joana Pla", dateISO:"2026-07-08", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      // Setmana 2: contrapartida dels removals de dalt (Joana i Thaïs de 20:00
+      // a 21:00) els dies 06, 07 i 09. El 08 ja hi és (línia de dalt / Thaïs).
+      { player:"Joana Pla", dateISO:"2026-07-06", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      { player:"Joana Pla", dateISO:"2026-07-07", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      { player:"Joana Pla", dateISO:"2026-07-09", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      { player:"Thaïs Sampera Cerdà", dateISO:"2026-07-06", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      // 07/07 eliminat: Thaïs no entrena dimarts (la tecni s'ha mogut a dilluns).
+      { player:"Thaïs Sampera Cerdà", dateISO:"2026-07-09", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      // 06/07: contrapartida — Martí Ordóñez a la 2a franja (19:00).
+      { player:"Martí Ordóñez Pla", dateISO:"2026-07-06", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      // 08/07: contrapartida — Lluc Muñoz i Martí Ordóñez a la 2a franja (19:00).
+      { player:"Lluc Muñoz Casals", dateISO:"2026-07-08", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      { player:"Martí Ordóñez Pla", dateISO:"2026-07-08", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      // 07/07: contrapartida — David Garcia i Lluc Muñoz a la 2a franja (19:00).
+      { player:"David Garcia Guerra", dateISO:"2026-07-07", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      { player:"Lluc Muñoz Casals", dateISO:"2026-07-07", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      // 09/07: contrapartida — David Garcia i Lluc Muñoz a la 2a franja (19:00).
+      { player:"David Garcia Guerra", dateISO:"2026-07-09", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      { player:"Lluc Muñoz Casals", dateISO:"2026-07-09", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 2" },
       { player:"Lluc Sabater Deulofeu", dateISO:"2026-07-02", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
       { player:"Pau Piè Bilbao", dateISO:"2026-07-02", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 1" },
       { player:"Thaïs Sampera Cerdà", dateISO:"2026-07-08", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 2" },
