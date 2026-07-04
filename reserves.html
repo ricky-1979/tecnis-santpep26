@@ -225,12 +225,41 @@
       populateCoachSelect();
     }
 
-    // Omple el desplegable amb els coaches que ja tenen disponibilitat carregada.
+    // Coaches que ja tenen un subnode a Firebase (coachAvailability), encara que
+    // no surtin al CSV de Koalendar. Clau normalitzada -> nom visible. Això fa
+    // que un coach nou aparegui al desplegable un cop ha desat disponibilitat.
+    let remoteCoaches = {};
+
+    // Llegeix la llista de coaches desats a Firebase i n'omple remoteCoaches.
+    async function fetchRemoteCoaches(){
+      if(!hasFirebase()) return;
+      try{
+        const url=`${FIREBASE_DB_URL.replace(/\/$/,"")}/${FIREBASE_AVAIL_PATH}.json?t=${Date.now()}`;
+        const res=await fetch(url,{ cache:"no-store" });
+        if(!res.ok) return;
+        const data=await res.json();
+        if(!data || typeof data!=="object") return;
+        remoteCoaches={};
+        Object.entries(data).forEach(([k,rec])=>{
+          const name=(rec && rec.name) ? rec.name : k;
+          remoteCoaches[coachKey(name)]=name;
+        });
+      }catch(e){ /* sense llista remota: només Koalendar */ }
+    }
+
+    // Noms per al desplegable: unió de Koalendar + coaches desats a Firebase.
+    function allCoachOptionNames(){
+      const set=new Map(); // nom -> nom (dedup per nom visible)
+      Object.values(koalendarByCoach).forEach(c=>{ if(c.name) set.set(c.name,c.name); });
+      Object.values(remoteCoaches).forEach(n=>{ if(n) set.set(n,n); });
+      return [...set.keys()].sort((a,b)=>a.localeCompare(b,"ca"));
+    }
+
+    // Omple el desplegable amb els coaches coneguts (Koalendar + Firebase).
     function populateCoachSelect(){
       const sel=$("coachSelect"); if(!sel) return;
       const cur=sel.value;
-      const names=Object.values(koalendarByCoach).map(c=>c.name)
-        .sort((a,b)=>a.localeCompare(b,"ca"));
+      const names=allCoachOptionNames();
       sel.innerHTML='<option value="">— Tria el teu nom —</option>'
         + names.map(n=>`<option value="${n.replace(/"/g,"&quot;")}">${n}</option>`).join("");
       // Preselecciona el valor actual o l'últim coach usat (si surt a la llista).
@@ -240,7 +269,7 @@
     }
     // Comprova si un coach surt al desplegable (coincidència exacta pel nom).
     function isKnownCoach(name){
-      return Object.values(koalendarByCoach).some(c=>c.name===name);
+      return allCoachOptionNames().includes(name);
     }
 
     // ===== Estat =====
@@ -379,6 +408,13 @@
         });
         if(!res.ok) throw new Error("HTTP "+res.status);
         DIRTY.clear();
+        // Registra el coach a la llista local i refresca el desplegable perquè
+        // un coach nou hi aparegui immediatament després del primer desat.
+        if(coach && !remoteCoaches[key]){
+          remoteCoaches[key]=coach;
+          populateCoachSelect();
+          if($("coachSelect")) $("coachSelect").value=coach;
+        }
         setStatus("✅ Desat · "+new Date().toLocaleTimeString("ca-ES"));
       }catch(e){
         setStatus("❌ No s'ha pogut desar: "+e.message);
@@ -452,6 +488,10 @@
         })
         .catch(()=>{ /* sense pre-càrrega: el coach marca manualment */ });
     })();
+
+    // Carrega també els coaches ja desats a Firebase (inclou coaches nous que
+    // no surten al CSV de Koalendar) i refresca el desplegable.
+    fetchRemoteCoaches().then(populateCoachSelect);
   </script>
 </body>
 </html>
