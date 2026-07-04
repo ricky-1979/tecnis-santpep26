@@ -279,9 +279,12 @@
     // Excepcions per dia concret (sincronitzades amb el dashboard).
     const ENROLLMENT_REMOVALS = [
       // 09-10/07: Álvaro Álvarez es mou de la 1a franja (18:00) a la 2a (19:00)
-      // perquè no hi ha coach a 18:00 aquells dies. Els dies 06-08 es manté.
+      // perquè no hi ha coach a 18:00 aquells dies. Els dies 06-07 es manté.
       "Alvaro Alvarez Romero|2026-07-09|18:00",
       "Alvaro Alvarez Romero|2026-07-10|18:00",
+      // 08/07: Álvaro no pot venir dimecres; la tecni es mou a dilluns 06 a la
+      // 2a franja (19:00), que se suma a la seva sessió de dilluns a 18:00.
+      "Alvaro Alvarez Romero|2026-07-08|18:00",
       // 09-10/07: Blai Abrisqueta deixa la 1a franja (18:00); manté la 2a
       // (19:00, l'altra inscripció). Joel González puja de la 1a (18:00) a la
       // 2a (19:00).
@@ -353,6 +356,9 @@
       // ha coach aquells dies. Contrapartida dels removals de dalt.
       { player:"Alvaro Alvarez Romero", dateISO:"2026-07-09", slot:"19:00", category:"Infantil", week:"Setmana 2" },
       { player:"Alvaro Alvarez Romero", dateISO:"2026-07-10", slot:"19:00", category:"Infantil", week:"Setmana 2" },
+      // 08/07 → 06/07: la tecni de dimecres es recupera dilluns a la 2a franja
+      // (19:00), a més de la que ja fa dilluns a 18:00.
+      { player:"Alvaro Alvarez Romero", dateISO:"2026-07-06", slot:"19:00", category:"Infantil", week:"Setmana 2" },
       { player:"Joana Pla", dateISO:"2026-07-08", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
       // Setmana 2: contrapartida dels removals de dalt (Joana i Thaïs de 20:00
       // a 21:00) els dies 06, 07 i 09. El 08 ja hi és (línia de dalt / Thaïs).
