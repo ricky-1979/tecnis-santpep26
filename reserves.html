@@ -141,9 +141,9 @@
       { days:["07/27/2026","07/28/2026","07/29/2026","07/30/2026","07/31/2026"], label:"Setmana 5", rng:"Del 27 al 31 de juliol" },
     ];
 
-    // Setmanes tancades a reserves: només la Setmana 1 (congelada). Els coachs
-    // no hi poden marcar disponibilitat; és només de consulta.
-    const FROZEN_WEEKS = new Set(["Setmana 1"]);
+    // Setmanes tancades a reserves: Setmana 1 i Setmana 2. Els coachs no hi
+    // poden marcar disponibilitat; són només de consulta.
+    const FROZEN_WEEKS = new Set(["Setmana 1", "Setmana 2"]);
     const isWeekFrozen = (w)=> FROZEN_WEEKS.has(w);
 
     function isoFromMdy(mdy){ const [m,d,y]=mdy.split("/"); return `${y}-${m}-${d}`; }
@@ -462,7 +462,7 @@
       // Resum
       const total=countTotal();
       $("summary").innerHTML=`Tens <strong>${total}</strong> dies marcats `+
-        `(una franja per dia · la setmana 1 està tancada).`;
+        `(una franja per dia · les setmanes 1 i 2 estan tancades).`;
     }
 
     // ===== Init =====
