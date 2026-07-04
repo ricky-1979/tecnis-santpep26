@@ -278,23 +278,27 @@
 
     // Excepcions per dia concret (sincronitzades amb el dashboard).
     const ENROLLMENT_REMOVALS = [
-      // 09-10/07: Álvaro Álvarez es mou de la 1a franja (18:00) a la 2a (19:00)
-      // perquè no hi ha coach a 18:00 aquells dies. Els dies 06-07 es manté.
-      "Alvaro Alvarez Romero|2026-07-09|18:00",
+      // 10/07: Álvaro Álvarez es mou de la 1a franja (18:00) a la 2a (19:00)
+      // perquè no hi ha coach a 18:00 aquell dia. Els dies 06-07 i 09 es manté
+      // a la 1a franja (18:00).
       "Alvaro Alvarez Romero|2026-07-10|18:00",
       // 08/07: Álvaro no pot venir dimecres; la tecni es mou a dilluns 06 a la
       // 2a franja (19:00), que se suma a la seva sessió de dilluns a 18:00.
       "Alvaro Alvarez Romero|2026-07-08|18:00",
-      // 09-10/07: Blai Abrisqueta deixa la 1a franja (18:00); manté la 2a
+      // 10/07: Blai Abrisqueta deixa la 1a franja (18:00); manté la 2a
       // (19:00, l'altra inscripció). Joel González puja de la 1a (18:00) a la
-      // 2a (19:00).
-      "Blai Abrisqueta López|2026-07-09|18:00",
+      // 2a (19:00). El 09 Blai manté la 1a franja (doblet 18:00 + 19:00).
       "Blai Abrisqueta López|2026-07-10|18:00",
       // 10/07: Blai Abrisqueta no pot venir; es treu també de la 2a franja
       // (19:00), l'altra inscripció. Aquell dia no ve gens.
       "Blai Abrisqueta López|2026-07-10|19:00",
       "Joel González Gutiérrez|2026-07-09|18:00",
       "Joel González Gutiérrez|2026-07-10|18:00",
+      // 09/07: Jan Rodríguez, Hugo Parvez i Miquel López baixen de la 2a franja
+      // (19:00) a la 1a (18:00) per acompanyar el doblet del Blai i l'Álvaro.
+      "Jan Rodríguez González|2026-07-09|19:00",
+      "Hugo Parvez Salvador|2026-07-09|19:00",
+      "Miquel Lopez Serrano|2026-07-09|19:00",
       "Joana Pla|2026-07-10|20:00",
       // Setmana 2: Joana i Thaïs pugen de 20:00 a 21:00 els dies 06, 07 i 09.
       // El 08 NO es toca: ja tenen 2 franges (20:00 + la sessió extra a 21:00).
@@ -352,10 +356,15 @@
       "Roc Arbonès López|2026-07-03|18:00",
     ];
     const ENROLLMENT_ADDITIONS = [
-      // 09-10/07: Álvaro Álvarez baixat a la 2a franja (19:00); a 18:00 no hi
-      // ha coach aquells dies. Contrapartida dels removals de dalt.
-      { player:"Alvaro Alvarez Romero", dateISO:"2026-07-09", slot:"19:00", category:"Infantil", week:"Setmana 2" },
+      // 10/07: Álvaro Álvarez baixat a la 2a franja (19:00); a 18:00 no hi ha
+      // coach aquell dia. Contrapartida del removal de dalt. El 09 es manté a
+      // la 1a franja (18:00, base del CSV).
       { player:"Alvaro Alvarez Romero", dateISO:"2026-07-10", slot:"19:00", category:"Infantil", week:"Setmana 2" },
+      // 09/07: Jan Rodríguez, Hugo Parvez i Miquel López baixen a la 1a franja
+      // (18:00). Contrapartida dels removals de 19:00 de dalt.
+      { player:"Jan Rodríguez González", dateISO:"2026-07-09", slot:"18:00", category:"Cadet/Júnior", week:"Setmana 2" },
+      { player:"Hugo Parvez Salvador", dateISO:"2026-07-09", slot:"18:00", category:"Infantil/Cadet", week:"Setmana 2" },
+      { player:"Miquel Lopez Serrano", dateISO:"2026-07-09", slot:"18:00", category:"Cadet/Júnior", week:"Setmana 2" },
       // 08/07 → 06/07: la tecni de dimecres es recupera dilluns a la 2a franja
       // (19:00), a més de la que ja fa dilluns a 18:00.
       { player:"Alvaro Alvarez Romero", dateISO:"2026-07-06", slot:"19:00", category:"Infantil", week:"Setmana 2" },
