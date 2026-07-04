@@ -1019,6 +1019,10 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     // afegeixen sessions puntuals d'un player. Persisteixen encara que es
     // reimporti el CSV. Clau d'eliminació: "Nom Cognoms|YYYY-MM-DD|HH:MM".
     const ENROLLMENT_REMOVALS = [
+      // 09-10/07: Álvaro Álvarez es mou de la 1a franja (18:00) a la 2a (19:00)
+      // perquè no hi ha coach a 18:00 aquells dies. Els dies 06-08 es manté.
+      "Alvaro Alvarez Romero|2026-07-09|18:00",
+      "Alvaro Alvarez Romero|2026-07-10|18:00",
       // 09-10/07: Blai Abrisqueta deixa la 1a franja (18:00); manté la 2a
       // (19:00, l'altra inscripció). Joel González puja de la 1a (18:00) a la
       // 2a (19:00).
@@ -1086,6 +1090,10 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       "Roc Arbonès López|2026-07-03|18:00",
     ];
     const ENROLLMENT_ADDITIONS = [
+      // 09-10/07: Álvaro Álvarez baixat a la 2a franja (19:00); a 18:00 no hi
+      // ha coach aquells dies. Contrapartida dels removals de dalt.
+      { player:"Alvaro Alvarez Romero", dateISO:"2026-07-09", slot:"19:00", category:"Infantil", week:"Setmana 2" },
+      { player:"Alvaro Alvarez Romero", dateISO:"2026-07-10", slot:"19:00", category:"Infantil", week:"Setmana 2" },
       { player:"Joana Pla", dateISO:"2026-07-08", slot:"21:00", category:"Cadet/Júnior", week:"Setmana 2" },
       // Setmana 2: contrapartida dels removals de dalt (Joana i Thaïs de 20:00
       // a 21:00) els dies 06, 07 i 09. El 08 ja hi és (línia de dalt / Thaïs).
