@@ -144,6 +144,17 @@
     .assign-cell .addbtn:hover { color:var(--brand); border-color:var(--brand); }
     .assign-cell .cell-count { width:100%; color:var(--muted); font-size:0.68rem; margin-bottom:2px; }
     .assign-overwrap { overflow-x:auto; }
+    /* Llegenda: sessions assignades per coach aquella setmana */
+    .assign-legend { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; align-items:center; }
+    .assign-legend .lg-title { width:100%; color:var(--muted); font-size:0.78rem; margin-bottom:2px; }
+    .assign-legend .lg-item { display:inline-flex; align-items:center; gap:6px; background:var(--bg);
+      border:1px solid var(--border); border-radius:999px; padding:3px 10px; font-size:0.8rem; }
+    .assign-legend .lg-item .lg-n { font-weight:700; color:var(--brand); }
+    .assign-legend .lg-item.lg-hi { border-color:var(--danger); }
+    .assign-legend .lg-item.lg-hi .lg-n { color:var(--danger); }
+    .assign-legend .lg-item.lg-lo { border-color:var(--groc); }
+    .assign-legend .lg-item.lg-lo .lg-n { color:#8a6d00; }
+    .assign-legend .lg-empty { color:var(--muted); font-size:0.8rem; }
     /* Grups de treball (G1/G2 per player) */
     .groups-wrap { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
     .grp-slot { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
@@ -243,6 +254,7 @@
     <div class="assign-overwrap">
       <div class="assign-grid" id="assignGrid"></div>
     </div>
+    <div class="assign-legend" id="assignLegend"></div>
   </div>
 
   <div class="table-card">
@@ -1914,12 +1926,46 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       });
       grid.innerHTML=html;
       grid.classList.toggle("frozen", frozen);
+      renderAssignLegend(days);
       if(frozen){
         // Avís visual i cap handler d'edició connectat.
         setAssignStatus(`🔒 ${assignWeek} congelada · només consulta`);
         return;
       }
       wireAssignCells();
+    }
+
+    // Llegenda de càrrega: nombre de sessions assignades a cada coach dins els
+    // dies mostrats (la setmana seleccionada). Ajuda a equilibrar la feina.
+    // Cada entrada d'un coach a assignments[dia|franja] és una sessió.
+    function renderAssignLegend(days){
+      const box=document.getElementById("assignLegend");
+      if(!box) return;
+      const dayset=new Set(days);
+      const counts={};
+      Object.entries(assignments).forEach(([key,arr])=>{
+        if(!dayset.has(key.split("|")[0])) return;
+        (arr||[]).forEach(c=>{ counts[c]=(counts[c]||0)+1; });
+      });
+      const entries=Object.entries(counts);
+      if(!entries.length){
+        box.innerHTML=`<span class="lg-empty">Cap coach assignat en aquesta setmana.</span>`;
+        return;
+      }
+      const vals=entries.map(([,n])=>n);
+      const max=Math.max(...vals), min=Math.min(...vals);
+      // Ordena de més a menys sessions (i alfabètic com a desempat).
+      entries.sort((a,b)=> b[1]-a[1] || a[0].localeCompare(b[0]));
+      const spread = max-min;
+      const wkTxt = assignWeek ? ` (${assignWeek})` : "";
+      const items=entries.map(([c,n])=>{
+        // Marca els extrems només si hi ha desequilibri (spread >= 2).
+        let cls="lg-item";
+        if(spread>=2 && n===max) cls+=" lg-hi";
+        else if(spread>=2 && n===min) cls+=" lg-lo";
+        return `<span class="${cls}" title="${esc(c)}: ${n} ${n===1?"sessió":"sessions"}">${esc(c)} <span class="lg-n">${n}</span></span>`;
+      }).join("");
+      box.innerHTML=`<span class="lg-title">Sessions per coach${wkTxt} · total ${vals.reduce((a,b)=>a+b,0)}</span>`+items;
     }
 
     function wireAssignCells(){
