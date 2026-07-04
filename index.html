@@ -177,6 +177,9 @@
     .assign-status { color:var(--muted); font-size:0.78rem; }
     .badge .add { opacity:0.7; font-weight:500; font-size:0.72rem; }
     .count-info { color:var(--muted); font-size:0.85rem; margin-bottom:10px; }
+    .count-info .wk-totals { margin-top:4px; display:flex; flex-wrap:wrap; gap:6px 12px; }
+    .count-info .wk-total { white-space:nowrap; }
+    .count-info .wk-total strong { color:var(--brand); }
     .empty { text-align:center; color:var(--muted); padding:30px; }
     footer { margin-top:30px; color:var(--muted); font-size:0.8rem; text-align:center; }
   </style>
@@ -1731,7 +1734,22 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       const body=document.getElementById("playersBody");
       const empty=document.getElementById("playersEmpty");
       const totalPlaces=data.reduce((s,g)=>s+g.count,0);
-      document.getElementById("playerCountInfo").textContent=`${data.length} sessions · ${totalPlaces} places·dia`;
+      // Total de players ÚNICS per setmana (un player ve diversos dies però
+      // compta un cop). Respecta els filtres actius (setmana/categoria).
+      const byWeek=new Map(); // week -> Set(noms)
+      data.forEach(g=>{
+        if(!byWeek.has(g.week)) byWeek.set(g.week,new Set());
+        const set=byWeek.get(g.week);
+        g.players.forEach(p=>set.add(p.name));
+      });
+      const weekOrder=[...byWeek.keys()].sort((a,b)=>
+        String(a).localeCompare(String(b),undefined,{numeric:true}));
+      const weekTotals=weekOrder
+        .map(w=>`<span class="wk-total">${esc(w)}: <strong>${byWeek.get(w).size}</strong></span>`)
+        .join("");
+      const info=document.getElementById("playerCountInfo");
+      info.innerHTML=`<div>${data.length} sessions · ${totalPlaces} places·dia</div>`+
+        (weekTotals?`<div class="wk-totals">Total players inscrits per setmana: ${weekTotals}</div>`:"");
       if(!data.length){ body.innerHTML=""; empty.style.display="block"; return; }
       empty.style.display="none";
       body.innerHTML=data.map(g=>{
