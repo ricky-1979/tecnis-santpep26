@@ -713,6 +713,9 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     let playerGroups = {}; // "Nom|Setmana X" o "Nom" (antic) -> "1" | "2"
     let coachGroups = {}; // "dateISO|slot|coach" -> "1" | "2"
     let sessionNotes = {}; // "dateISO|slot" -> nota escrita pels coachs (només es preserva)
+    // Disponibilitat declarada a Reserves (node coachAvailability), { "dateISO|slot": [coach,...] }.
+    // Es carrega en arrencar i alimenta el desplegable "+ Afegir" de l'Assignació de coachs.
+    let reservesAvail = null;
     let assignWeek = "";
     let groupsWeek = ""; // setmana seleccionada a la secció Grups de treball
     let dragInfo = null;  // { from:"dateISO|slot", coach }
@@ -843,6 +846,12 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
     // perden canvis i els coachs sempre veuen l'última assignació.
     async function firebaseSyncStartup(){
       try{
+        // Carrega la disponibilitat de Reserves per al desplegable "+ Afegir".
+        // No bloqueja la resta de la sincronització si falla.
+        fetchReservesAvailability().then(av=>{
+          reservesAvail=av;
+          if(document.querySelector(".assign-grid")) renderAssign();
+        }).catch(()=>{});
         // Conserva sempre les notes remotes (les gestionen els coachs).
         const remote=await firebaseAssignFetch();
         const lts=localTs();
@@ -2022,12 +2031,36 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         .map(b=>b.coach);
     }
 
+    // Coachs que han declarat disponibilitat a Reserves per a la setmana d'una
+    // franja donada (qualsevol dia/franja d'aquella setmana). Es fa servir per
+    // acotar el desplegable "+ Afegir" als coachs disponibles aquella setmana.
+    function availableCoachesForWeek(key){
+      if(!reservesAvail) return null; // encara no carregat → sense filtre
+      const week=ISO_WEEK[key.split("|")[0]];
+      if(!week) return null;
+      const set=new Set();
+      Object.entries(reservesAvail).forEach(([ck,arr])=>{
+        if(ISO_WEEK[ck.split("|")[0]]===week) arr.forEach(c=>set.add(c));
+      });
+      return set;
+    }
+
     function openAddPicker(btn){
       const key=btn.dataset.key;
       const current=assignments[key]||[];
       const proposed=[...new Set(proposedCoachesFor(key))].filter(c=>!current.includes(c)).sort((a,b)=>a.localeCompare(b));
       const proposedSet=new Set(proposed);
-      const others=allCoachNames().filter(c=>!current.includes(c) && !proposedSet.has(c));
+      // Coachs disponibles aquella setmana segons Reserves (si s'ha pogut
+      // carregar). La resta de coachs queden en un grup "Altres" per si cal.
+      const availSet=availableCoachesForWeek(key);
+      const rest=allCoachNames().filter(c=>!current.includes(c) && !proposedSet.has(c));
+      let available, others;
+      if(availSet){
+        available=rest.filter(c=>availSet.has(c));
+        others=rest.filter(c=>!availSet.has(c));
+      } else {
+        available=rest; others=[];
+      }
       // substitueix el botó per un select temporal
       const sel=document.createElement("select");
       let html=`<option value="">+ Coach…</option>`;
@@ -2036,9 +2069,16 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           proposed.map(c=>`<option value="${esc(c)}">${esc(c)} · faria 2h</option>`).join("")+
           `</optgroup>`;
       }
-      html+=`<optgroup label="Tots els coachs">`+
-        others.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("")+
-        `</optgroup>`;
+      if(available.length){
+        html+=`<optgroup label="${availSet?"Disponibles aquesta setmana":"Tots els coachs"}">`+
+          available.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("")+
+          `</optgroup>`;
+      }
+      if(others.length){
+        html+=`<optgroup label="Altres coachs">`+
+          others.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("")+
+          `</optgroup>`;
+      }
       sel.innerHTML=html;
       sel.className="addbtn";
       btn.replaceWith(sel);
