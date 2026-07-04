@@ -1884,9 +1884,9 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
             }
             return `<span class="pill" draggable="true" data-key="${esc(key)}" data-coach="${esc(c)}">${esc(c)}<span class="cgtoggle" title="Grup de treball del coach"><button type="button" class="cgbtn${cg==="1"?" on":""}" data-date="${esc(d)}" data-slot="${esc(sl)}" data-coach="${esc(c)}" data-grp="1">1</button><button type="button" class="cgbtn g2${cg==="2"?" on":""}" data-date="${esc(d)}" data-slot="${esc(sl)}" data-coach="${esc(c)}" data-grp="2">2</button></span><span class="rm" data-key="${esc(key)}" data-coach="${esc(c)}" title="Treure">×</span></span>`;
           }).join("");
-          // Pocs players: franja amb 1 o 2 players (grup molt fluix). Té
+          // Pocs players: franja amb menys de 3 players (0, 1 o 2). Té
           // prioritat sobre l'avís de sobra-entrenador.
-          const lowplayers = players>0 && players<3;
+          const lowplayers = players<3;
           // Sobra entrenador: menys de 6 players (≤5) però més d'un coach.
           const overstaffed = players>0 && players<6 && coaches.length>1 && !lowplayers;
           const cellCls = lowplayers ? " lowplayers" : (overstaffed ? " overstaffed" : "");
