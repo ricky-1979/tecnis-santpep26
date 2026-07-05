@@ -1694,15 +1694,23 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       document.getElementById("blockCountInfo").textContent=`${data.length} franges · ${requestedTotal} disponibilitats`;
       if(!data.length){ body.innerHTML=""; empty.style.display="block"; return; }
       empty.style.display="none";
-      body.innerHTML=data.map(g=>`
+      body.innerHTML=data.map(g=>{
+        // Hora en vermell si la franja no té players (0) o si en té però cap
+        // coach demanat (coachCount compta només els "requested").
+        const slotRed=g.players===0 || g.coachCount===0;
+        const slotCls=slotRed?' class="slot-red"':"";
+        const slotTitle=slotRed
+          ? (g.players===0?' title="Cap player en aquesta franja"':' title="Players sense cap coach demanat"')
+          : "";
+        return `
         <tr>
           <td>${g.dateDisplay}</td>
           <td>${g.weekday}</td>
-          <td><strong>${g.slotLabel}</strong></td>
+          <td><strong${slotCls}${slotTitle}>${g.slotLabel}</strong></td>
           <td>${g.players}</td>
           <td>${g.coachCount}</td>
           <td class="coach-chips">${g.coaches.map(coachChip).join(" ")}</td>
-        </tr>`).join("");
+        </tr>`;}).join("");
     }
 
     function getFilteredPlayers(){
