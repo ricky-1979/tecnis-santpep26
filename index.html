@@ -113,8 +113,9 @@
     .assign-grid.frozen .pill { cursor:default; opacity:0.9; }
     .groups-wrap.frozen .grp-toggle { opacity:0.55; pointer-events:none; }
     /* Sessió amb sobreaforament (>8 players): destaca la fila i el recompte */
+    td.count-warn { color:var(--warn); font-weight:700; }
     td.count-over { color:var(--danger); font-weight:700; }
-    td.count-over .warn-ico { margin-left:4px; }
+    td.count-warn .warn-ico, td.count-over .warn-ico { margin-left:4px; }
     /* Assignació editable */
     .assign-grid { display:grid; grid-template-columns:130px repeat(4,1fr); gap:8px; min-width:760px; }
     .assign-grid .ah { color:var(--muted); font-weight:600; font-size:0.8rem; padding:6px 8px; position:sticky; top:0; }
@@ -1812,7 +1813,14 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       if(!data.length){ body.innerHTML=""; empty.style.display="block"; return; }
       empty.style.display="none";
       body.innerHTML=data.map(g=>{
-        const over=g.count>8; // més de 8 players a la sessió: sobreaforament
+        // Sobreaforament en dos nivells: 9-10 players = avís (taronja),
+        // més de 10 = crític (vermell).
+        const warn=g.count>=9 && g.count<=10;
+        const over=g.count>10;
+        const countCls=over?" count-over":(warn?" count-warn":"");
+        const countTitle=over
+          ? 'Més de 10 players en aquesta sessió'
+          : (warn?'9 o 10 players en aquesta sessió':"");
         // Hora en vermell si la franja no té players (0) o si en té però cap
         // coach assignat.
         const noCoach=!((assignments[g.dateISO+"|"+g.slot]||[]).length);
@@ -1826,7 +1834,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           <td>${g.dateDisplay}</td>
           <td>${g.weekday}</td>
           <td><strong${slotCls}${slotTitle}>${g.slotLabel}</strong></td>
-          <td${over?' class="count-over"':""}>${g.count}${over?' <span class="warn-ico" title="Més de 8 players en aquesta sessió">⚠</span>':""}</td>
+          <td${countCls?' class="'+countCls.trim()+'"':""}>${g.count}${(warn||over)?' <span class="warn-ico" title="'+countTitle+'">⚠</span>':""}</td>
           <td class="coach-chips">${g.count?g.players.map(p=>`<span class="badge ${p.solt?"under":"ok"}" title="${p.solt?"Dia solt":"Setmana completa"}">${genderIcon(p.name)}${p.name}</span>`).join(" "):'<span class="hint" style="margin:0">—</span>'}</td>
         </tr>`;}).join("");
     }
