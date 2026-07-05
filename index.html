@@ -1702,12 +1702,20 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         const slotTitle=slotRed
           ? (g.players===0?' title="Cap player en aquesta franja"':' title="Players sense cap coach demanat"')
           : "";
+        // Sobreaforament en dos nivells: 9-10 players = avís (taronja),
+        // més de 10 = crític (vermell).
+        const warn=g.players>=9 && g.players<=10;
+        const over=g.players>10;
+        const countCls=over?" count-over":(warn?" count-warn":"");
+        const countTitle=over
+          ? 'Més de 10 players en aquesta sessió'
+          : (warn?'9 o 10 players en aquesta sessió':"");
         return `
         <tr>
           <td>${g.dateDisplay}</td>
           <td>${g.weekday}</td>
           <td><strong${slotCls}${slotTitle}>${g.slotLabel}</strong></td>
-          <td>${g.players}</td>
+          <td${countCls?' class="'+countCls.trim()+'"':""}>${g.players}${(warn||over)?' <span class="warn-ico" title="'+countTitle+'">⚠</span>':""}</td>
           <td>${g.coachCount}</td>
           <td class="coach-chips">${g.coaches.map(coachChip).join(" ")}</td>
         </tr>`;}).join("");
