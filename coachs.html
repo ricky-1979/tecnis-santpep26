@@ -587,15 +587,20 @@
     }
 
     // ===== Render =====
+    // Setmanes planificades (amb coachs assignats) que es mostren als coachs.
+    // Les no planificades s'amaguen del selector fins que estiguin llestes.
+    const PLANNED_WEEKS = ["Setmana 1", "Setmana 2"];
+
     function populateWeeks(){
       const sel=document.getElementById("filterWeek");
-      WEEK_COLUMNS.forEach(wc=>{
+      const weeks=WEEK_COLUMNS.filter(wc=>PLANNED_WEEKS.includes(wc.label));
+      weeks.forEach(wc=>{
         const o=document.createElement("option");
         o.value=wc.label; o.textContent=wc.label;
         sel.appendChild(o);
       });
       // Per defecte, Setmana 2 (si existeix; si no, la primera disponible)
-      const labels=WEEK_COLUMNS.map(wc=>wc.label);
+      const labels=weeks.map(wc=>wc.label);
       filterWeek=labels.includes("Setmana 2") ? "Setmana 2" : (labels[0]||"");
       sel.value=filterWeek;
       sel.addEventListener("change",e=>{ filterWeek=e.target.value; populateFilters(); render(); });
