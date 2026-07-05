@@ -682,9 +682,9 @@
       const schedule=document.getElementById("schedule");
       const empty=document.getElementById("empty");
 
-      // El pla de treball només aplica a la Setmana 1.
+      // El pla de treball (continguts) aplica a les Setmanes 1 i 2 (mateixos).
       const wp=document.getElementById("workplan");
-      if(wp) wp.style.display = filterWeek==="Setmana 1" ? "" : "none";
+      if(wp) wp.style.display = (filterWeek==="Setmana 1" || filterWeek==="Setmana 2") ? "" : "none";
 
       // Avís de setmana amb la planificació encara pendent (S3, S4, S5).
       const notice=document.getElementById("weekNotice");
