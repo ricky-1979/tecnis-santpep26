@@ -88,6 +88,11 @@
       align-items:baseline; }
     .workplan .t { font-weight:700; color:var(--brand); }
     .empty { text-align:center; color:var(--muted); padding:30px; }
+    .week-notice { display:flex; align-items:center; gap:10px;
+      background:#fff7ed; border:1px solid #fed7aa; color:var(--warn);
+      border-radius:12px; padding:12px 16px; margin-bottom:20px;
+      font-size:0.9rem; font-weight:600; }
+    .week-notice .ico { font-size:1.1rem; line-height:1; }
     footer { margin-top:30px; color:var(--muted); font-size:0.8rem; text-align:center; }
   </style>
 </head>
@@ -126,6 +131,10 @@
     </ul>
   </div>
 
+  <div id="weekNotice" class="week-notice" style="display:none;">
+    <span class="ico">⚠️</span>
+    <span id="weekNoticeText"></span>
+  </div>
   <div id="schedule"></div>
   <div class="empty" id="empty" style="display:none;">No hi ha sessions amb players per a aquesta selecció.</div>
 
@@ -587,20 +596,21 @@
     }
 
     // ===== Render =====
-    // Setmanes planificades (amb coachs assignats) que es mostren als coachs.
-    // Les no planificades s'amaguen del selector fins que estiguin llestes.
+    // Setmanes amb la planificació completada (coachs assignats). Les que no
+    // hi són es mostren igualment al selector, però marcades com a pendents.
     const PLANNED_WEEKS = ["Setmana 1", "Setmana 2"];
+    const isWeekPlanned = label => PLANNED_WEEKS.includes(label);
 
     function populateWeeks(){
       const sel=document.getElementById("filterWeek");
-      const weeks=WEEK_COLUMNS.filter(wc=>PLANNED_WEEKS.includes(wc.label));
-      weeks.forEach(wc=>{
+      WEEK_COLUMNS.forEach(wc=>{
         const o=document.createElement("option");
-        o.value=wc.label; o.textContent=wc.label;
+        o.value=wc.label;
+        o.textContent = isWeekPlanned(wc.label) ? wc.label : wc.label+" (planificació pendent)";
         sel.appendChild(o);
       });
       // Per defecte, Setmana 2 (si existeix; si no, la primera disponible)
-      const labels=weeks.map(wc=>wc.label);
+      const labels=WEEK_COLUMNS.map(wc=>wc.label);
       filterWeek=labels.includes("Setmana 2") ? "Setmana 2" : (labels[0]||"");
       sel.value=filterWeek;
       sel.addEventListener("change",e=>{ filterWeek=e.target.value; populateFilters(); render(); });
@@ -670,6 +680,18 @@
       // El pla de treball només aplica a la Setmana 1.
       const wp=document.getElementById("workplan");
       if(wp) wp.style.display = filterWeek==="Setmana 1" ? "" : "none";
+
+      // Avís de setmana amb la planificació encara pendent (S3, S4, S5).
+      const notice=document.getElementById("weekNotice");
+      if(notice){
+        const pending = filterWeek && !isWeekPlanned(filterWeek);
+        notice.style.display = pending ? "" : "none";
+        if(pending){
+          document.getElementById("weekNoticeText").textContent =
+            "La planificació de la "+filterWeek+" encara no està completada. "+
+            "Les sessions i l'assignació de coachs poden canviar.";
+        }
+      }
 
       // Mostra el botó de netejar només si hi ha algun filtre de cerca actiu.
       const searching=!!(filterCoach||filterPlayer);
