@@ -130,6 +130,9 @@
     /* Franja amb pocs players (menys de 3): grup fluix */
     .assign-cell.lowplayers { border-color:var(--groc); background:#fff6d6; }
     .assign-cell .cell-count.low { color:#8a6d00; font-weight:700; }
+    /* Hora de franja en vermell: 0 players O players sense cap coach */
+    .slot-red { color:var(--danger); font-weight:700; }
+    .assign-cell .cell-count .slot-lbl { font-weight:600; }
     .assign-cell .pill { display:inline-flex; align-items:center; gap:4px; background:var(--lvl-ok-bg); color:var(--brand);
       border:1px solid var(--border); border-radius:999px; padding:2px 6px 2px 8px; font-size:0.76rem; font-weight:600; cursor:grab; }
     .assign-cell .pill.dragging { opacity:0.4; }
@@ -1729,6 +1732,33 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
         }
         groups.get(k).players.push({ name:e.player, solt:!!e.solt });
       });
+      // Inclou també franges SENSE players (0 inscrits) perquè es vegin amb
+      // l'hora en vermell. Només quan no es filtra per categoria (una franja
+      // buida no pertany a cap categoria). Els dies surten de les sessions
+      // programades de la setmana seleccionada.
+      if(!fcat){
+        let dayKeys=[...new Set(sessions.map(s=>s.dateISO))];
+        if(fw) dayKeys=dayKeys.filter(dk=>ISO_WEEK[dk]===fw);
+        dayKeys.forEach(dk=>{
+          const wk=ISO_WEEK[dk];
+          if(!wk) return; // sense setmana coneguda: no afegim franges buides
+          SLOTS.forEach(s=>{
+            const k=dk+"|"+s;
+            if(!groups.has(k)){
+              groups.set(k,{
+                dateISO:dk,
+                dateDisplay:displayFromIso(dk),
+                weekday:weekdayFromIso(dk),
+                week:wk,
+                slot:s,
+                slotIdx:SLOT_IDX[s]??99,
+                slotLabel:SLOT_LABEL[s]||s,
+                players:[],
+              });
+            }
+          });
+        });
+      }
       const data=[...groups.values()];
       data.forEach(g=>{
         g.players.sort((a,b)=>a.name.localeCompare(b.name));
@@ -1776,13 +1806,21 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
       empty.style.display="none";
       body.innerHTML=data.map(g=>{
         const over=g.count>8; // més de 8 players a la sessió: sobreaforament
+        // Hora en vermell si la franja no té players (0) o si en té però cap
+        // coach assignat.
+        const noCoach=!((assignments[g.dateISO+"|"+g.slot]||[]).length);
+        const slotRed=g.count===0 || noCoach;
+        const slotCls=slotRed?' class="slot-red"':"";
+        const slotTitle=slotRed
+          ? (g.count===0?' title="Cap player en aquesta franja"':' title="Players sense cap coach assignat"')
+          : "";
         return `
         <tr${over?' class="overfull"':""}>
           <td>${g.dateDisplay}</td>
           <td>${g.weekday}</td>
-          <td><strong>${g.slotLabel}</strong></td>
+          <td><strong${slotCls}${slotTitle}>${g.slotLabel}</strong></td>
           <td${over?' class="count-over"':""}>${g.count}${over?' <span class="warn-ico" title="Més de 8 players en aquesta sessió">⚠</span>':""}</td>
-          <td class="coach-chips">${g.players.map(p=>`<span class="badge ${p.solt?"under":"ok"}" title="${p.solt?"Dia solt":"Setmana completa"}">${genderIcon(p.name)}${p.name}</span>`).join(" ")}</td>
+          <td class="coach-chips">${g.count?g.players.map(p=>`<span class="badge ${p.solt?"under":"ok"}" title="${p.solt?"Dia solt":"Setmana completa"}">${genderIcon(p.name)}${p.name}</span>`).join(" "):'<span class="hint" style="margin:0">—</span>'}</td>
         </tr>`;}).join("");
     }
 
@@ -1956,9 +1994,16 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           const cellTitle = lowplayers
             ? ' title="Menys de 3 players en aquesta franja"'
             : (overstaffed ? ' title="Menys de 6 players amb més d\'un coach: sobra entrenador"' : "");
+          // Hora de la franja en vermell si no hi ha players (0) o si n'hi ha
+          // però cap coach assignat.
+          const slotRed = players===0 || coaches.length===0;
+          const slotTitle = slotRed
+            ? (players===0 ? ' title="Cap player en aquesta franja"' : ' title="Players sense cap coach assignat"')
+            : "";
+          const slotHtml=`<span class="slot-lbl${slotRed?" slot-red":""}"${slotTitle}>${SLOT_LABEL[sl]}</span>`;
           const countTxt=players>0 ? `${coaches.length}/${needed} · ${players} pl.${marker}` : `${coaches.length}`;
           html+=`<div class="assign-cell${cellCls}" data-key="${esc(key)}"${cellTitle}>
-            <span class="cell-count${countCls}">${countTxt}</span>
+            <span class="cell-count${countCls}">${slotHtml} ${countTxt}</span>
             ${pills}
             ${frozen?"":`<button class="addbtn" data-key="${esc(key)}" type="button">+ Afegir</button>`}
           </div>`;
