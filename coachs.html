@@ -93,6 +93,10 @@
       border-radius:12px; padding:12px 16px; margin-bottom:20px;
       font-size:0.9rem; font-weight:600; }
     .week-notice .ico { font-size:1.1rem; line-height:1; }
+    .week-total { background:var(--card); border:1px solid var(--border);
+      border-radius:12px; padding:12px 16px; margin-bottom:20px;
+      font-size:0.9rem; color:var(--muted); }
+    .week-total strong { color:var(--brand); font-size:1.05rem; }
     footer { margin-top:30px; color:var(--muted); font-size:0.8rem; text-align:center; }
   </style>
 </head>
@@ -135,6 +139,7 @@
     <span class="ico">⚠️</span>
     <span id="weekNoticeText"></span>
   </div>
+  <div id="weekTotal" class="week-total" style="display:none;"></div>
   <div id="schedule"></div>
   <div class="empty" id="empty" style="display:none;">No hi ha sessions amb players per a aquesta selecció.</div>
 
@@ -690,6 +695,22 @@
           document.getElementById("weekNoticeText").textContent =
             "La planificació de la "+filterWeek+" encara no està completada. "+
             "Les sessions i l'assignació de coachs poden canviar.";
+        }
+      }
+
+      // Total de players ÚNICS inscrits a la setmana seleccionada (un player
+      // que ve diversos dies compta un sol cop). Compta la inscripció, no la
+      // visibilitat a la graella (una franja sense coach no es mostra però el
+      // player hi segueix inscrit).
+      const wt=document.getElementById("weekTotal");
+      if(wt){
+        if(filterWeek){
+          const inWeek=e=>ISO_WEEK[e.dateISO]===filterWeek;
+          const uniq=new Set(enrollments.filter(inWeek).map(e=>e.player));
+          wt.style.display="";
+          wt.innerHTML="Total players inscrits · "+esc(filterWeek)+": <strong>"+uniq.size+"</strong>";
+        } else {
+          wt.style.display="none";
         }
       }
 
