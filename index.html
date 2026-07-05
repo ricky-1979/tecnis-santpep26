@@ -112,10 +112,18 @@
     .assign-grid.frozen .addbtn { display:none !important; }
     .assign-grid.frozen .pill { cursor:default; opacity:0.9; }
     .groups-wrap.frozen .grp-toggle { opacity:0.55; pointer-events:none; }
-    /* Sessió amb sobreaforament (>8 players): destaca la fila i el recompte */
-    td.count-warn { color:var(--warn); font-weight:700; }
-    td.count-over { color:var(--danger); font-weight:700; }
-    td.count-warn .warn-ico, td.count-over .warn-ico { margin-left:4px; }
+    /* Sessió amb sobreaforament: badge de recompte ben visible.
+       9-10 players = taronja; >10 = vermell. Fons + vora perquè es
+       distingeixi clarament del text normal fosc. */
+    td.count-warn, td.count-over { font-weight:800; }
+    td.count-warn .count-badge, td.count-over .count-badge {
+      display:inline-flex; align-items:center; gap:4px;
+      padding:2px 8px; border-radius:999px; line-height:1.2; }
+    td.count-warn .count-badge {
+      color:#7a3d00; background:#ffedd5; border:1px solid #f59e0b; }
+    td.count-over .count-badge {
+      color:#7f1d1d; background:#fde2e2; border:1px solid #dc2626; }
+    td.count-warn .warn-ico, td.count-over .warn-ico { margin-left:0; }
     /* Assignació editable */
     .assign-grid { display:grid; grid-template-columns:130px repeat(4,1fr); gap:8px; min-width:760px; }
     .assign-grid .ah { color:var(--muted); font-weight:600; font-size:0.8rem; padding:6px 8px; position:sticky; top:0; }
@@ -1715,7 +1723,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           <td>${g.dateDisplay}</td>
           <td>${g.weekday}</td>
           <td><strong${slotCls}${slotTitle}>${g.slotLabel}</strong></td>
-          <td${countCls?' class="'+countCls.trim()+'"':""}>${g.players}${(warn||over)?' <span class="warn-ico" title="'+countTitle+'">⚠</span>':""}</td>
+          <td${countCls?' class="'+countCls.trim()+'"':""}>${(warn||over)?'<span class="count-badge" title="'+countTitle+'">'+g.players+' <span class="warn-ico">⚠</span></span>':g.players}</td>
           <td>${g.coachCount}</td>
           <td class="coach-chips">${g.coaches.map(coachChip).join(" ")}</td>
         </tr>`;}).join("");
@@ -1842,7 +1850,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           <td>${g.dateDisplay}</td>
           <td>${g.weekday}</td>
           <td><strong${slotCls}${slotTitle}>${g.slotLabel}</strong></td>
-          <td${countCls?' class="'+countCls.trim()+'"':""}>${g.count}${(warn||over)?' <span class="warn-ico" title="'+countTitle+'">⚠</span>':""}</td>
+          <td${countCls?' class="'+countCls.trim()+'"':""}>${(warn||over)?'<span class="count-badge" title="'+countTitle+'">'+g.count+' <span class="warn-ico">⚠</span></span>':g.count}</td>
           <td class="coach-chips">${g.count?g.players.map(p=>`<span class="badge ${p.solt?"under":"ok"}" title="${p.solt?"Dia solt":"Setmana completa"}">${genderIcon(p.name)}${p.name}</span>`).join(" "):'<span class="hint" style="margin:0">—</span>'}</td>
         </tr>`;}).join("");
     }
