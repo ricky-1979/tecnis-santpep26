@@ -113,7 +113,6 @@
     .assign-grid.frozen .pill { cursor:default; opacity:0.9; }
     .groups-wrap.frozen .grp-toggle { opacity:0.55; pointer-events:none; }
     /* Sessió amb sobreaforament (>8 players): destaca la fila i el recompte */
-    tr.overfull td { background:#fde2e2; }
     td.count-over { color:var(--danger); font-weight:700; }
     td.count-over .warn-ico { margin-left:4px; }
     /* Assignació editable */
@@ -1823,7 +1822,7 @@ Hugo,Morales Gómez de Segura,2012,cmorales_9@hotmail.com,,"Dc 1,Dj 2",Infantil/
           ? (g.count===0?' title="Cap player en aquesta franja"':' title="Players sense cap coach assignat"')
           : "";
         return `
-        <tr${over?' class="overfull"':""}>
+        <tr>
           <td>${g.dateDisplay}</td>
           <td>${g.weekday}</td>
           <td><strong${slotCls}${slotTitle}>${g.slotLabel}</strong></td>
