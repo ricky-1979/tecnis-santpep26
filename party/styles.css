@@ -1,12 +1,12 @@
 :root {
-  /* Roche brand palette */
-  --roche-blue: #0b41cd;
-  --roche-blue-dark: #082f94;
-  --roche-blue-light: #e8eefc;
+  /* Neutral festive palette */
+  --brand: #7c3aed;
+  --brand-dark: #5b21b6;
+  --brand-light: #f3ecfe;
   --ink: #1e2b3c;
   --muted: #5b6b7f;
   --line: #e2e8f0;
-  --bg: #f5f7fb;
+  --bg: #f6f5fb;
   --card: #ffffff;
   --yes: #0b8a3d;
   --yes-light: #e6f5ec;
@@ -24,7 +24,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Top bar with Roche logo */
+/* Top bar */
 .topbar {
   display: flex;
   align-items: center;
@@ -38,13 +38,10 @@ body {
 }
 .logo {
   display: inline-block;
-  border: 3px solid var(--ink);
-  color: var(--ink);
-  font-weight: 700;
-  font-size: 20px;
-  letter-spacing: 0.5px;
-  padding: 3px 12px 4px;
-  text-decoration: none;
+  color: var(--brand);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 0.2px;
   line-height: 1;
 }
 .topbar-title {
@@ -55,7 +52,7 @@ body {
 
 /* Hero */
 .hero {
-  background: linear-gradient(135deg, var(--roche-blue) 0%, var(--roche-blue-dark) 100%);
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
   color: #fff;
   padding: 56px 20px 44px;
   text-align: center;
@@ -136,8 +133,8 @@ body {
 }
 #search::placeholder { color: #9aa7b8; }
 #search:focus {
-  border-color: var(--roche-blue);
-  box-shadow: 0 0 0 3px var(--roche-blue-light);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-light);
 }
 
 .filters {
@@ -158,11 +155,11 @@ body {
   font-family: inherit;
   transition: all 0.15s;
 }
-.chip:hover { border-color: var(--roche-blue); color: var(--roche-blue); }
+.chip:hover { border-color: var(--brand); color: var(--brand); }
 .chip.active {
-  background: var(--roche-blue);
+  background: var(--brand);
   color: #fff;
-  border-color: var(--roche-blue);
+  border-color: var(--brand);
   font-weight: 600;
 }
 
@@ -171,7 +168,7 @@ body {
 .team-title {
   font-size: 13px;
   font-weight: 700;
-  color: var(--roche-blue);
+  color: var(--brand);
   text-transform: uppercase;
   letter-spacing: 0.8px;
   margin-bottom: 10px;
@@ -180,8 +177,8 @@ body {
   align-items: center;
 }
 .team-title .badge {
-  background: var(--roche-blue-light);
-  color: var(--roche-blue);
+  background: var(--brand-light);
+  color: var(--brand);
   border-radius: 999px;
   padding: 2px 10px;
   font-size: 12px;

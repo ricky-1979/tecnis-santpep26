@@ -21,10 +21,10 @@ function saveLocalVotes() {
   } catch {}
 }
 
-// Roche-blue tinted avatar palette
+// Festive avatar palette
 const AVATAR_COLORS = [
-  "#0b41cd", "#1a5ee0", "#0e7490", "#0b8a3d", "#5b21b6",
-  "#c2410c", "#be123c", "#0369a1", "#7c3aed", "#065f46",
+  "#7c3aed", "#ec4899", "#f59e0b", "#0b8a3d", "#0e7490",
+  "#c2410c", "#be123c", "#2563eb", "#9333ea", "#0d9488",
 ];
 
 function initials(name) {
