@@ -91,43 +91,20 @@ body.center {
 .vote:active { transform: translateY(0); }
 .vote-emoji { font-size: 30px; line-height: 1; }
 .vote-label {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--muted);
-}
-.vote-count {
-  font-size: 34px;
-  font-weight: 800;
-  line-height: 1;
-  color: var(--ink);
 }
 
 .vote.yes.chosen { border-color: var(--yes); background: var(--yes-light); }
 .vote.yes.chosen .vote-label { color: var(--yes); }
-.vote.yes.chosen .vote-count { color: var(--yes); }
 .vote.no.chosen { border-color: var(--no); background: var(--no-light); }
 .vote.no.chosen .vote-label { color: var(--no); }
-.vote.no.chosen .vote-count { color: var(--no); }
 
-/* Result bar */
-.bar {
-  height: 10px;
-  border-radius: 999px;
-  background: var(--no-light);
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-.bar-yes {
-  height: 100%;
-  width: 0%;
-  background: var(--yes);
-  border-radius: 999px;
-  transition: width 0.4s ease;
-}
 .total {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--muted);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .mode-note {
@@ -141,5 +118,4 @@ body.center {
 
 @media (max-width: 380px) {
   .poll { padding: 32px 20px 24px; }
-  .vote-count { font-size: 28px; }
 }
