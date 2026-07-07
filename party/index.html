@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team Party · Belgrado Sant Cugat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <nav class="topbar">
+    <a class="logo" href="#" aria-label="Roche">Roche</a>
+    <span class="topbar-title">Lab Module for navify Integrator · Sant Cugat</span>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">After the PI Planning · Lab Module for navify Integrator</p>
+      <h1>Team Party at <span>Belgrado</span>, Sant Cugat</h1>
+      <p class="subtitle">Let's celebrate together after the PI Planning. Let us know if you're coming!</p>
+
+      <div class="counters">
+        <div class="counter yes">
+          <span class="num" id="countYes">0</span>
+          <span class="label">I'm in</span>
+        </div>
+        <div class="counter no">
+          <span class="num" id="countNo">0</span>
+          <span class="label">Can't make it</span>
+        </div>
+        <div class="counter pending">
+          <span class="num" id="countPending">0</span>
+          <span class="label">No vote yet</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="toolbar">
+      <input type="search" id="search" placeholder="Search your name or team…" autocomplete="off" />
+      <div class="filters" id="filters"></div>
+    </div>
+
+    <div id="teams"></div>
+
+    <p class="empty" id="empty" hidden>No one found with this filter.</p>
+  </main>
+
+  <footer class="foot">
+    <p id="modeNote">Your vote is saved automatically. You can change it anytime.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
