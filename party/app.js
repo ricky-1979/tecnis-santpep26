@@ -1,46 +1,38 @@
-let participants = [];
-let votes = {};
-let activeTeam = "all";
-let query = "";
+// Anonymous party RSVP counter with one vote per device.
+//
+// This device's current choice ("yes" | "no" | null) is remembered in
+// localStorage, so a device only ever holds ONE vote. Changing the choice
+// moves the vote (decrement old, increment new) rather than adding another.
+//
+// Shared totals live in Firebase Realtime Database when configured (live,
+// cross-device). Without Firebase keys the page shows this device's vote only
+// (per-device counter) so it still works on plain static hosting.
 
-// Storage mode: "firebase" (shared, live), "server" (shared, Node backend),
-// or "local" (per-device localStorage fallback).
-let mode = "local";
-let fbRef = null; // Firebase database ref to /votes
-let fbSet = null; // Firebase set() helper bound per-participant
+let mode = "local"; // "firebase" | "local"
+let myChoice = null; // "yes" | "no" | null
+let counts = { yes: 0, no: 0 };
 
-const LS_KEY = "party-vote-navify";
+const LS_KEY = "party-vote-navify-choice";
 
-function loadLocalVotes() {
+// Firebase handles (set when configured)
+let fbDb = null;
+let fbRefs = null; // { yes, no }
+let fbRunTransaction = null;
+let fbRef = null;
+
+function loadMyChoice() {
   try {
-    return JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+    const v = localStorage.getItem(LS_KEY);
+    return v === "yes" || v === "no" ? v : null;
   } catch {
-    return {};
+    return null;
   }
 }
-function saveLocalVotes() {
+function saveMyChoice(v) {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify(votes));
+    if (v === null) localStorage.removeItem(LS_KEY);
+    else localStorage.setItem(LS_KEY, v);
   } catch {}
-}
-
-// Festive avatar palette
-const AVATAR_COLORS = [
-  "#7c3aed", "#ec4899", "#f59e0b", "#0b8a3d", "#0e7490",
-  "#c2410c", "#be123c", "#2563eb", "#9333ea", "#0d9488",
-];
-
-function initials(name) {
-  const parts = name.trim().split(/\s+/);
-  const first = parts[0]?.[0] || "";
-  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
-  return (first + last).toUpperCase();
-}
-
-function colorFor(name) {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-  return AVATAR_COLORS[h % AVATAR_COLORS.length];
 }
 
 function firebaseConfigured() {
@@ -51,224 +43,112 @@ function firebaseConfigured() {
   );
 }
 
-// Try Firebase first (works on static hosting with shared, live results).
 async function initFirebase() {
   const [{ initializeApp }, dbMod] = await Promise.all([
     import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"),
     import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"),
   ]);
-  const { getDatabase, ref, onValue, set } = dbMod;
+  const { getDatabase, ref, onValue, runTransaction } = dbMod;
   const appFb = initializeApp(window.FIREBASE_CONFIG);
-  const db = getDatabase(appFb);
-  fbRef = ref(db, "votes");
-  fbSet = (id, choice) => set(ref(db, "votes/" + id), choice);
-  // Live subscription: every change updates all open pages.
-  onValue(fbRef, (snap) => {
-    votes = snap.val() || {};
+  fbDb = getDatabase(appFb);
+  fbRef = ref;
+  fbRunTransaction = runTransaction;
+  fbRefs = {
+    yes: ref(fbDb, "counts/yes"),
+    no: ref(fbDb, "counts/no"),
+  };
+  // Live subscription to the aggregate counts.
+  onValue(ref(fbDb, "counts"), (snap) => {
+    const val = snap.val() || {};
+    counts = { yes: val.yes || 0, no: val.no || 0 };
     render();
   });
   mode = "firebase";
 }
 
-async function load() {
-  const pRes = await fetch("participants.json");
-  participants = await pRes.json();
+async function bump(choiceKey, delta) {
+  if (mode !== "firebase") return;
+  await fbRunTransaction(fbRefs[choiceKey], (cur) => {
+    const n = (cur || 0) + delta;
+    return n < 0 ? 0 : n;
+  });
+}
 
-  if (firebaseConfigured()) {
-    try {
-      await initFirebase();
-    } catch (e) {
-      console.warn("Firebase init failed, falling back", e);
-    }
+async function vote(choice) {
+  if (myChoice === choice) return; // already this choice, nothing to do
+
+  const prev = myChoice;
+  myChoice = choice;
+  saveMyChoice(choice);
+
+  if (mode === "firebase") {
+    // Move the single device vote: remove old, add new.
+    if (prev) await bump(prev, -1);
+    await bump(choice, +1);
+    // render happens via the live onValue subscription
+  } else {
+    // Local mode: counts only reflect this device's single vote.
+    counts = { yes: 0, no: 0 };
+    counts[choice] = 1;
+    render();
+  }
+}
+
+function render() {
+  document.getElementById("countYes").textContent = counts.yes;
+  document.getElementById("countNo").textContent = counts.no;
+
+  const total = counts.yes + counts.no;
+  const pctYes = total ? Math.round((counts.yes / total) * 100) : 0;
+  document.getElementById("barYes").style.width = pctYes + "%";
+
+  const totalEl = document.getElementById("total");
+  if (total === 0) {
+    totalEl.textContent = "No votes yet — be the first!";
+  } else {
+    totalEl.textContent = `${total} vote${total === 1 ? "" : "s"} · ${pctYes}% coming`;
   }
 
-  if (mode !== "firebase") {
-    // Try the Node backend (used on the Ona-hosted server).
-    try {
-      const vRes = await fetch("/api/votes");
-      if (!vRes.ok) throw new Error("no backend");
-      votes = await vRes.json();
-      mode = "server";
-    } catch {
-      mode = "local";
-      votes = loadLocalVotes();
-    }
-  }
-
-  updateModeNote();
-  buildFilters();
-  render();
+  const yesBtn = document.getElementById("voteYes");
+  const noBtn = document.getElementById("voteNo");
+  yesBtn.classList.toggle("chosen", myChoice === "yes");
+  noBtn.classList.toggle("chosen", myChoice === "no");
 }
 
 function updateModeNote() {
   const note = document.getElementById("modeNote");
   if (!note) return;
-  if (mode === "firebase" || mode === "server") {
+  if (mode === "firebase") {
     note.textContent =
-      "Your vote is saved automatically and shared with everyone. Results update live. You can change your vote anytime.";
+      "One vote per device · anonymous · shared live count. You can switch your answer anytime.";
   } else {
     note.textContent =
-      "This is a static preview: your vote is saved on this device only and is not shared. You can change it anytime.";
+      "One vote per device · anonymous. Shared live totals aren't configured yet, so this shows your own vote only.";
   }
 }
 
-function buildFilters() {
-  const teams = [...new Set(participants.map((p) => p.team))].sort((a, b) =>
-    a.localeCompare(b)
-  );
-  const box = document.getElementById("filters");
-  const mk = (id, label) => {
-    const b = document.createElement("button");
-    b.className = "chip" + (activeTeam === id ? " active" : "");
-    b.textContent = label;
-    b.onclick = () => {
-      activeTeam = id;
-      document.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
-      b.classList.add("active");
-      render();
-    };
-    return b;
-  };
-  box.appendChild(mk("all", "All"));
-  teams.forEach((t) => box.appendChild(mk(t, t)));
-}
+async function init() {
+  myChoice = loadMyChoice();
 
-function updateCounters() {
-  let yes = 0, no = 0;
-  participants.forEach((p) => {
-    if (votes[p.id] === "yes") yes++;
-    else if (votes[p.id] === "no") no++;
-  });
-  document.getElementById("countYes").textContent = yes;
-  document.getElementById("countNo").textContent = no;
-  document.getElementById("countPending").textContent =
-    participants.length - yes - no;
-}
-
-async function castVote(id, choice) {
-  const current = votes[id] || null;
-  const next = current === choice ? null : choice; // toggle off if same
-
-  // optimistic update
-  if (next === null) delete votes[id];
-  else votes[id] = next;
-  render();
-
-  if (mode === "firebase") {
+  if (firebaseConfigured()) {
     try {
-      await fbSet(id, next); // null removes the key
+      await initFirebase();
     } catch (e) {
-      console.warn("Firebase write failed", e);
+      console.warn("Firebase init failed, using local mode", e);
     }
-    return;
   }
 
-  if (mode === "server") {
-    try {
-      await fetch("/api/vote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, choice: next }),
-      });
-    } catch (e) {
-      try {
-        const vRes = await fetch("/api/votes");
-        votes = await vRes.json();
-        render();
-      } catch {}
-    }
-    return;
+  if (mode === "local") {
+    // Reflect this device's stored vote in the local counter.
+    counts = { yes: 0, no: 0 };
+    if (myChoice) counts[myChoice] = 1;
   }
 
-  // local mode
-  saveLocalVotes();
-}
+  document.getElementById("voteYes").onclick = () => vote("yes");
+  document.getElementById("voteNo").onclick = () => vote("no");
 
-function personCard(p) {
-  const vote = votes[p.id];
-  const el = document.createElement("div");
-  el.className = "person" + (vote ? " voted-" + vote : "");
-
-  const av = document.createElement("div");
-  av.className = "avatar";
-  av.style.background = colorFor(p.name);
-  av.textContent = initials(p.name);
-
-  const info = document.createElement("div");
-  info.className = "person-info";
-  info.innerHTML = `<div class="person-name"></div><div class="person-team"></div>`;
-  info.querySelector(".person-name").textContent = p.name;
-  info.querySelector(".person-team").textContent = p.team;
-
-  const actions = document.createElement("div");
-  actions.className = "actions";
-  const yesBtn = document.createElement("button");
-  yesBtn.className = "btn yes" + (vote === "yes" ? " active" : "");
-  yesBtn.textContent = "✓ Yes";
-  yesBtn.onclick = () => castVote(p.id, "yes");
-  const noBtn = document.createElement("button");
-  noBtn.className = "btn no" + (vote === "no" ? " active" : "");
-  noBtn.textContent = "✕ No";
-  noBtn.onclick = () => castVote(p.id, "no");
-  actions.append(yesBtn, noBtn);
-
-  el.append(av, info, actions);
-  return el;
-}
-
-function render() {
-  updateCounters();
-  const container = document.getElementById("teams");
-  container.innerHTML = "";
-
-  const q = query.trim().toLowerCase();
-  let filtered = participants.filter((p) => {
-    const matchTeam = activeTeam === "all" || p.team === activeTeam;
-    const matchQuery =
-      !q ||
-      p.name.toLowerCase().includes(q) ||
-      p.team.toLowerCase().includes(q);
-    return matchTeam && matchQuery;
-  });
-
-  document.getElementById("empty").hidden = filtered.length > 0;
-
-  // group by team
-  const groups = {};
-  filtered.forEach((p) => {
-    (groups[p.team] ||= []).push(p);
-  });
-  const teamNames = Object.keys(groups).sort((a, b) => a.localeCompare(b));
-
-  teamNames.forEach((team) => {
-    const group = document.createElement("div");
-    group.className = "team-group";
-    const title = document.createElement("div");
-    title.className = "team-title";
-    title.innerHTML = `${team}<span class="badge">${groups[team].length}</span>`;
-    group.appendChild(title);
-    groups[team]
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .forEach((p) => group.appendChild(personCard(p)));
-    container.appendChild(group);
-  });
-}
-
-document.getElementById("search").addEventListener("input", (e) => {
-  query = e.target.value;
+  updateModeNote();
   render();
-});
+}
 
-// Periodic refresh for the Node backend mode. Firebase updates live via
-// onValue, and local mode has nothing to poll.
-setInterval(async () => {
-  if (mode !== "server") return;
-  try {
-    const vRes = await fetch("/api/votes");
-    if (!vRes.ok) return;
-    votes = await vRes.json();
-    render();
-  } catch {}
-}, 5000);
-
-load();
+init();

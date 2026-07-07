@@ -1,8 +1,6 @@
 :root {
-  /* Neutral festive palette */
   --brand: #7c3aed;
   --brand-dark: #5b21b6;
-  --brand-light: #f3ecfe;
   --ink: #1e2b3c;
   --muted: #5b6b7f;
   --line: #e2e8f0;
@@ -18,236 +16,130 @@
 
 body {
   font-family: "Inter", system-ui, -apple-system, sans-serif;
-  background: var(--bg);
+  background:
+    radial-gradient(900px 500px at 15% -10%, #efe7fe, transparent 60%),
+    radial-gradient(900px 500px at 90% 0%, #ffe9f4, transparent 55%),
+    var(--bg);
   color: var(--ink);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
-
-/* Top bar */
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: #fff;
-  border-bottom: 1px solid var(--line);
-  padding: 14px 24px;
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-.logo {
-  display: inline-block;
-  color: var(--brand);
-  font-weight: 800;
-  font-size: 18px;
-  letter-spacing: 0.2px;
-  line-height: 1;
-}
-.topbar-title {
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 500;
-}
-
-/* Hero */
-.hero {
-  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
-  color: #fff;
-  padding: 56px 20px 44px;
-  text-align: center;
-}
-.hero-inner { max-width: 820px; margin: 0 auto; }
-.eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 14px;
-}
-.hero h1 {
-  font-size: clamp(28px, 5vw, 44px);
-  font-weight: 800;
-  line-height: 1.12;
-  margin-bottom: 14px;
-  letter-spacing: -0.5px;
-}
-.hero h1 span {
-  color: #fff;
-  border-bottom: 4px solid rgba(255, 255, 255, 0.55);
-  padding-bottom: 2px;
-}
-.subtitle {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: clamp(15px, 2.5vw, 18px);
-  font-weight: 400;
-}
-
-.counters {
-  display: flex;
-  gap: 14px;
-  justify-content: center;
-  margin-top: 30px;
-  flex-wrap: wrap;
-}
-.counter {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 14px;
-  padding: 16px 24px;
-  min-width: 128px;
-  backdrop-filter: blur(4px);
-}
-.counter .num { display: block; font-size: 32px; font-weight: 800; line-height: 1; color: #fff; }
-.counter .label {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.85);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-top: 6px;
-  display: block;
-}
-
-/* Container */
-.container { max-width: 900px; margin: 0 auto; padding: 24px 20px 80px; }
-
-.toolbar {
-  position: sticky;
-  top: 63px;
-  z-index: 10;
-  background: var(--bg);
-  padding: 16px 0 10px;
-}
-#search {
-  width: 100%;
-  padding: 14px 18px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--ink);
-  font-size: 16px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-#search::placeholder { color: #9aa7b8; }
-#search:focus {
-  border-color: var(--brand);
-  box-shadow: 0 0 0 3px var(--brand-light);
-}
-
-.filters {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 12px;
-}
-.chip {
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--muted);
-  padding: 7px 14px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.15s;
-}
-.chip:hover { border-color: var(--brand); color: var(--brand); }
-.chip.active {
-  background: var(--brand);
-  color: #fff;
-  border-color: var(--brand);
-  font-weight: 600;
-}
-
-/* Team groups */
-.team-group { margin-top: 26px; }
-.team-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--brand);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin-bottom: 10px;
-  padding-left: 4px;
-  display: flex;
-  align-items: center;
-}
-.team-title .badge {
-  background: var(--brand-light);
-  color: var(--brand);
-  border-radius: 999px;
-  padding: 2px 10px;
-  font-size: 12px;
-  margin-left: 8px;
-  font-weight: 600;
-}
-
-/* Person card */
-.person {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-  transition: box-shadow 0.15s, border-color 0.15s;
-}
-.person:hover { box-shadow: 0 4px 14px rgba(11, 65, 205, 0.08); }
-.person.voted-yes { border-color: var(--yes); background: var(--yes-light); }
-.person.voted-no { border-color: var(--no); background: var(--no-light); }
-
-.avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
+body.center {
   display: grid;
   place-items: center;
-  font-weight: 700;
-  font-size: 15px;
-  color: #fff;
-  flex-shrink: 0;
+  padding: 24px;
 }
-.person-info { flex: 1; min-width: 0; }
-.person-name { font-weight: 600; font-size: 15px; color: var(--ink); }
-.person-team { font-size: 12px; color: var(--muted); }
 
-.actions { display: flex; gap: 8px; flex-shrink: 0; }
-.btn {
+.poll {
+  background: var(--card);
   border: 1px solid var(--line);
-  background: #fff;
-  color: var(--muted);
-  padding: 9px 16px;
-  border-radius: 9px;
-  font-size: 14px;
+  border-radius: 22px;
+  box-shadow: 0 18px 50px rgba(30, 43, 60, 0.10);
+  padding: 40px 32px 32px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  font-size: 11px;
   font-weight: 600;
+  color: var(--brand);
+  margin-bottom: 14px;
+}
+.poll h1 {
+  font-size: clamp(24px, 5vw, 30px);
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: -0.4px;
+  margin-bottom: 10px;
+}
+.poll h1 span {
+  color: var(--brand);
+  border-bottom: 4px solid #e7ddfb;
+  padding-bottom: 1px;
+}
+.subtitle {
+  color: var(--muted);
+  font-size: 15px;
+  margin-bottom: 28px;
+}
+
+/* Vote buttons */
+.vote-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.vote {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 22px 12px 18px;
+  border-radius: 16px;
+  border: 2px solid var(--line);
+  background: #fff;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.15s;
+  transition: transform 0.12s, border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
-.btn:hover { border-color: #b9c4d2; color: var(--ink); }
-.btn.yes.active { background: var(--yes); border-color: var(--yes); color: #fff; }
-.btn.no.active { background: var(--no); border-color: var(--no); color: #fff; }
-
-.empty { text-align: center; color: var(--muted); margin-top: 40px; }
-
-.foot {
-  text-align: center;
+.vote:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(30, 43, 60, 0.08); }
+.vote:active { transform: translateY(0); }
+.vote-emoji { font-size: 30px; line-height: 1; }
+.vote-label {
+  font-size: 14px;
+  font-weight: 600;
   color: var(--muted);
-  font-size: 13px;
-  padding: 24px 20px 40px;
-  border-top: 1px solid var(--line);
-  background: #fff;
+}
+.vote-count {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--ink);
 }
 
-@media (max-width: 520px) {
-  .btn { padding: 9px 12px; }
-  .actions { gap: 6px; }
-  .person { padding: 10px 11px; gap: 10px; }
-  .toolbar { top: 61px; }
+.vote.yes.chosen { border-color: var(--yes); background: var(--yes-light); }
+.vote.yes.chosen .vote-label { color: var(--yes); }
+.vote.yes.chosen .vote-count { color: var(--yes); }
+.vote.no.chosen { border-color: var(--no); background: var(--no-light); }
+.vote.no.chosen .vote-label { color: var(--no); }
+.vote.no.chosen .vote-count { color: var(--no); }
+
+/* Result bar */
+.bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--no-light);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.bar-yes {
+  height: 100%;
+  width: 0%;
+  background: var(--yes);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+.total {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.mode-note {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 380px) {
+  .poll { padding: 32px 20px 24px; }
+  .vote-count { font-size: 28px; }
 }
