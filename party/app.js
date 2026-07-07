@@ -3,9 +3,12 @@ let votes = {};
 let activeTeam = "all";
 let query = "";
 
-// When no backend is available (e.g. GitHub Pages static hosting), fall back
-// to per-device storage. Votes are then local to each browser, not shared.
-let backendAvailable = true;
+// Storage mode: "firebase" (shared, live), "server" (shared, Node backend),
+// or "local" (per-device localStorage fallback).
+let mode = "local";
+let fbRef = null; // Firebase database ref to /votes
+let fbSet = null; // Firebase set() helper bound per-participant
+
 const LS_KEY = "party-vote-navify";
 
 function loadLocalVotes() {
@@ -40,18 +43,58 @@ function colorFor(name) {
   return AVATAR_COLORS[h % AVATAR_COLORS.length];
 }
 
+function firebaseConfigured() {
+  const c = window.FIREBASE_CONFIG;
+  if (!c) return false;
+  return !Object.values(c).some(
+    (v) => typeof v === "string" && v.includes("PASTE_")
+  );
+}
+
+// Try Firebase first (works on static hosting with shared, live results).
+async function initFirebase() {
+  const [{ initializeApp }, dbMod] = await Promise.all([
+    import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"),
+    import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"),
+  ]);
+  const { getDatabase, ref, onValue, set } = dbMod;
+  const appFb = initializeApp(window.FIREBASE_CONFIG);
+  const db = getDatabase(appFb);
+  fbRef = ref(db, "votes");
+  fbSet = (id, choice) => set(ref(db, "votes/" + id), choice);
+  // Live subscription: every change updates all open pages.
+  onValue(fbRef, (snap) => {
+    votes = snap.val() || {};
+    render();
+  });
+  mode = "firebase";
+}
+
 async function load() {
   const pRes = await fetch("participants.json");
   participants = await pRes.json();
-  try {
-    const vRes = await fetch("/api/votes");
-    if (!vRes.ok) throw new Error("no backend");
-    votes = await vRes.json();
-    backendAvailable = true;
-  } catch {
-    backendAvailable = false;
-    votes = loadLocalVotes();
+
+  if (firebaseConfigured()) {
+    try {
+      await initFirebase();
+    } catch (e) {
+      console.warn("Firebase init failed, falling back", e);
+    }
   }
+
+  if (mode !== "firebase") {
+    // Try the Node backend (used on the Ona-hosted server).
+    try {
+      const vRes = await fetch("/api/votes");
+      if (!vRes.ok) throw new Error("no backend");
+      votes = await vRes.json();
+      mode = "server";
+    } catch {
+      mode = "local";
+      votes = loadLocalVotes();
+    }
+  }
+
   updateModeNote();
   buildFilters();
   render();
@@ -60,9 +103,9 @@ async function load() {
 function updateModeNote() {
   const note = document.getElementById("modeNote");
   if (!note) return;
-  if (backendAvailable) {
+  if (mode === "firebase" || mode === "server") {
     note.textContent =
-      "Your vote is saved automatically and shared with everyone. You can change it anytime.";
+      "Your vote is saved automatically and shared with everyone. Results update live. You can change your vote anytime.";
   } else {
     note.textContent =
       "This is a static preview: your vote is saved on this device only and is not shared. You can change it anytime.";
@@ -105,29 +148,40 @@ function updateCounters() {
 async function castVote(id, choice) {
   const current = votes[id] || null;
   const next = current === choice ? null : choice; // toggle off if same
+
   // optimistic update
   if (next === null) delete votes[id];
   else votes[id] = next;
   render();
 
-  if (!backendAvailable) {
-    saveLocalVotes();
+  if (mode === "firebase") {
+    try {
+      await fbSet(id, next); // null removes the key
+    } catch (e) {
+      console.warn("Firebase write failed", e);
+    }
     return;
   }
-  try {
-    await fetch("/api/vote", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, choice: next }),
-    });
-  } catch (e) {
-    // reload from server on failure
+
+  if (mode === "server") {
     try {
-      const vRes = await fetch("/api/votes");
-      votes = await vRes.json();
-      render();
-    } catch {}
+      await fetch("/api/vote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, choice: next }),
+      });
+    } catch (e) {
+      try {
+        const vRes = await fetch("/api/votes");
+        votes = await vRes.json();
+        render();
+      } catch {}
+    }
+    return;
   }
+
+  // local mode
+  saveLocalVotes();
 }
 
 function personCard(p) {
@@ -205,9 +259,10 @@ document.getElementById("search").addEventListener("input", (e) => {
   render();
 });
 
-// periodic refresh so everyone sees live results (backend mode only)
+// Periodic refresh for the Node backend mode. Firebase updates live via
+// onValue, and local mode has nothing to poll.
 setInterval(async () => {
-  if (!backendAvailable) return;
+  if (mode !== "server") return;
   try {
     const vRes = await fetch("/api/votes");
     if (!vRes.ok) return;
