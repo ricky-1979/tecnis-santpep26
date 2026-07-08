@@ -688,6 +688,21 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       return '<span class="gi gi-x" title="Sexe desconegut">·</span>';
     }
 
+    // Nom curt per MOSTRAR (nom + primer cognom). La clau interna segueix sent
+    // el nom complet ("Nom Cognoms"), que s'usa a overrides, grups i Firebase;
+    // això només afecta el text visible. Per als players es construeix un mapa
+    // durant el parseig del CSV (on "Nom" i "Cognoms" van separats, cosa que
+    // resol noms compostos com "Allison Erika"); per a la resta (coachs, o
+    // qualsevol nom no mapat) s'agafen les dues primeres paraules.
+    const PLAYER_SHORT = {};
+    function shortName(fullName){
+      const n=String(fullName||"").trim();
+      if(!n) return n;
+      if(PLAYER_SHORT[n]) return PLAYER_SHORT[n];
+      const parts=n.split(/\s+/);
+      return parts.length<=2 ? n : parts.slice(0,2).join(" ");
+    }
+
     // ---- Configuració ----
     // Coaches necessaris per franja: 1 coach fins a 5 players, 2 coaches si 6+.
     function coachesNeeded(players){
@@ -1006,7 +1021,13 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
     const COACH_NAME_MAP = { "Pau": "Pau Laviña" };
     function normalizeCoach(name){
       const n=(name||"").trim();
-      return COACH_NAME_MAP[n] || n;
+      const norm=COACH_NAME_MAP[n] || n;
+      // Registra el nom curt del coach (nom + primer cognom) per mostrar-lo.
+      if(norm && !PLAYER_SHORT[norm]){
+        const parts=norm.split(/\s+/);
+        PLAYER_SHORT[norm]=parts.length<=2 ? norm : parts.slice(0,2).join(" ");
+      }
+      return norm;
     }
 
     // Excepcions manuals de franja per a players concrets: mou un player
@@ -1230,8 +1251,13 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       enrollments=[];
       weeklyRegistrations=0;
       data.forEach(r=>{
-        const player=`${(r["Nom"]||"").trim()} ${(r["Cognoms"]||"").trim()}`.trim();
+        const nom=(r["Nom"]||"").trim();
+        const cognoms=(r["Cognoms"]||"").trim();
+        const player=`${nom} ${cognoms}`.trim();
         if(!player) return;
+        // Nom curt per mostrar: nom sencer + només el primer cognom.
+        const primerCognom=cognoms.split(/\s+/)[0]||"";
+        PLAYER_SHORT[player]=`${nom} ${primerCognom}`.trim();
         weeklyRegistrations++; // una fila vàlida del CSV setmanal
         WEEK_COLUMNS.forEach(wc=>{
           const cell=(r[wc.key]||"").trim();
@@ -1262,8 +1288,12 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       // però dos enviaments diferents (mateix player, hores distintes) sumen dos.
       const soltsSeen=new Set();
       data.forEach(r=>{
-        const player=`${(r["Nom"]||"").trim()} ${(r["Cognoms"]||"").trim()}`.trim();
+        const nom=(r["Nom"]||"").trim();
+        const cognoms=(r["Cognoms"]||"").trim();
+        const player=`${nom} ${cognoms}`.trim();
         if(!player) return;
+        const primerCognom=cognoms.split(/\s+/)[0]||"";
+        PLAYER_SHORT[player]=`${nom} ${primerCognom}`.trim();
         const cell=(r["Franja horària"]||"").trim();
         const slot=slotFromCell(cell);
         if(!slot) return;
@@ -1570,14 +1600,14 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       // taula
       fillSelect("filterWeek", weeks);
       fillSelect("filterCategory", cats);
-      fillSelect("filterCoach", coaches);
+      fillSelect("filterCoach", coaches, shortName);
       // heatmap
       fillSelect("filterHmWeek", weeks);
       fillSelect("filterHmCategory", cats);
-      fillSelect("filterHmCoach", coaches);
+      fillSelect("filterHmCoach", coaches, shortName);
       // blocs
       fillSelect("filterBlockWeek", weeks);
-      fillSelect("filterBlockCoach", coaches);
+      fillSelect("filterBlockCoach", coaches, shortName);
       // players
       fillSelect("filterPlayerWeek", weeks);
       fillSelect("filterPlayerCategory", cats);
@@ -1646,7 +1676,7 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
           <td>${s.coachCount}</td>
           <td>${s.needed}</td>
           <td>${statusBadge(s)}</td>
-          <td class="wrap">${s.coachNames.join(", ")||"—"}</td>
+          <td class="wrap" title="${esc(s.coachNames.join(", "))}">${s.coachNames.map(shortName).join(", ")||"—"}</td>
         </tr>`).join("");
     }
 
@@ -1712,9 +1742,9 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
     }
 
     function coachChip(c){
-      if(c.type==="requested") return `<span class="badge ok">${c.coach}</span>`;
+      if(c.type==="requested") return `<span class="badge ok" title="${esc(c.coach)}">${esc(shortName(c.coach))}</span>`;
       // Proposat: no va demanar aquesta franja; se suggereix per completar el bloc de 2h.
-      return `<span class="badge under" title="Va demanar ${c.requestedHour.slice(0,2)}h; proposta per completar el bloc de 2h">${c.coach} ⚠</span>`;
+      return `<span class="badge under" title="${esc(c.coach)} · Va demanar ${c.requestedHour.slice(0,2)}h; proposta per completar el bloc de 2h">${esc(shortName(c.coach))} ⚠</span>`;
     }
 
     function renderBlocks(){
@@ -1874,7 +1904,7 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
           <td>${g.weekday}</td>
           <td><strong${slotCls}${slotTitle}>${g.slotLabel}</strong></td>
           <td${countCls?' class="'+countCls.trim()+'"':""}>${(warn||over)?'<span class="count-badge" title="'+countTitle+'">'+g.count+' <span class="warn-ico">⚠</span></span>':g.count}</td>
-          <td class="coach-chips">${g.count?g.players.map(p=>`<span class="badge ${p.solt?"under":"ok"}" title="${p.solt?"Dia solt":"Setmana completa"}">${genderIcon(p.name)}${p.name}</span>`).join(" "):'<span class="hint" style="margin:0">—</span>'}</td>
+          <td class="coach-chips">${g.count?g.players.map(p=>`<span class="badge ${p.solt?"under":"ok"}" title="${p.solt?"Dia solt":"Setmana completa"} · ${esc(p.name)}">${genderIcon(p.name)}${esc(shortName(p.name))}</span>`).join(" "):'<span class="hint" style="margin:0">—</span>'}</td>
         </tr>`;}).join("");
     }
 
@@ -1937,7 +1967,7 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       }
       if(empty) empty.style.display="none";
       body.innerHTML=rows.map(r=>`<tr>
-        <td>${esc(r.coach)}</td>
+        <td title="${esc(r.coach)}">${esc(shortName(r.coach))}</td>
         <td>${r.w["Setmana 1"]}</td>
         <td>${r.w["Setmana 2"]}</td>
         <td class="pay-info">${r.w["Setmana 3"]}</td>
@@ -1984,7 +2014,7 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
         const rows=names.map(n=>{
           const g=groupOf(n,wk,sl);
           return `<div class="grp-row">
-            <span class="grp-name" title="${esc(n)}">${esc(n)}</span>
+            <span class="grp-name" title="${esc(n)}">${esc(shortName(n))}</span>
             <span class="grp-toggle" data-name="${esc(n)}" data-slot="${esc(sl)}">
               <button type="button" class="gbtn${g==="1"?" on":""}" data-name="${esc(n)}" data-slot="${esc(sl)}" data-grp="1">G1</button>
               <button type="button" class="gbtn g2${g==="2"?" on":""}" data-name="${esc(n)}" data-slot="${esc(sl)}" data-grp="2">G2</button>
@@ -2033,9 +2063,9 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
             if(frozen){
               // Setmana congelada: pill de només lectura (sense arrossegar,
               // sense toggle de grup ni botó de treure).
-              return `<span class="pill" draggable="false" data-key="${esc(key)}" data-coach="${esc(c)}">${esc(c)}</span>`;
+              return `<span class="pill" draggable="false" data-key="${esc(key)}" data-coach="${esc(c)}" title="${esc(c)}">${esc(shortName(c))}</span>`;
             }
-            return `<span class="pill" draggable="true" data-key="${esc(key)}" data-coach="${esc(c)}">${esc(c)}<span class="cgtoggle" title="Grup de treball del coach"><button type="button" class="cgbtn${cg==="1"?" on":""}" data-date="${esc(d)}" data-slot="${esc(sl)}" data-coach="${esc(c)}" data-grp="1">1</button><button type="button" class="cgbtn g2${cg==="2"?" on":""}" data-date="${esc(d)}" data-slot="${esc(sl)}" data-coach="${esc(c)}" data-grp="2">2</button></span><span class="rm" data-key="${esc(key)}" data-coach="${esc(c)}" title="Treure">×</span></span>`;
+            return `<span class="pill" draggable="true" data-key="${esc(key)}" data-coach="${esc(c)}" title="${esc(c)}">${esc(shortName(c))}<span class="cgtoggle" title="Grup de treball del coach"><button type="button" class="cgbtn${cg==="1"?" on":""}" data-date="${esc(d)}" data-slot="${esc(sl)}" data-coach="${esc(c)}" data-grp="1">1</button><button type="button" class="cgbtn g2${cg==="2"?" on":""}" data-date="${esc(d)}" data-slot="${esc(sl)}" data-coach="${esc(c)}" data-grp="2">2</button></span><span class="rm" data-key="${esc(key)}" data-coach="${esc(c)}" title="Treure">×</span></span>`;
           }).join("");
           // Pocs players: franja amb menys de 3 players (0, 1 o 2). Té
           // prioritat sobre l'avís de sobra-entrenador.
@@ -2102,7 +2132,7 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
         let cls="lg-item";
         if(spread>=2 && n===max) cls+=" lg-hi";
         else if(spread>=2 && n===min) cls+=" lg-lo";
-        return `<span class="${cls}" title="${esc(c)}: ${n} ${n===1?"sessió":"sessions"}">${esc(c)} <span class="lg-n">${n}</span></span>`;
+        return `<span class="${cls}" title="${esc(c)}: ${n} ${n===1?"sessió":"sessions"}">${esc(shortName(c))} <span class="lg-n">${n}</span></span>`;
       }).join("");
       box.innerHTML=`<span class="lg-title">Sessions per coach${wkTxt} · total ${vals.reduce((a,b)=>a+b,0)}</span>`+items;
     }
@@ -2251,17 +2281,17 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       let html=`<option value="">+ Coach…</option>`;
       if(proposed.length){
         html+=`<optgroup label="Proposats (2h consecutives)">`+
-          proposed.map(c=>`<option value="${esc(c)}">${esc(c)} · faria 2h</option>`).join("")+
+          proposed.map(c=>`<option value="${esc(c)}">${esc(shortName(c))} · faria 2h</option>`).join("")+
           `</optgroup>`;
       }
       if(available.length){
         html+=`<optgroup label="${availSet?"Disponibles aquesta setmana":"Tots els coachs"}">`+
-          available.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("")+
+          available.map(c=>`<option value="${esc(c)}">${esc(shortName(c))}</option>`).join("")+
           `</optgroup>`;
       }
       if(others.length){
         html+=`<optgroup label="Altres coachs">`+
-          others.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("")+
+          others.map(c=>`<option value="${esc(c)}">${esc(shortName(c))}</option>`).join("")+
           `</optgroup>`;
       }
       sel.innerHTML=html;
