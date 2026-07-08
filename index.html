@@ -1706,8 +1706,8 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       // assignació: selector de setmana (amb opció "Totes")
       const aw=document.getElementById("assignWeek");
       aw.innerHTML=`<option value="">Totes les setmanes</option>`+weeks.map(w=>`<option value="${w}">${w}</option>`).join("");
-      // Selecciona "Setmana 2" per defecte si existeix (si no, la primera disponible)
-      const defaultWeek=weeks.includes("Setmana 2")?"Setmana 2":(weeks[0]||"");
+      // Selecciona "Setmana 3" per defecte si existeix (si no, la primera disponible)
+      const defaultWeek=weeks.includes("Setmana 3")?"Setmana 3":(weeks[0]||"");
       ["filterWeek","filterHmWeek","filterBlockWeek","filterPlayerWeek","assignWeek"].forEach(id=>{
         document.getElementById(id).value=defaultWeek;
       });
@@ -2012,8 +2012,8 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       if(!sel) return;
       const weeks=WEEK_COLUMNS.map(w=>w.label).filter(w=> enrollments.some(e=>e.week===w));
       if(!weeks.length){ sel.innerHTML=""; groupsWeek=""; return; }
-      // Per defecte "Setmana 2" si existeix; si no, la primera disponible
-      if(!groupsWeek || !weeks.includes(groupsWeek)) groupsWeek=weeks.includes("Setmana 2")?"Setmana 2":weeks[0];
+      // Per defecte "Setmana 3" si existeix; si no, la primera disponible
+      if(!groupsWeek || !weeks.includes(groupsWeek)) groupsWeek=weeks.includes("Setmana 3")?"Setmana 3":weeks[0];
       sel.innerHTML=weeks.map(w=>`<option value="${esc(w)}"${w===groupsWeek?" selected":""}>${esc(w)}</option>`).join("");
     }
 
