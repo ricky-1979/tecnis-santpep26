@@ -1254,6 +1254,12 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       soltsRegistrations=0;
       if(!text) return;
       const data=Papa.parse(text,PARSE_OPTS).data;
+      // Compta inscripcions ÚNIQUES, no files: una mateixa inscripció pot estar
+      // dividida en diverses línies (p. ex. per moure un dia a una altra franja).
+      // La clau (email + data de submissió) identifica la inscripció real del
+      // formulari, així que dues línies del mateix enviament compten un sol cop,
+      // però dos enviaments diferents (mateix player, hores distintes) sumen dos.
+      const soltsSeen=new Set();
       data.forEach(r=>{
         const player=`${(r["Nom"]||"").trim()} ${(r["Cognoms"]||"").trim()}`.trim();
         if(!player) return;
@@ -1263,7 +1269,8 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
         const category=categoryFromCell(cell)||"";
         const dies=(r["Dies solts"]||"").trim();
         if(!dies) return;
-        soltsRegistrations++; // una fila vàlida del CSV de dies solts
+        const subKey=`${(r["Correu electrònic"]||"").trim().toLowerCase()}|${(r["Submitted"]||"").trim()}`;
+        if(!soltsSeen.has(subKey)){ soltsSeen.add(subKey); soltsRegistrations++; }
         dies.split(",").forEach(tok=>{
           const m=tok.match(/(\d{1,2})/);
           if(!m) return;
