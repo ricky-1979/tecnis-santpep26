@@ -2014,7 +2014,15 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
 
     // ---- Render de l'assignació editable ----
     function allCoachNames(){
-      return [...new Set(coachRecords.map(c=>c.coach).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+      // Universo de coachs per al desplegable "+ Afegir": els del CSV de
+      // Koalendar (coachRecords) MÉS els que només han declarat disponibilitat
+      // a reserves.html (node coachAvailability). Sense la unió, un coach nou
+      // afegit des de Reserves (que no és a Koalendar) no apareixeria mai.
+      const names=new Set(coachRecords.map(c=>c.coach).filter(Boolean));
+      if(reservesAvail){
+        Object.values(reservesAvail).forEach(arr=>(arr||[]).forEach(c=>{ if(c) names.add(c); }));
+      }
+      return [...names].sort((a,b)=>a.localeCompare(b));
     }
     function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
