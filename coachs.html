@@ -214,6 +214,9 @@
       "Teo Bigas Romo|Setmana 3": "21:00",
       "Oriol Ortega Alos|Setmana 3": "21:00",
       "David Garcia Guerra|Setmana 3": "21:00",
+      // Setmana 3: Hugo Párvez baixa de la 2a franja (19:00) a la 1a (18:00)
+      // tota la setmana. Té una sola franja, així que un override de setmana és net.
+      "Hugo Parvez Salvador|Setmana 3": "18:00",
       // Setmana 4: reequilibri de la 3a franja (20:00). Teo puja a la 4a
       // (21:00); Sofia i Martina baixen a la 2a (19:00).
       "Teo Bigas Romo|Setmana 4": "21:00",
@@ -386,6 +389,20 @@
       "Elsa Aranda Carbón|2026-07-03|18:00",
       "Joel González Gutiérrez|2026-07-03|18:00",
       "Roc Arbonès López|2026-07-03|18:00",
+      // Setmana 3: Aniol Abrisqueta té dues franges (19:00 Infantil/Cadet i
+      // 20:00 Cadet/Júnior). Baixa totes dues: 19:00→18:00 i 20:00→19:00 cada
+      // dia. Cal fer-ho per dia (no per override de setmana) perquè són dues
+      // franges d'origen diferents cap a dos destins diferents.
+      "Aniol Abrisqueta López|2026-07-13|19:00",
+      "Aniol Abrisqueta López|2026-07-13|20:00",
+      "Aniol Abrisqueta López|2026-07-14|19:00",
+      "Aniol Abrisqueta López|2026-07-14|20:00",
+      "Aniol Abrisqueta López|2026-07-15|19:00",
+      "Aniol Abrisqueta López|2026-07-15|20:00",
+      "Aniol Abrisqueta López|2026-07-16|19:00",
+      "Aniol Abrisqueta López|2026-07-16|20:00",
+      "Aniol Abrisqueta López|2026-07-17|19:00",
+      "Aniol Abrisqueta López|2026-07-17|20:00",
     ];
     const ENROLLMENT_ADDITIONS = [
       // 10/07: Álvaro Álvarez baixat a la 2a franja (19:00); a 18:00 no hi ha
@@ -461,6 +478,18 @@
       { player:"Miquel Lopez Serrano", dateISO:"2026-07-20", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 4" },
       { player:"Miquel Lopez Serrano", dateISO:"2026-07-21", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 4" },
       { player:"Miquel Lopez Serrano", dateISO:"2026-07-22", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 4" },
+      // Setmana 3: Aniol Abrisqueta baixa les dues franges cada dia.
+      // 19:00 (Infantil/Cadet) → 18:00; 20:00 (Cadet/Júnior) → 19:00.
+      { player:"Aniol Abrisqueta López", dateISO:"2026-07-13", slot:"18:00", category:"Infantil/Cadet", week:"Setmana 3" },
+      { player:"Aniol Abrisqueta López", dateISO:"2026-07-13", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 3" },
+      { player:"Aniol Abrisqueta López", dateISO:"2026-07-14", slot:"18:00", category:"Infantil/Cadet", week:"Setmana 3" },
+      { player:"Aniol Abrisqueta López", dateISO:"2026-07-14", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 3" },
+      { player:"Aniol Abrisqueta López", dateISO:"2026-07-15", slot:"18:00", category:"Infantil/Cadet", week:"Setmana 3" },
+      { player:"Aniol Abrisqueta López", dateISO:"2026-07-15", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 3" },
+      { player:"Aniol Abrisqueta López", dateISO:"2026-07-16", slot:"18:00", category:"Infantil/Cadet", week:"Setmana 3" },
+      { player:"Aniol Abrisqueta López", dateISO:"2026-07-16", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 3" },
+      { player:"Aniol Abrisqueta López", dateISO:"2026-07-17", slot:"18:00", category:"Infantil/Cadet", week:"Setmana 3" },
+      { player:"Aniol Abrisqueta López", dateISO:"2026-07-17", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 3" },
     ];
     function applyEnrollmentExceptions(){
       const rm=new Set(ENROLLMENT_REMOVALS);
