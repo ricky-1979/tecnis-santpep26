@@ -1065,6 +1065,9 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       // sola franja a S4: override de setmana net.
       "David Garcia Guerra|Setmana 4": "19:00",
       "Oriol Ortega Alos|Setmana 4": "21:00",
+      // Setmana 4: Bernat López (dies solts) puja de la 3a franja (20:00) a la
+      // 4a (21:00). Els dies 21-23 eren a 20:00; el dia 20 ja era a 21:00 (no-op).
+      "Bernat López Abad|Setmana 4": "21:00",
     };
     function overrideSlot(player, week, slot){
       return PLAYER_SLOT_OVERRIDES[`${player}|${week}`] || slot;
