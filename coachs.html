@@ -227,6 +227,11 @@
       "Teo Bigas Romo|Setmana 4": "21:00",
       "Sofía Carabajal Palau|Setmana 4": "19:00",
       "Martina Carrillo Bach|Setmana 4": "19:00",
+      // Setmana 4: David Garcia baixa de la 3a franja (20:00) a la 2a (19:00);
+      // Oriol Ortega puja de la 3a (20:00) a la 4a (21:00). Tots dos tenen una
+      // sola franja a S4: override de setmana net.
+      "David Garcia Guerra|Setmana 4": "19:00",
+      "Oriol Ortega Alos|Setmana 4": "21:00",
     };
     function overrideSlot(player, week, slot){
       return PLAYER_SLOT_OVERRIDES[`${player}|${week}`] || slot;
