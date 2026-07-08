@@ -209,11 +209,11 @@
 
   <div class="charts">
     <div class="chart-card">
-      <h2>Inscrits per categoria/franja</h2>
+      <h2>Players per categoria/franja</h2>
       <div class="chart-wrap"><canvas id="chartCat"></canvas></div>
     </div>
     <div class="chart-card">
-      <h2>Inscrits per setmana</h2>
+      <h2>Players per setmana</h2>
       <div class="chart-wrap"><canvas id="chartWeek"></canvas></div>
     </div>
     <div class="chart-card">
@@ -1439,6 +1439,16 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       return m;
     }
 
+    // Com groupSum però compta players ÚNICS per grup (no registres/línies):
+    // un player amb diverses inscripcions dins el mateix grup compta 1 sol cop.
+    function groupUnique(arr,keyFn,idFn){
+      const m=new Map();
+      arr.forEach(x=>{ const k=keyFn(x); if(!m.has(k)) m.set(k,new Set()); m.get(k).add(idFn(x)); });
+      const out=new Map();
+      m.forEach((set,k)=>out.set(k,set.size));
+      return out;
+    }
+
     // ---- KPIs ----
     function buildCards(){
       const totalPlayers=new Set(enrollments.map(e=>e.player)).size;
@@ -1598,13 +1608,13 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
     };
 
     function buildCharts(){
-      const byCat=[...groupSum(enrollments, e=>e.category||"(sense)").entries()].sort((a,b)=>b[1]-a[1]);
+      const byCat=[...groupUnique(enrollments, e=>e.category||"(sense)", e=>e.player).entries()].sort((a,b)=>b[1]-a[1]);
       makeChart("chartCat","bar",byCat.map(x=>x[0]),
         [{ data:byCat.map(x=>x[1]), backgroundColor:byCat.map((_,i)=>PALETTE[i%PALETTE.length]), borderRadius:6 }],
         { indexAxis:"y", plugins:{ legend:{display:false}, tooltip:playersTooltip } },
         [barValueLabels]);
 
-      const byWeek=[...groupSum(enrollments, e=>e.week).entries()].sort((a,b)=>a[0].localeCompare(b[0]));
+      const byWeek=[...groupUnique(enrollments, e=>e.week, e=>e.player).entries()].sort((a,b)=>a[0].localeCompare(b[0]));
       makeChart("chartWeek","bar",byWeek.map(x=>x[0]),
         [{ data:byWeek.map(x=>x[1]), backgroundColor:"#a855f7", borderRadius:6 }],
         { plugins:{ legend:{display:false}, tooltip:playersTooltip } },
