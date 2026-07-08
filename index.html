@@ -1544,7 +1544,7 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
     }
 
     // ---- Gràfics ----
-    function makeChart(id,type,labels,datasets,opts={}){
+    function makeChart(id,type,labels,datasets,opts={},plugins=[]){
       if(charts[id]) charts[id].destroy();
       Chart.defaults.color="#94a3b8"; Chart.defaults.borderColor="#334155";
       charts[id]=new Chart(document.getElementById(id),{
@@ -1553,19 +1553,62 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
           responsive:true, maintainAspectRatio:false,
           plugins:{ legend:{ display:datasets.length>1, labels:{boxWidth:12} } },
           scales:{ x:{grid:{display:false}}, y:{beginAtZero:true,ticks:{precision:0}} }
-        }, opts)
+        }, opts),
+        plugins
       });
     }
+
+    // Plugin inline: dibuixa el valor (nombre de players) a cada barra.
+    // Funciona tant per barres verticals com horitzontals (indexAxis:"y").
+    const barValueLabels = {
+      id:"barValueLabels",
+      afterDatasetsDraw(chart){
+        const {ctx}=chart;
+        ctx.save();
+        ctx.font="700 12px system-ui, sans-serif";
+        ctx.fillStyle="#e2e8f0";
+        chart.data.datasets.forEach((ds,di)=>{
+          const meta=chart.getDatasetMeta(di);
+          if(meta.hidden) return;
+          meta.data.forEach((el,i)=>{
+            const v=ds.data[i];
+            if(v==null||v==="") return;
+            const horiz=chart.options.indexAxis==="y";
+            if(horiz){
+              ctx.textAlign="left"; ctx.textBaseline="middle";
+              ctx.fillText(v, el.x+6, el.y);
+            } else {
+              ctx.textAlign="center"; ctx.textBaseline="bottom";
+              ctx.fillText(v, el.x, el.y-4);
+            }
+          });
+        });
+        ctx.restore();
+      }
+    };
+
+    // Tooltip que mostra "N players" a les gràfiques d'inscripcions.
+    const playersTooltip = {
+      callbacks:{
+        label:(item)=>{
+          const n=item.chart.options.indexAxis==="y" ? item.parsed.x : item.parsed.y;
+          return `${n} ${n===1?"player":"players"}`;
+        }
+      }
+    };
 
     function buildCharts(){
       const byCat=[...groupSum(enrollments, e=>e.category||"(sense)").entries()].sort((a,b)=>b[1]-a[1]);
       makeChart("chartCat","bar",byCat.map(x=>x[0]),
         [{ data:byCat.map(x=>x[1]), backgroundColor:byCat.map((_,i)=>PALETTE[i%PALETTE.length]), borderRadius:6 }],
-        { indexAxis:"y" });
+        { indexAxis:"y", plugins:{ legend:{display:false}, tooltip:playersTooltip } },
+        [barValueLabels]);
 
       const byWeek=[...groupSum(enrollments, e=>e.week).entries()].sort((a,b)=>a[0].localeCompare(b[0]));
       makeChart("chartWeek","bar",byWeek.map(x=>x[0]),
-        [{ data:byWeek.map(x=>x[1]), backgroundColor:"#a855f7", borderRadius:6 }]);
+        [{ data:byWeek.map(x=>x[1]), backgroundColor:"#a855f7", borderRadius:6 }],
+        { plugins:{ legend:{display:false}, tooltip:playersTooltip } },
+        [barValueLabels]);
 
       const dayKeys=[...new Set(sessions.map(s=>s.dateISO))].sort();
       const pByDay=groupSum(sessions, s=>s.dateISO, s=>s.players);
