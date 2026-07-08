@@ -88,6 +88,15 @@
     table.data th:hover { color:var(--accent); }
     table.data tbody tr:hover { background:var(--card-hover); }
     table.data td.wrap { white-space:normal; max-width:340px; color:var(--muted); font-size:0.82rem; }
+    /* Amplada fixa de columnes a "Players inscrits" perquè no canviïn segons
+       la setmana seleccionada (contingut diferent = amplada diferent amb el
+       layout automàtic). L'última columna (badges) absorbeix la resta. */
+    table#playersTable { table-layout:fixed; }
+    table#playersTable th:nth-child(1), table#playersTable td:nth-child(1) { width:110px; }
+    table#playersTable th:nth-child(2), table#playersTable td:nth-child(2) { width:110px; }
+    table#playersTable th:nth-child(3), table#playersTable td:nth-child(3) { width:90px; }
+    table#playersTable th:nth-child(4), table#playersTable td:nth-child(4) { width:90px; }
+    table#playersTable td:nth-child(5) { white-space:normal; }
     /* Columnes de setmanes encara no pagables (S3-S5): to atenuat. */
     #payTable th.pay-info, #payTable td.pay-info { color:var(--muted); background:var(--card-hover); }
     /* Columnes d'estimació total (S1-S5): to lila suau, són una projecció. */
