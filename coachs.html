@@ -128,15 +128,7 @@
 
   <div id="weekKpis" class="kpis" style="display:none;"></div>
 
-  <div id="workplan" class="workplan" style="display:none;">
-    <h3>Continguts Tecnificació</h3>
-    <ul>
-      <li><span class="t">15'</span><span>mecànica de tir</span></li>
-      <li><span class="t">15'</span><span>passada</span></li>
-      <li><span class="t">20'</span><span>finalitzacions</span></li>
-      <li><span class="t">10'</span><span>integrar els 3 continguts anteriors</span></li>
-    </ul>
-  </div>
+  <div id="workplan" class="workplan" style="display:none;"></div>
 
   <h2 class="section">Planificació i coachs assignats</h2>
   <p class="hint">Per cada dia i franja: els <strong>coachs assignats</strong> i els <strong>players</strong> que tindran.
@@ -749,6 +741,28 @@
     const PLANNED_WEEKS = ["Setmana 1", "Setmana 2", "Setmana 3"];
     const isWeekPlanned = label => PLANNED_WEEKS.includes(label);
 
+    // Continguts de la sessió per setmana. Cada element: [minuts, descripció].
+    // Les setmanes sense entrada pròpia no mostren el bloc de continguts.
+    const WORKPLANS = {
+      "Setmana 1": [
+        ["15'", "mecànica de tir"],
+        ["15'", "passada"],
+        ["20'", "finalitzacions"],
+        ["10'", "integrar els 3 continguts anteriors"],
+      ],
+      "Setmana 2": [
+        ["15'", "mecànica de tir"],
+        ["15'", "passada"],
+        ["20'", "finalitzacions"],
+        ["10'", "integrar els 3 continguts anteriors"],
+      ],
+      "Setmana 3": [
+        ["15'", "Domini de pilota i canvis de ritme"],
+        ["15'", "Joc de peus (parades i pivots)"],
+        ["20'", "Tàctica individual (1c1 des de diferents posicions aplicant bot i peus)"],
+      ],
+    };
+
     function populateWeeks(){
       const sel=document.getElementById("filterWeek");
       WEEK_COLUMNS.forEach(wc=>{
@@ -825,9 +839,20 @@
       const schedule=document.getElementById("schedule");
       const empty=document.getElementById("empty");
 
-      // El pla de treball (continguts) aplica a les Setmanes 1 i 2 (mateixos).
+      // El pla de treball (continguts) depèn de la setmana seleccionada
+      // (WORKPLANS). Les setmanes sense continguts definits no el mostren.
       const wp=document.getElementById("workplan");
-      if(wp) wp.style.display = (filterWeek==="Setmana 1" || filterWeek==="Setmana 2") ? "" : "none";
+      if(wp){
+        const plan=WORKPLANS[filterWeek];
+        if(plan && plan.length){
+          wp.innerHTML="<h3>Continguts Tecnificació</h3><ul>"+
+            plan.map(([t,d])=>`<li><span class="t">${esc(t)}</span><span>${esc(d)}</span></li>`).join("")+
+            "</ul>";
+          wp.style.display="";
+        } else {
+          wp.style.display="none";
+        }
+      }
 
       // Avís de setmana amb la planificació encara pendent (S3, S4, S5).
       const notice=document.getElementById("weekNotice");
