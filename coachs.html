@@ -775,7 +775,7 @@
       const labels=WEEK_COLUMNS.map(wc=>wc.label);
       filterWeek=labels.includes("Setmana 2") ? "Setmana 2" : (labels[0]||"");
       sel.value=filterWeek;
-      sel.addEventListener("change",e=>{ filterWeek=e.target.value; populateFilters(); render(); });
+      sel.addEventListener("change",e=>{ filterWeek=e.target.value; populateFilters(); render(); updateCartell(); });
     }
 
     // Omple els selects de coach i player amb els valors únics presents a les
@@ -1043,6 +1043,26 @@
       const m=html.match(/<a id="cartellLink" href="(data:image\/[^"]+)"/i);
       return m ? m[1] : "";
     }
+    // El cartell de continguts de la S3 (Tecnis 26 v2) viu en un segon link
+    // d'index.html. S1-S2 usen l'antic (cartellLink), S3 el nou, S4-S5 cap.
+    function extractCartellS3(html){
+      const m=html.match(/<a id="cartellLinkS3" href="(data:image\/[^"]+)"/i);
+      return m ? m[1] : "";
+    }
+    // Cartells de continguts per setmana (data-URIs extrets d'index.html).
+    let cartellS12 = "";
+    let cartellS3 = "";
+    // Actualitza el link del cartell segons la setmana seleccionada:
+    // S1/S2 -> cartell antic, S3 -> cartell nou, S4/S5 -> ocult.
+    function updateCartell(){
+      const a=document.getElementById("cartellLink");
+      if(!a) return;
+      let uri="", name="Tecnis 26.jpeg";
+      if(filterWeek==="Setmana 3"){ uri=cartellS3; name="Tecnis 26 v2.jpeg"; }
+      else if(filterWeek==="Setmana 1" || filterWeek==="Setmana 2"){ uri=cartellS12; }
+      if(uri){ a.href=uri; a.download=name; a.style.display=""; }
+      else { a.removeAttribute("href"); a.style.display="none"; }
+    }
 
     // ===== Arrencada =====
     function init(){
@@ -1072,9 +1092,10 @@
         applyEnrollmentExceptions();
         const logo=extractLogo(html);
         if(logo){ document.querySelector("header .logo").src=logo; }
-        const cartell=extractCartell(html);
-        if(cartell){ const a=document.getElementById("cartellLink"); a.href=cartell; a.style.display=""; }
+        cartellS12=extractCartell(html);
+        cartellS3=extractCartellS3(html);
         init();
+        updateCartell();
       }).catch(e=>{
         setStatus("No s'han pogut carregar les dades: "+e.message);
         init();
