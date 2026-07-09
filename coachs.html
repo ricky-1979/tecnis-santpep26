@@ -97,10 +97,13 @@
       border-radius:12px; padding:12px 16px; margin-bottom:20px;
       font-size:0.9rem; font-weight:600; }
     .week-notice .ico { font-size:1.1rem; line-height:1; }
-    .week-total { background:var(--card); border:1px solid var(--border);
-      border-radius:12px; padding:12px 16px; margin-bottom:20px;
-      font-size:0.9rem; color:var(--muted); }
-    .week-total strong { color:var(--brand); font-size:1.05rem; }
+    /* KPIs per setmana: targetes amb el número gran i l'etiqueta a sota. */
+    .kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+    .kpi { background:var(--card); border:1px solid var(--border); border-radius:12px;
+      padding:14px 16px; text-align:center; }
+    .kpi .kpi-num { color:var(--brand); font-size:1.6rem; font-weight:700; line-height:1.1; }
+    .kpi .kpi-lbl { color:var(--muted); font-size:0.8rem; margin-top:4px; }
+    @media (max-width:520px){ .kpi .kpi-num { font-size:1.3rem; } }
     footer { margin-top:30px; color:var(--muted); font-size:0.8rem; text-align:center; }
   </style>
 </head>
@@ -143,7 +146,7 @@
     <span class="ico">⚠️</span>
     <span id="weekNoticeText"></span>
   </div>
-  <div id="weekTotal" class="week-total" style="display:none;"></div>
+  <div id="weekKpis" class="kpis" style="display:none;"></div>
   <div id="schedule"></div>
   <div class="empty" id="empty" style="display:none;">No hi ha sessions amb players per a aquesta selecció.</div>
 
@@ -841,15 +844,32 @@
       // que ve diversos dies compta un sol cop). Compta la inscripció, no la
       // visibilitat a la graella (una franja sense coach no es mostra però el
       // player hi segueix inscrit).
-      const wt=document.getElementById("weekTotal");
-      if(wt){
+      const kp=document.getElementById("weekKpis");
+      if(kp){
         if(filterWeek){
+          // Players únics inscrits la setmana (una inscripció que ve diversos
+          // dies compta un sol cop).
           const inWeek=e=>ISO_WEEK[e.dateISO]===filterWeek;
-          const uniq=new Set(enrollments.filter(inWeek).map(e=>e.player));
-          wt.style.display="";
-          wt.innerHTML="Total players inscrits · "+esc(filterWeek)+": <strong>"+uniq.size+"</strong>";
+          const players=new Set(enrollments.filter(inWeek).map(e=>e.player)).size;
+          // Sessions i coachs: franges amb coach assignat I players inscrits
+          // (les que realment es veuen a la graella), dins la setmana.
+          let sessions=0; const coachSet=new Set();
+          Object.entries(assignments).forEach(([key,arr])=>{
+            const [d,sl]=key.split("|");
+            if(ISO_WEEK[d]!==filterWeek) return;
+            const cs=(arr||[]).filter(Boolean);
+            if(!cs.length) return;
+            if(playersFor(d,sl).length===0) return; // sense players no és sessió
+            sessions++; cs.forEach(c=>coachSet.add(c));
+          });
+          kp.style.display="";
+          kp.innerHTML=[
+            ["Players inscrits",players],
+            ["Sessions",sessions],
+            ["Coachs",coachSet.size],
+          ].map(([lbl,n])=>`<div class="kpi"><div class="kpi-num">${n}</div><div class="kpi-lbl">${esc(lbl)}</div></div>`).join("");
         } else {
-          wt.style.display="none";
+          kp.style.display="none";
         }
       }
 
