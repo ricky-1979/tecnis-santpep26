@@ -396,6 +396,23 @@
     <div class="empty" id="payEmpty" style="display:none;">No hi ha tecnificacions assignades.</div>
   </div>
 
+  <div class="table-card">
+    <h2 class="section">Sessions pendents de recuperar</h2>
+    <p class="hint">Tecnificacions a què el player no va assistir i que <strong>encara no tenen data de recuperació</strong> assignada. Quan es fixi el dia, es mouen a les inscripcions i desapareixen d'aquí.</p>
+    <table class="data" id="pendingTable">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Dia absent</th>
+          <th>Dia</th>
+          <th>Franja</th>
+        </tr>
+      </thead>
+      <tbody id="pendingBody"></tbody>
+    </table>
+    <div class="empty" id="pendingEmpty" style="display:none;">No hi ha sessions pendents de recuperar. 🎉</div>
+  </div>
+
 
   <footer id="footer"></footer>
 
@@ -1319,6 +1336,18 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       // 21:00, treta a ENROLLMENT_REMOVALS) a dilluns 13/07, mateixa franja.
       { player:"Oriol Azuaza Sampedro", dateISO:"2026-07-13", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 3" },
     ];
+
+    // Sessions absents que encara NO tenen data de recuperació assignada.
+    // Quan es fixi el dia, moure el cas a ENROLLMENT_ADDITIONS (amb la data
+    // nova) i treure'l d'aquí. `absentDate` és el dia que el player no va venir.
+    const PENDING_RECOVERIES = [
+      { player:"Blai Abrisqueta López", absentDate:"2026-07-09", slot:"19:00" },
+      { player:"Blai Abrisqueta López", absentDate:"2026-07-10", slot:"18:00" },
+      { player:"Blai Abrisqueta López", absentDate:"2026-07-10", slot:"19:00" },
+      { player:"Carla Perramón Navarro", absentDate:"2026-07-10", slot:"21:00" },
+      { player:"Carla Perramón Navarro", absentDate:"2026-07-14", slot:"20:00" },
+    ];
+
     function applyEnrollmentExceptions(){
       const rm=new Set(ENROLLMENT_REMOVALS);
       enrollments=enrollments.filter(e=>!rm.has(`${e.player}|${e.dateISO}|${e.slot}`));
@@ -2074,6 +2103,27 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
     }
     function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
+    function renderPendingRecoveries(){
+      const body=document.getElementById("pendingBody");
+      const empty=document.getElementById("pendingEmpty");
+      const table=document.getElementById("pendingTable");
+      const rows=[...PENDING_RECOVERIES].sort((a,b)=>
+        a.absentDate.localeCompare(b.absentDate) ||
+        a.slot.localeCompare(b.slot) ||
+        a.player.localeCompare(b.player));
+      if(!rows.length){
+        body.innerHTML=""; table.style.display="none"; empty.style.display="";
+        return;
+      }
+      table.style.display=""; empty.style.display="none";
+      body.innerHTML=rows.map(r=>`<tr>
+        <td>${esc(r.player)}</td>
+        <td>${esc(displayFromIso(r.absentDate))}</td>
+        <td>${esc(weekdayFromIso(r.absentDate))}</td>
+        <td>${esc(SLOT_LABEL[r.slot]||r.slot)}</td>
+      </tr>`).join("");
+    }
+
     // Selector de setmana de la secció Grups de treball
     function buildGroupsWeekSelect(){
       const sel=document.getElementById("groupsWeek");
@@ -2617,6 +2667,7 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       renderAssign();
       renderCoachPayments();
       renderGroups();
+      renderPendingRecoveries();
       updateAssignResetBtn();
       // Firebase sincronitza l'assignació resolent conflictes per timestamp.
       if(hasFirebase()){
