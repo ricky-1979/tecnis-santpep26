@@ -798,9 +798,9 @@
         o.textContent = isWeekPlanned(wc.label) ? wc.label : wc.label+" (planificació pendent)";
         sel.appendChild(o);
       });
-      // Per defecte, Setmana 2 (si existeix; si no, la primera disponible)
+      // Per defecte, Setmana 3 (si existeix; si no, la primera disponible)
       const labels=WEEK_COLUMNS.map(wc=>wc.label);
-      filterWeek=labels.includes("Setmana 2") ? "Setmana 2" : (labels[0]||"");
+      filterWeek=labels.includes("Setmana 3") ? "Setmana 3" : (labels[0]||"");
       sel.value=filterWeek;
       sel.addEventListener("change",e=>{ filterWeek=e.target.value; populateFilters(); render(); updateCartell(); });
     }
