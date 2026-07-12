@@ -88,6 +88,11 @@
     table.data th:hover { color:var(--accent); }
     table.data tbody tr:hover { background:var(--card-hover); }
     table.data td.wrap { white-space:normal; max-width:340px; color:var(--muted); font-size:0.82rem; }
+    /* Sessions pendents de recuperar: columnes compactes; Player agafa la resta */
+    #pendingTable th:nth-child(1), #pendingTable td:nth-child(1) { width:120px; }
+    #pendingTable th:nth-child(2), #pendingTable td:nth-child(2) { width:110px; }
+    #pendingTable th:nth-child(3), #pendingTable td:nth-child(3) { width:90px; }
+    #pendingTable th:nth-child(4), #pendingTable td:nth-child(4) { width:auto; }
     /* Amplada fixa de columnes a "Players inscrits" perquè no canviïn segons
        la setmana seleccionada (contingut diferent = amplada diferent amb el
        layout automàtic). L'última columna (badges) absorbeix la resta. */
