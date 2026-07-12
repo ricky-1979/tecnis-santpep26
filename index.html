@@ -402,10 +402,10 @@
     <table class="data" id="pendingTable">
       <thead>
         <tr>
-          <th>Player</th>
-          <th>Dia absent</th>
+          <th>Data absent</th>
           <th>Dia</th>
           <th>Franja</th>
+          <th>Player</th>
         </tr>
       </thead>
       <tbody id="pendingBody"></tbody>
@@ -2117,10 +2117,10 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       }
       table.style.display=""; empty.style.display="none";
       body.innerHTML=rows.map(r=>`<tr>
-        <td>${esc(r.player)}</td>
         <td>${esc(displayFromIso(r.absentDate))}</td>
         <td>${esc(weekdayFromIso(r.absentDate))}</td>
         <td>${esc(SLOT_LABEL[r.slot]||r.slot)}</td>
+        <td>${esc(r.player)}</td>
       </tr>`).join("");
     }
 
