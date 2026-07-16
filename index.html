@@ -89,11 +89,10 @@
     table.data th:hover { color:var(--accent); }
     table.data tbody tr:hover { background:var(--card-hover); }
     table.data td.wrap { white-space:normal; max-width:340px; color:var(--muted); font-size:0.82rem; }
-    /* Sessions pendents de recuperar: columnes compactes; Player agafa la resta */
-    #pendingTable th:nth-child(1), #pendingTable td:nth-child(1) { width:120px; }
-    #pendingTable th:nth-child(2), #pendingTable td:nth-child(2) { width:110px; }
-    #pendingTable th:nth-child(3), #pendingTable td:nth-child(3) { width:90px; }
-    #pendingTable th:nth-child(4), #pendingTable td:nth-child(4) { width:auto; }
+    /* Sessions pendents de recuperar: Player i total compactes; Dates agafa la resta */
+    #pendingTable th:nth-child(1), #pendingTable td:nth-child(1) { width:auto; }
+    #pendingTable th:nth-child(2), #pendingTable td:nth-child(2) { width:150px; text-align:center; }
+    #pendingTable th:nth-child(3), #pendingTable td:nth-child(3) { width:auto; }
     /* Amplada fixa de columnes a "Players inscrits" perquè no canviïn segons
        la setmana seleccionada (contingut diferent = amplada diferent amb el
        layout automàtic). L'última columna (badges) absorbeix la resta. */
@@ -408,10 +407,9 @@
     <table class="data" id="pendingTable">
       <thead>
         <tr>
-          <th>Data absent</th>
-          <th>Dia</th>
-          <th>Franja</th>
           <th>Player</th>
+          <th>Tecnis a recuperar</th>
+          <th>Dates</th>
         </tr>
       </thead>
       <tbody id="pendingBody"></tbody>
@@ -2169,20 +2167,25 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       const body=document.getElementById("pendingBody");
       const empty=document.getElementById("pendingEmpty");
       const table=document.getElementById("pendingTable");
-      const rows=[...PENDING_RECOVERIES].sort((a,b)=>
-        a.absentDate.localeCompare(b.absentDate) ||
-        a.slot.localeCompare(b.slot) ||
-        a.player.localeCompare(b.player));
-      if(!rows.length){
+      if(!PENDING_RECOVERIES.length){
         body.innerHTML=""; table.style.display="none"; empty.style.display="";
         return;
       }
+      // Una línia per player: total de tecnis a recuperar i les seves dates.
+      const byPlayer=new Map();
+      PENDING_RECOVERIES.forEach(r=>{
+        if(!byPlayer.has(r.player)) byPlayer.set(r.player, []);
+        byPlayer.get(r.player).push(r.absentDate);
+      });
+      const rows=[...byPlayer.entries()]
+        .map(([player, dates])=>({ player, count:dates.length,
+          dates:[...dates].sort() }))
+        .sort((a,b)=> b.count-a.count || a.player.localeCompare(b.player));
       table.style.display=""; empty.style.display="none";
       body.innerHTML=rows.map(r=>`<tr>
-        <td>${esc(displayFromIso(r.absentDate))}</td>
-        <td>${esc(weekdayFromIso(r.absentDate))}</td>
-        <td>${esc(SLOT_LABEL[r.slot]||r.slot)}</td>
         <td>${esc(r.player)}</td>
+        <td>${r.count}</td>
+        <td>${r.dates.map(d=>esc(displayFromIso(d))).join(", ")}</td>
       </tr>`).join("");
     }
 
