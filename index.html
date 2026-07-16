@@ -222,6 +222,45 @@
 
   <section class="cards" id="cards"></section>
 
+  <div class="table-card">
+    <h2 class="section">Assignació de coachs</h2>
+    <p class="hint">Arrossega un coach d'una franja a una altra per moure'l, o fes servir <strong>+ Afegir</strong> per assignar-ne un de nou. Fes clic a la <strong>×</strong> per treure'l. Els canvis es desen i se sincronitzen automàticament entre dispositius. Una cel·la en <span style="color:var(--danger);font-weight:700;">vermell ⚠</span> indica que hi ha <strong>menys de 6 players amb més d'un coach</strong> (sobra entrenador).</p>
+    <div class="assign-toolbar">
+      <select id="assignWeek"></select>
+      <span class="sep"></span>
+      <span class="assign-status" id="assignStatus"></span>
+      <button id="assignReset" type="button">Reiniciar Setmana</button>
+    </div>
+    <div class="assign-overwrap">
+      <div class="assign-grid" id="assignGrid"></div>
+    </div>
+    <div class="assign-legend" id="assignLegend"></div>
+  </div>
+
+  <div class="table-card">
+    <h2 class="section">Players inscrits</h2>
+    <p class="hint">Players inscrits a cada sessió, agrupats per dia i franja horària. <span class="badge under">· DS</span> = inscripció de <strong>dia solt</strong> (no setmana completa). Les sessions amb <strong>més de 8 players</strong> es marquen en <span style="color:var(--danger);font-weight:700;">vermell ⚠</span>.</p>
+    <div class="filters">
+      <select id="filterPlayerWeek"><option value="">Totes les setmanes</option></select>
+      <select id="filterPlayerCategory"><option value="">Totes les categories</option></select>
+      <button id="clearPlayerFilters" type="button">Netejar</button>
+    </div>
+    <div class="count-info" id="playerCountInfo"></div>
+    <table class="data" id="playersTable">
+      <thead>
+        <tr>
+          <th data-key="dateISO">Data</th>
+          <th data-key="weekday">Dia</th>
+          <th data-key="slotIdx">Franja</th>
+          <th data-key="count">Players</th>
+          <th>Players inscrits</th>
+        </tr>
+      </thead>
+      <tbody id="playersBody"></tbody>
+    </table>
+    <div class="empty" id="playersEmpty" style="display:none;">No hi ha players amb aquests filtres.</div>
+  </div>
+
   <div class="charts">
     <div class="chart-card">
       <h2>Players per categoria/franja</h2>
@@ -272,21 +311,6 @@
   </div>
 
   <div class="table-card">
-    <h2 class="section">Assignació de coachs</h2>
-    <p class="hint">Arrossega un coach d'una franja a una altra per moure'l, o fes servir <strong>+ Afegir</strong> per assignar-ne un de nou. Fes clic a la <strong>×</strong> per treure'l. Els canvis es desen i se sincronitzen automàticament entre dispositius. Una cel·la en <span style="color:var(--danger);font-weight:700;">vermell ⚠</span> indica que hi ha <strong>menys de 6 players amb més d'un coach</strong> (sobra entrenador).</p>
-    <div class="assign-toolbar">
-      <select id="assignWeek"></select>
-      <span class="sep"></span>
-      <span class="assign-status" id="assignStatus"></span>
-      <button id="assignReset" type="button">Reiniciar Setmana</button>
-    </div>
-    <div class="assign-overwrap">
-      <div class="assign-grid" id="assignGrid"></div>
-    </div>
-    <div class="assign-legend" id="assignLegend"></div>
-  </div>
-
-  <div class="table-card">
     <h2 class="section">Grups de treball</h2>
     <p class="hint">Tria si cada player va al <strong>Grup 1</strong> o al <strong>Grup 2</strong> per a la setmana seleccionada. Es mostra a la pàgina dels coachs. Els canvis es desen i se sincronitzen automàticament. Un player que assisteixi a més d'una franja la mateixa setmana hi apareixerà a cadascuna.</p>
     <div class="assign-toolbar">
@@ -295,30 +319,6 @@
     <div class="assign-overwrap">
       <div class="groups-wrap" id="groupsWrap"></div>
     </div>
-  </div>
-
-  <div class="table-card">
-    <h2 class="section">Players inscrits</h2>
-    <p class="hint">Players inscrits a cada sessió, agrupats per dia i franja horària. <span class="badge under">· DS</span> = inscripció de <strong>dia solt</strong> (no setmana completa). Les sessions amb <strong>més de 8 players</strong> es marquen en <span style="color:var(--danger);font-weight:700;">vermell ⚠</span>.</p>
-    <div class="filters">
-      <select id="filterPlayerWeek"><option value="">Totes les setmanes</option></select>
-      <select id="filterPlayerCategory"><option value="">Totes les categories</option></select>
-      <button id="clearPlayerFilters" type="button">Netejar</button>
-    </div>
-    <div class="count-info" id="playerCountInfo"></div>
-    <table class="data" id="playersTable">
-      <thead>
-        <tr>
-          <th data-key="dateISO">Data</th>
-          <th data-key="weekday">Dia</th>
-          <th data-key="slotIdx">Franja</th>
-          <th data-key="count">Players</th>
-          <th>Players inscrits</th>
-        </tr>
-      </thead>
-      <tbody id="playersBody"></tbody>
-    </table>
-    <div class="empty" id="playersEmpty" style="display:none;">No hi ha players amb aquests filtres.</div>
   </div>
 
   <div class="grid-card">
