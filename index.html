@@ -280,6 +280,47 @@
   </div>
 
   <div class="table-card">
+    <h2 class="section">Recompte de tecnificacions per coach (Setmanes 1, 2 i 3)</h2>
+    <p class="hint">Cada tecnificació assignada es paga a <strong>15 €</strong>. El <strong>Total (S1+S2+S3)</strong> i l'<strong>Import</strong> compten només les setmanes consolidades. El <strong>Total estimat (S1-S5)</strong> i l'<strong>Import estimat</strong> inclouen totes cinc setmanes segons l'assignació actual (poden canviar mentre s'ajusten les setmanes 4 i 5). Es recalcula automàticament segons l'<strong>Assignació de coachs</strong>.</p>
+    <table class="data" id="payTable">
+      <thead>
+        <tr>
+          <th>Coach</th>
+          <th>S1</th>
+          <th>S2</th>
+          <th>S3</th>
+          <th class="pay-info">S4</th>
+          <th class="pay-info">S5</th>
+          <th>Total (S1+S2+S3)</th>
+          <th>Import (€)</th>
+          <th class="pay-est">Total estimat (S1-S5)</th>
+          <th class="pay-est">Import estimat (€)</th>
+        </tr>
+      </thead>
+      <tbody id="payBody"></tbody>
+      <tfoot id="payFoot"></tfoot>
+    </table>
+    <div class="empty" id="payEmpty" style="display:none;">No hi ha tecnificacions assignades.</div>
+  </div>
+
+  <div class="table-card">
+    <h2 class="section">Sessions pendents de recuperar</h2>
+    <p class="hint">Tecnificacions a què el player no va assistir i que <strong>encara no tenen data de recuperació</strong> assignada. Quan es fixi el dia, es mouen a les inscripcions i desapareixen d'aquí.</p>
+    <table class="data" id="pendingTable">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Tecnis a recuperar</th>
+          <th>Dates</th>
+        </tr>
+      </thead>
+      <tbody id="pendingBody"></tbody>
+    </table>
+    <div class="empty" id="pendingEmpty" style="display:none;">No hi ha sessions pendents de recuperar. 🎉</div>
+  </div>
+
+
+  <div class="table-card">
     <h2 class="section">Planificació de franges (blocs de 2h consecutives)</h2>
     <p class="hint">Coachs disponibles per cada franja horària. <span class="badge ok">Lila</span> = va demanar aquesta franja · <span class="badge under">Groc ⚠</span> = proposta per completar un bloc de 2h consecutives (no la va demanar). El recompte només compta les franges demanades.</p>
     <div class="filters">
@@ -375,46 +416,6 @@
       <tbody id="tableBody"></tbody>
     </table>
     <div class="empty" id="emptyMsg" style="display:none;">No hi ha resultats amb aquests filtres.</div>
-  </div>
-
-  <div class="table-card">
-    <h2 class="section">Recompte de tecnificacions per coach (Setmanes 1, 2 i 3)</h2>
-    <p class="hint">Cada tecnificació assignada es paga a <strong>15 €</strong>. El <strong>Total (S1+S2+S3)</strong> i l'<strong>Import</strong> compten només les setmanes consolidades. El <strong>Total estimat (S1-S5)</strong> i l'<strong>Import estimat</strong> inclouen totes cinc setmanes segons l'assignació actual (poden canviar mentre s'ajusten les setmanes 4 i 5). Es recalcula automàticament segons l'<strong>Assignació de coachs</strong>.</p>
-    <table class="data" id="payTable">
-      <thead>
-        <tr>
-          <th>Coach</th>
-          <th>S1</th>
-          <th>S2</th>
-          <th>S3</th>
-          <th class="pay-info">S4</th>
-          <th class="pay-info">S5</th>
-          <th>Total (S1+S2+S3)</th>
-          <th>Import (€)</th>
-          <th class="pay-est">Total estimat (S1-S5)</th>
-          <th class="pay-est">Import estimat (€)</th>
-        </tr>
-      </thead>
-      <tbody id="payBody"></tbody>
-      <tfoot id="payFoot"></tfoot>
-    </table>
-    <div class="empty" id="payEmpty" style="display:none;">No hi ha tecnificacions assignades.</div>
-  </div>
-
-  <div class="table-card">
-    <h2 class="section">Sessions pendents de recuperar</h2>
-    <p class="hint">Tecnificacions a què el player no va assistir i que <strong>encara no tenen data de recuperació</strong> assignada. Quan es fixi el dia, es mouen a les inscripcions i desapareixen d'aquí.</p>
-    <table class="data" id="pendingTable">
-      <thead>
-        <tr>
-          <th>Player</th>
-          <th>Tecnis a recuperar</th>
-          <th>Dates</th>
-        </tr>
-      </thead>
-      <tbody id="pendingBody"></tbody>
-    </table>
-    <div class="empty" id="pendingEmpty" style="display:none;">No hi ha sessions pendents de recuperar. 🎉</div>
   </div>
 
 
