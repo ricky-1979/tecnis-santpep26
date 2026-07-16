@@ -222,6 +222,25 @@
 
   <section class="cards" id="cards"></section>
 
+  <div class="charts">
+    <div class="chart-card">
+      <h2>Players per categoria/franja</h2>
+      <div class="chart-wrap"><canvas id="chartCat"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h2>Players per setmana</h2>
+      <div class="chart-wrap"><canvas id="chartWeek"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h2>Players vs coachs per dia</h2>
+      <div class="chart-wrap"><canvas id="chartDay"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h2>Disponibilitat per coach</h2>
+      <div class="chart-wrap"><canvas id="chartCoach"></canvas></div>
+    </div>
+  </div>
+
   <div class="table-card">
     <h2 class="section">Assignació de coachs</h2>
     <p class="hint">Arrossega un coach d'una franja a una altra per moure'l, o fes servir <strong>+ Afegir</strong> per assignar-ne un de nou. Fes clic a la <strong>×</strong> per treure'l. Els canvis es desen i se sincronitzen automàticament entre dispositius. Una cel·la en <span style="color:var(--danger);font-weight:700;">vermell ⚠</span> indica que hi ha <strong>menys de 6 players amb més d'un coach</strong> (sobra entrenador).</p>
@@ -259,25 +278,6 @@
       <tbody id="playersBody"></tbody>
     </table>
     <div class="empty" id="playersEmpty" style="display:none;">No hi ha players amb aquests filtres.</div>
-  </div>
-
-  <div class="charts">
-    <div class="chart-card">
-      <h2>Players per categoria/franja</h2>
-      <div class="chart-wrap"><canvas id="chartCat"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <h2>Players per setmana</h2>
-      <div class="chart-wrap"><canvas id="chartWeek"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <h2>Players vs coachs per dia</h2>
-      <div class="chart-wrap"><canvas id="chartDay"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <h2>Disponibilitat per coach</h2>
-      <div class="chart-wrap"><canvas id="chartCoach"></canvas></div>
-    </div>
   </div>
 
   <div class="table-card">
