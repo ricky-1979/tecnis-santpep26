@@ -1718,7 +1718,7 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
     // ---- Gràfics ----
     function makeChart(id,type,labels,datasets,opts={},plugins=[]){
       if(charts[id]) charts[id].destroy();
-      Chart.defaults.color="#94a3b8"; Chart.defaults.borderColor="#334155";
+      Chart.defaults.color="#4b5563"; Chart.defaults.borderColor="#d9cfe6";
       charts[id]=new Chart(document.getElementById(id),{
         type, data:{ labels, datasets },
         options:Object.assign({
@@ -1738,7 +1738,7 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
         const {ctx}=chart;
         ctx.save();
         ctx.font="700 12px system-ui, sans-serif";
-        ctx.fillStyle="#e2e8f0";
+        ctx.fillStyle="#1e1633";
         chart.data.datasets.forEach((ds,di)=>{
           const meta=chart.getDatasetMeta(di);
           if(meta.hidden) return;
