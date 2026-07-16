@@ -280,6 +280,23 @@
   </div>
 
   <div class="table-card">
+    <h2 class="section">Sessions pendents de recuperar</h2>
+    <p class="hint">Tecnificacions a què el player no va assistir i que <strong>encara no tenen data de recuperació</strong> assignada. Quan es fixi el dia, es mouen a les inscripcions i desapareixen d'aquí.</p>
+    <table class="data" id="pendingTable">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Tecnis a recuperar</th>
+          <th>Dates</th>
+        </tr>
+      </thead>
+      <tbody id="pendingBody"></tbody>
+    </table>
+    <div class="empty" id="pendingEmpty" style="display:none;">No hi ha sessions pendents de recuperar. 🎉</div>
+  </div>
+
+
+  <div class="table-card">
     <h2 class="section">Recompte de tecnificacions per coach (Setmanes 1, 2 i 3)</h2>
     <p class="hint">Cada tecnificació assignada es paga a <strong>15 €</strong>. El <strong>Total (S1+S2+S3)</strong> i l'<strong>Import</strong> compten només les setmanes consolidades. El <strong>Total estimat (S1-S5)</strong> i l'<strong>Import estimat</strong> inclouen totes cinc setmanes segons l'assignació actual (poden canviar mentre s'ajusten les setmanes 4 i 5). Es recalcula automàticament segons l'<strong>Assignació de coachs</strong>.</p>
     <table class="data" id="payTable">
@@ -302,23 +319,6 @@
     </table>
     <div class="empty" id="payEmpty" style="display:none;">No hi ha tecnificacions assignades.</div>
   </div>
-
-  <div class="table-card">
-    <h2 class="section">Sessions pendents de recuperar</h2>
-    <p class="hint">Tecnificacions a què el player no va assistir i que <strong>encara no tenen data de recuperació</strong> assignada. Quan es fixi el dia, es mouen a les inscripcions i desapareixen d'aquí.</p>
-    <table class="data" id="pendingTable">
-      <thead>
-        <tr>
-          <th>Player</th>
-          <th>Tecnis a recuperar</th>
-          <th>Dates</th>
-        </tr>
-      </thead>
-      <tbody id="pendingBody"></tbody>
-    </table>
-    <div class="empty" id="pendingEmpty" style="display:none;">No hi ha sessions pendents de recuperar. 🎉</div>
-  </div>
-
 
   <div class="table-card">
     <h2 class="section">Planificació de franges (blocs de 2h consecutives)</h2>
