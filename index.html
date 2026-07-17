@@ -668,6 +668,7 @@ Daniela,Pujol Oliver,2014,ichigochan83@hotmail.com,S,,No,,1,No,No,Infantil - 18:
 Laia,Cobarsi Sánchez,2009,laiacobsan334@gmail.com,S,,No,,1,No,No,Júnior/Sènior - 21:00 a 22:00,No,2116262,,Laia Cobarsi Sánchez,Laura Sanchez,2026-07-16 21:05
 Ivana,Benito Polo,2011,patricia.polo.prado@gmail.com,16,,No,,1,No,No,Cadet/Júnior - 20:00 a 21:00,No,2116141,,Ivana Benito Polo,Patricia  Polo,2026-07-16 20:11
 Pol,Fernández,,,S,,No,,1,No,No,Cadet/Júnior - 20:00 a 21:00,No,,,Pol Fernández,,
+Jana,Llibre Tossas,2009,jllibretossas12@gmail.com,16,,No,,1,No,No,Júnior/Sènior - 21:00 a 22:00,No,2118374,,Jana Llibre Tossas,Marc Llibre Giralt,2026-07-17 15:57
 </script>
 
 <script id="playersSoltsCsv" type="text/plain">
@@ -766,13 +767,13 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
 
     // Setmanes CONGELADES: només de consulta (ni grups de jugadors, ni
     // assignació de coachs, ni reserves). Vegeu AGENTS.md ("Setmana CONGELADA").
-    const FROZEN_WEEKS = new Set(["Setmana 1", "Setmana 2"]);
+    const FROZEN_WEEKS = new Set(["Setmana 1", "Setmana 2", "Setmana 3"]);
     const isWeekFrozen = (week)=> FROZEN_WEEKS.has(week);
 
     // Setmanes que el "Reiniciar des de reserves" NO ha de tocar mai: la
-    // Setmana 1 (congelada) i la Setmana 2 (assignacions ja consolidades).
+    // Setmana 1, la 2 i la 3 (congelades, assignacions ja consolidades).
     // La resta de la UI d'aquestes setmanes segueix editable manualment.
-    const RESET_PROTECTED_WEEKS = new Set(["Setmana 1", "Setmana 2"]);
+    const RESET_PROTECTED_WEEKS = new Set(["Setmana 1", "Setmana 2", "Setmana 3"]);
     const isResetProtected = (week)=> RESET_PROTECTED_WEEKS.has(week);
 
     let coachRecords = [];
