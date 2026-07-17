@@ -80,6 +80,8 @@
     a.badge.coach.wa .wa-ico { display:inline-flex; color:#25d366; }
     .badge.player { background:#efe6f7; color:var(--brand); }
     .badge.player.solt { background:#fdf6d3; color:#8a6d00; }
+    /* Player de fora del club: color diferenciat (blau) */
+    .badge.player.ext { background:#dbeafe; color:#1d4ed8; }
     .badge.empty { background:transparent; color:var(--muted); border:1px dashed var(--border); font-weight:500; }
     .badge.hit { outline:2px solid var(--brand); outline-offset:1px; }
     .toolbar select:disabled { opacity:0.45; cursor:not-allowed; }
@@ -190,6 +192,9 @@
 
     const PARSE_OPTS = { header:true, skipEmptyLines:true, transformHeader:h=>h.replace(/^\uFEFF+/, "").trim() };
     const COACH_NAME_MAP = { "Pau": "Pau Laviña" };
+    // Players de fora del club: es marquen amb un color diferent (blau).
+    const EXTERNAL_PLAYERS = new Set(["Pol Fernández"]);
+    const isExternalPlayer = name => EXTERNAL_PLAYERS.has(name);
     // Mapa de noms curts (nom + primer cognom) per MOSTRAR. La clau interna
     // segueix sent el nom complet. Es declara aquí perquè normalizeCoach l'usa.
     const PLAYER_SHORT = {};
@@ -1052,7 +1057,7 @@
           <span class="wk">${ISO_WEEK[b.dateISO]||""}</span>
         </div>`;
         const rows=b.rows.map(r=>{
-          const badge = p=>`<span class="badge player${p.solt?" solt":""}${filterPlayer&&p.name===filterPlayer?" hit":""}" title="${p.solt?"Dia solt":"Setmana completa"} · ${esc(p.name)}">${esc(shortName(p.name))}</span>`;
+          const badge = p=>`<span class="badge player${p.solt?" solt":""}${isExternalPlayer(p.name)?" ext":""}${filterPlayer&&p.name===filterPlayer?" hit":""}" title="${isExternalPlayer(p.name)?"De fora del club · ":""}${p.solt?"Dia solt":"Setmana completa"} · ${esc(p.name)}">${esc(shortName(p.name))}</span>`;
           const coachBadge = name=>{
             const cls=`badge coach${filterCoach&&name===filterCoach?" hit":""}`;
             const wa=waLink(name);

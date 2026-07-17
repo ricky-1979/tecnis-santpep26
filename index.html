@@ -112,6 +112,9 @@
     .badge.under { background:var(--lvl-under-bg); color:var(--lvl-under-fg); }
     .badge.ok { background:var(--lvl-ok-bg); color:var(--lvl-ok-fg); }
     .badge.noplayers { background:var(--lvl-none-bg); color:var(--lvl-none-fg); }
+    /* Player de fora del club: color diferenciat (blau) */
+    .badge.ext { background:#dbeafe; color:#1d4ed8; }
+    .grp-name.ext { color:#1d4ed8; font-weight:600; }
     /* Icona de sexe (inferit pel nom) davant de cada player */
     .gi { font-weight:700; margin-right:3px; }
     .gi-m { color:#60a5fa; }   /* noi: blau */
@@ -708,6 +711,9 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
       const first=String(fullName||"").trim().split(/\s+/)[0];
       return NAME_SEX[first] || "?";
     }
+    // Players de fora del club: es marquen amb un color diferent (blau).
+    const EXTERNAL_PLAYERS = new Set(["Pol Fernández"]);
+    const isExternalPlayer = name => EXTERNAL_PLAYERS.has(name);
     // Icona de sexe per posar davant del nom als llistats.
     function genderIcon(fullName){
       const s=sexOf(fullName);
@@ -2146,7 +2152,7 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
           <td>${g.weekday}</td>
           <td><strong${slotCls}${slotTitle}>${g.slotLabel}</strong></td>
           <td${countCls?' class="'+countCls.trim()+'"':""}>${(warn||over)?'<span class="count-badge" title="'+countTitle+'">'+g.count+' <span class="warn-ico">⚠</span></span>':g.count}</td>
-          <td class="coach-chips">${g.count?g.players.map(p=>`<span class="badge ${p.solt?"under":"ok"}" title="${p.solt?"Dia solt":"Setmana completa"} · ${esc(p.name)}">${genderIcon(p.name)}${esc(shortName(p.name))}</span>`).join(" "):'<span class="hint" style="margin:0">—</span>'}</td>
+          <td class="coach-chips">${g.count?g.players.map(p=>`<span class="badge ${isExternalPlayer(p.name)?"ext":(p.solt?"under":"ok")}" title="${isExternalPlayer(p.name)?"De fora del club · ":""}${p.solt?"Dia solt":"Setmana completa"} · ${esc(p.name)}">${genderIcon(p.name)}${esc(shortName(p.name))}</span>`).join(" "):'<span class="hint" style="margin:0">—</span>'}</td>
         </tr>`;}).join("");
     }
 
@@ -2290,7 +2296,7 @@ Bernat,López Abad,2010,bernat882020@gmail.com,,"Dt 21,Dc 22,Dj 23",Cadet/Júnio
         const rows=names.map(n=>{
           const g=groupOf(n,wk,sl);
           return `<div class="grp-row">
-            <span class="grp-name" title="${esc(n)}">${esc(shortName(n))}</span>
+            <span class="grp-name${isExternalPlayer(n)?" ext":""}" title="${isExternalPlayer(n)?"De fora del club · ":""}${esc(n)}">${esc(shortName(n))}</span>
             <span class="grp-toggle" data-name="${esc(n)}" data-slot="${esc(sl)}">
               <button type="button" class="gbtn${g==="1"?" on":""}" data-name="${esc(n)}" data-slot="${esc(sl)}" data-grp="1">G1</button>
               <button type="button" class="gbtn g2${g==="2"?" on":""}" data-name="${esc(n)}" data-slot="${esc(sl)}" data-grp="2">G2</button>
