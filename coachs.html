@@ -119,6 +119,7 @@
 
   <div class="toolbar">
     <select id="filterWeek"><option value="">Totes les setmanes</option></select>
+    <select id="filterDay"><option value="">Tots els dies</option></select>
     <select id="filterCoach"><option value="">Tots els coachs</option></select>
     <select id="filterPlayer"><option value="">Tots els players</option></select>
     <button id="clearFilters" class="navlink" style="display:none;">✕ Neteja filtres</button>
@@ -183,6 +184,7 @@
     let sessionNotes = {}; // "dateISO|slot" -> text que escriuen els coachs
     let enrollments = [];
     let filterWeek = "";
+    let filterDay = "";
     let filterCoach = "";
     let filterPlayer = "";
 
@@ -863,6 +865,7 @@
     // dades i connecta els esdeveniments de canvi. Es torna a cridar quan
     // arriben dades noves de Firebase per mantenir les llistes al dia.
     function populateFilters(){
+      const daySel=document.getElementById("filterDay");
       const coachSel=document.getElementById("filterCoach");
       const playerSel=document.getElementById("filterPlayer");
       const clearBtn=document.getElementById("clearFilters");
@@ -875,6 +878,23 @@
         if(inWeek(dateISO)) (arr||[]).forEach(c=>coaches.add(c));
       });
       const players=new Set(enrollments.filter(e=>inWeek(e.dateISO)).map(e=>e.player));
+
+      // Dies de la setmana presents a les dades (ordenats cronològicament),
+      // dins la setmana seleccionada si n'hi ha.
+      const dayset=new Set();
+      enrollments.forEach(e=>{ if(inWeek(e.dateISO)) dayset.add(e.dateISO); });
+      Object.keys(assignments).forEach(k=>{ const d=k.split("|")[0]; if(inWeek(d)) dayset.add(d); });
+      const weekdays=[...new Set([...dayset].filter(Boolean).sort().map(weekdayFromIso))];
+      const firstDay=daySel.querySelector("option");
+      daySel.innerHTML="";
+      daySel.appendChild(firstDay);
+      weekdays.forEach(wd=>{
+        const o=document.createElement("option");
+        o.value=wd; o.textContent=wd;
+        daySel.appendChild(o);
+      });
+      daySel.value=weekdays.includes(filterDay)?filterDay:"";
+      filterDay=daySel.value;
 
       const fill=(sel,values,keep)=>{
         const first=sel.querySelector("option");
@@ -894,11 +914,12 @@
       filterPlayer=playerSel.value;
 
       if(!coachSel.dataset.bound){
+        daySel.addEventListener("change",e=>{ filterDay=e.target.value; render(); });
         coachSel.addEventListener("change",e=>{ filterCoach=e.target.value; render(); });
         playerSel.addEventListener("change",e=>{ filterPlayer=e.target.value; render(); });
         clearBtn.addEventListener("click",()=>{
-          filterCoach=""; filterPlayer="";
-          coachSel.value=""; playerSel.value="";
+          filterDay=""; filterCoach=""; filterPlayer="";
+          daySel.value=""; coachSel.value=""; playerSel.value="";
           render();
         });
         coachSel.dataset.bound="1";
@@ -981,7 +1002,7 @@
       }
 
       // Mostra el botó de netejar només si hi ha algun filtre de cerca actiu.
-      const searching=!!(filterCoach||filterPlayer);
+      const searching=!!(filterDay||filterCoach||filterPlayer);
       const clearBtn=document.getElementById("clearFilters");
       if(clearBtn) clearBtn.style.display = searching ? "" : "none";
 
@@ -992,6 +1013,8 @@
       let days=[...dayset].filter(Boolean).sort();
       // Els filtres de coach/player actuen dins de la setmana seleccionada.
       if(filterWeek) days=days.filter(d=>ISO_WEEK[d]===filterWeek);
+      // Filtre per dia de la setmana (Dilluns, Dimarts…).
+      if(filterDay) days=days.filter(d=>weekdayFromIso(d)===filterDay);
 
       const blocks=[];
       days.forEach(d=>{
