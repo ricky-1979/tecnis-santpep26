@@ -412,6 +412,9 @@
       "Blai Abrisqueta López|2026-07-22|19:00",
       "Blai Abrisqueta López|2026-07-23|19:00",
       "Blai Abrisqueta López|2026-07-24|19:00",
+      // 20/07: Ivana Benito es mou de la 3a franja (20:00) a la 2a (19:00)
+      // només aquest dia.
+      "Ivana Benito Polo|2026-07-20|20:00",
       // 06/07: Martí Ordóñez i Lluc Muñoz baixen de la 3a franja (20:00) a la
       // 2a (19:00). Carla Perramón baixa de la 4a (21:00) a la 3a (20:00).
       "Martí Ordóñez Pla|2026-07-06|20:00",
@@ -654,6 +657,11 @@
       { player:"Jana Muñoz Casals", dateISO:"2026-07-15", slot:"19:00", category:"Infantil", week:"Setmana 3" },
       { player:"Jana Muñoz Casals", dateISO:"2026-07-16", slot:"19:00", category:"Infantil", week:"Setmana 3" },
       { player:"Jana Muñoz Casals", dateISO:"2026-07-17", slot:"19:00", category:"Infantil", week:"Setmana 3" },
+      // 20/07: Ivana Benito es mou de la 3a franja (20:00) a la 2a (19:00).
+      { player:"Ivana Benito Polo", dateISO:"2026-07-20", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 4" },
+      // 15/07 → 20/07: Sofía Carabajal recupera la sessió pendent del 15/07 el
+      // 20/07 a la 3a franja (20:00). Aquell dia té 19:00 (override S4) + 20:00.
+      { player:"Sofía Carabajal Palau", dateISO:"2026-07-20", slot:"20:00", category:"Cadet/Júnior", week:"Setmana 4" },
     ];
     function applyEnrollmentExceptions(){
       const rm=new Set(ENROLLMENT_REMOVALS);
