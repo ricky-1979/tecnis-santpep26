@@ -837,6 +837,10 @@
     const PLANNED_WEEKS = ["Setmana 1", "Setmana 2", "Setmana 3", "Setmana 4"];
     const isWeekPlanned = label => PLANNED_WEEKS.includes(label);
 
+    // Setmanes on NO es mostra el camp "Treball realitzat a la sessió"
+    // (de la Setmana 4 en endavant).
+    const NOTES_HIDDEN_WEEKS = new Set(["Setmana 4", "Setmana 5"]);
+
     // Continguts de la sessió per setmana. Cada element: [minuts, descripció].
     // Les setmanes sense entrada pròpia no mostren el bloc de continguts.
     const WORKPLANS = {
@@ -1110,7 +1114,9 @@
           }
           const noteKey=b.dateISO+"|"+r.slot;
           const noteVal=sessionNotes[noteKey]||"";
-          const noteBox=`<div class="slot-note">
+          // El "Treball realitzat a la sessió" només es mostra fins a la
+          // Setmana 3; a partir de la Setmana 4 s'oculta.
+          const noteBox=NOTES_HIDDEN_WEEKS.has(ISO_WEEK[b.dateISO]) ? "" : `<div class="slot-note">
             <label>Treball realitzat a la sessió</label>
             <textarea data-note="${esc(noteKey)}" rows="6" placeholder="Escriu què heu treballat…">${esc(noteVal)}</textarea>
           </div>`;
