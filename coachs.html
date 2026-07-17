@@ -862,6 +862,12 @@
         ["20'", "Tàctica individual (1c1 des de diferents posicions posant en pràctica el bot i els peus)"],
         ["10'", "Integració (un exercici de moviment de 3 players on hi hagi espais, talls i lectura)"],
       ],
+      "Setmana 4": [
+        ["15'", "Resolució en espais reduïts i pressió"],
+        ["15'", "Bloqueig directe - detalls del portador"],
+        ["20'", "Tàctica individual: transició i contraatac"],
+        ["10'", "Integració total: situació global"],
+      ],
     };
 
     function populateWeeks(){
@@ -1173,16 +1179,22 @@
       const m=html.match(/<a id="cartellLinkS3" href="(data:image\/[^"]+)"/i);
       return m ? m[1] : "";
     }
+    function extractCartellS4(html){
+      const m=html.match(/<a id="cartellLinkS4" href="(data:image\/[^"]+)"/i);
+      return m ? m[1] : "";
+    }
     // Cartells de continguts per setmana (data-URIs extrets d'index.html).
     let cartellS12 = "";
     let cartellS3 = "";
+    let cartellS4 = "";
     // Actualitza el link del cartell segons la setmana seleccionada:
-    // S1/S2 -> cartell antic, S3 -> cartell nou, S4/S5 -> ocult.
+    // S1/S2 -> cartell antic, S3 -> cartell nou, S4 -> cartell S4, S5 -> ocult.
     function updateCartell(){
       const a=document.getElementById("cartellLink");
       if(!a) return;
       let uri="", name="Tecnis 26.jpeg";
-      if(filterWeek==="Setmana 3"){ uri=cartellS3; name="Tecnis 26 v2.jpeg"; }
+      if(filterWeek==="Setmana 4"){ uri=cartellS4; name="Continguts S4.jpeg"; }
+      else if(filterWeek==="Setmana 3"){ uri=cartellS3; name="Tecnis 26 v2.jpeg"; }
       else if(filterWeek==="Setmana 1" || filterWeek==="Setmana 2"){ uri=cartellS12; }
       if(uri){ a.href=uri; a.download=name; a.style.display=""; }
       else { a.removeAttribute("href"); a.style.display="none"; }
@@ -1218,6 +1230,7 @@
         if(logo){ document.querySelector("header .logo").src=logo; }
         cartellS12=extractCartell(html);
         cartellS3=extractCartellS3(html);
+        cartellS4=extractCartellS4(html);
         init();
         updateCartell();
       }).catch(e=>{
