@@ -324,6 +324,27 @@
   </div>
 
   <div class="table-card">
+    <h2 class="section">Recompte de tecnificacions per player</h2>
+    <p class="hint">Nombre de sessions inscrites de cada player per setmana. Es recalcula automàticament segons les inscripcions (inclou dies solts i moviments entre franges).</p>
+    <table class="data" id="playerCountTable">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>S1</th>
+          <th>S2</th>
+          <th>S3</th>
+          <th>S4</th>
+          <th>S5</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="playerCountBody"></tbody>
+      <tfoot id="playerCountFoot"></tfoot>
+    </table>
+    <div class="empty" id="playerCountEmpty" style="display:none;">No hi ha inscripcions.</div>
+  </div>
+
+  <div class="table-card">
     <h2 class="section">Planificació de franges (blocs de 2h consecutives)</h2>
     <p class="hint">Coachs disponibles per cada franja horària. <span class="badge ok">Lila</span> = va demanar aquesta franja · <span class="badge under">Groc ⚠</span> = proposta per completar un bloc de 2h consecutives (no la va demanar). El recompte només compta les franges demanades.</p>
     <div class="filters">
@@ -2290,6 +2311,58 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
       }
     }
 
+    // Recompte de tecnificacions per player. Cada entrada d'enrollments és
+    // una sessió inscrita (dia + franja). Es compten per setmana; una mateixa
+    // persona pot tenir més d'una sessió per setmana (dies solts, doblets).
+    function renderPlayerCounts(){
+      const body=document.getElementById("playerCountBody");
+      if(!body) return;
+      const foot=document.getElementById("playerCountFoot");
+      const empty=document.getElementById("playerCountEmpty");
+      const counts=new Map();
+      const zero=()=>Object.fromEntries(PAY_WEEK_LABELS.map(w=>[w,0]));
+      enrollments.forEach(e=>{
+        if(!PAY_WEEK_LABELS.includes(e.week)) return;
+        if(!counts.has(e.player)) counts.set(e.player,zero());
+        counts.get(e.player)[e.week]++;
+      });
+      const rows=[...counts.entries()]
+        .map(([player,w])=>{
+          const total=PAY_WEEK_LABELS.reduce((s,k)=>s+w[k],0);
+          return { player, w, total };
+        })
+        .sort((a,b)=> b.total-a.total || a.player.localeCompare(b.player));
+      if(!rows.length){
+        body.innerHTML="";
+        if(foot) foot.innerHTML="";
+        if(empty) empty.style.display="";
+        return;
+      }
+      if(empty) empty.style.display="none";
+      body.innerHTML=rows.map(r=>`<tr>
+        <td title="${esc(r.player)}">${esc(shortName(r.player))}</td>
+        <td>${r.w["Setmana 1"]}</td>
+        <td>${r.w["Setmana 2"]}</td>
+        <td>${r.w["Setmana 3"]}</td>
+        <td>${r.w["Setmana 4"]}</td>
+        <td>${r.w["Setmana 5"]}</td>
+        <td><strong>${r.total}</strong></td>
+      </tr>`).join("");
+      if(foot){
+        const tot=w=>rows.reduce((s,r)=>s+r.w[w],0);
+        const tTotal=rows.reduce((s,r)=>s+r.total,0);
+        foot.innerHTML=`<tr>
+          <td><strong>Total (${rows.length} players)</strong></td>
+          <td><strong>${tot("Setmana 1")}</strong></td>
+          <td><strong>${tot("Setmana 2")}</strong></td>
+          <td><strong>${tot("Setmana 3")}</strong></td>
+          <td><strong>${tot("Setmana 4")}</strong></td>
+          <td><strong>${tot("Setmana 5")}</strong></td>
+          <td><strong>${tTotal}</strong></td>
+        </tr>`;
+      }
+    }
+
     // Editor de grups de treball: un player per fila amb commutador G1/G2,
     // agrupat per franja horària, per a la setmana seleccionada.
     function renderGroups(){
@@ -2510,6 +2583,7 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
       renderTable();
       renderAssign();
       renderCoachPayments();
+      renderPlayerCounts();
       renderGroups();
       buildBlocks();
       renderBlocks();
@@ -2749,6 +2823,7 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
       renderPlayers();
       renderAssign();
       renderCoachPayments();
+      renderPlayerCounts();
       renderGroups();
       renderPendingRecoveries();
       updateAssignResetBtn();
