@@ -94,6 +94,9 @@
     .workplan li { display:grid; grid-template-columns:56px 1fr; gap:12px;
       align-items:baseline; }
     .workplan .t { font-weight:700; color:var(--brand); }
+    .workplan .wp-rich { display:block; line-height:1.5; }
+    .workplan .wp-rich strong { display:block; margin-bottom:2px; }
+    .workplan .wp-lbl { font-weight:600; color:var(--muted); }
     .empty { text-align:center; color:var(--muted); padding:30px; }
     .week-notice { display:flex; align-items:center; gap:10px;
       background:#fff7ed; border:1px solid #fed7aa; color:var(--warn);
@@ -868,11 +871,20 @@
         ["20'", "Tàctica individual (1c1 des de diferents posicions posant en pràctica el bot i els peus)"],
         ["10'", "Integració (un exercici de moviment de 3 players on hi hagi espais, talls i lectura)"],
       ],
+      // La S4 usa el format ric: cada bloc té títol, objectiu i enfocament.
       "Setmana 4": [
-        ["15'", "Resolució en espais reduïts i pressió"],
-        ["15'", "Bloqueig directe - detalls del driblador"],
-        ["20'", "Tàctica individual: transició i contraatac"],
-        ["10'", "Integració total: situació global"],
+        { t:"15'", title:"Domini Avançat de Pilota",
+          objectiu:"Resolució en espais reduïts i control sota pressió.",
+          enfocament:"Treballar el bot de retrocés, In-and-Out explosius, respostes davant de trap/parany defensiu i canvis complexos (Shammgod, contra-moviments) mantenint el cos com a escut per protegir la pilota." },
+        { t:"15'", title:"Joc de Peus Creatiu i Recepcions Avançades",
+          objectiu:"Crear separació i reaccionar ràpidament abans del bot.",
+          enfocament:"Dominar el Step-back explosiu, l'Euro-step (entrada canviada), pivots de revers al post, i fintes de joc de peus per reajustar la posició i mantenir sempre la triple amenaça activa." },
+        { t:"20'", title:"Llegir el Joc: Pick & Roll",
+          objectiu:"Tàctica individual i presa de decisions com a driblador de la pilota en el bloqueig directe.",
+          enfocament:"Aprendre a clavar el defensor al bloc, llegir la reacció del defensor frontal (reject si s'anticipa) i de l'ajuda, per decidir correctament el desplaçament, el tir, o l'assistència (passada al roll o al pop)." },
+        { t:"10'", title:"Integració: Situació Global de P&R i Transició",
+          objectiu:"Transferència directa a la realitat del joc a màxima velocitat.",
+          enfocament:"Un exercici continu (estil roda competitiva) on es connecta una acció de bloqueig directe i finalització creativa (amb contacte o Euro-step) amb una sortida immediata en contraatac/transició ràpida llegint la superioritat numèrica." },
       ],
     };
 
@@ -977,9 +989,19 @@
       if(wp){
         const plan=WORKPLANS[filterWeek];
         if(plan && plan.length){
-          wp.innerHTML="<h3>Continguts Tecnificació</h3><ul>"+
-            plan.map(([t,d])=>`<li><span class="t">${esc(t)}</span><span>${esc(d)}</span></li>`).join("")+
-            "</ul>";
+          // Dos formats: array [minuts, descripció] (format simple) o objecte
+          // { t, title, objectiu, enfocament } (format ric, p. ex. S4).
+          const items=plan.map(item=>{
+            if(Array.isArray(item)){
+              const [t,d]=item;
+              return `<li><span class="t">${esc(t)}</span><span>${esc(d)}</span></li>`;
+            }
+            const parts=[`<strong>${esc(item.title)}</strong>`];
+            if(item.objectiu) parts.push(`<span class="wp-lbl">Objectiu:</span> ${esc(item.objectiu)}`);
+            if(item.enfocament) parts.push(`<span class="wp-lbl">Enfocament:</span> ${esc(item.enfocament)}`);
+            return `<li><span class="t">${esc(item.t)}</span><span class="wp-rich">${parts.join("<br>")}</span></li>`;
+          }).join("");
+          wp.innerHTML="<h3>Continguts Tecnificació</h3><ul>"+items+"</ul>";
           wp.style.display="";
         } else {
           wp.style.display="none";
