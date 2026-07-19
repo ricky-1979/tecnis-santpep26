@@ -95,9 +95,15 @@
       align-items:baseline; }
     .workplan .t { font-weight:700; color:var(--brand); }
     .workplan .wp-rich { display:block; line-height:1.5; }
-    .workplan .wp-rich strong { display:block; margin-bottom:0; }
+    .workplan .wp-rich > strong { display:block; margin-bottom:0; }
+    .workplan .wp-sub { display:block; font-weight:600; color:var(--muted);
+      text-transform:uppercase; font-size:0.8rem; letter-spacing:0.02em; margin:2px 0 6px; }
     .workplan .wp-lbl { font-weight:600; color:var(--muted); }
-    .workplan li.wp-block { margin-bottom:14px; }
+    .workplan .wp-punts { margin:0; padding-left:20px; display:flex;
+      flex-direction:column; gap:3px; }
+    .workplan .wp-punts li { display:list-item; }
+    .workplan .wp-punts strong { color:var(--brand); }
+    .workplan li.wp-block { margin-bottom:18px; }
     .workplan li.wp-block:last-child { margin-bottom:0; }
     .empty { text-align:center; color:var(--muted); padding:30px; }
     .week-notice { display:flex; align-items:center; gap:10px;
@@ -873,20 +879,56 @@
         ["20'", "Tàctica individual (1c1 des de diferents posicions posant en pràctica el bot i els peus)"],
         ["10'", "Integració (un exercici de moviment de 3 players on hi hagi espais, talls i lectura)"],
       ],
-      // La S4 usa el format ric: cada bloc té títol, objectiu i enfocament.
+      // La S4 usa el format ric: cada bloc té títol, subtítol i una llista de
+      // punts (etiqueta + descripció).
       "Setmana 4": [
         { t:"15'", title:"Domini Avançat de Pilota",
-          objectiu:"Resolució en espais reduïts i control sota pressió.",
-          enfocament:"Treballar el bot de retrocés, In-and-Out explosius, respostes davant de trap/parany defensiu i canvis complexos (Shammgod, contra-moviments) mantenint el cos com a escut per protegir la pilota." },
+          subtitol:"Bots, fintes i contra-moviments complexos",
+          punts:[
+            ["Bot de retrocés avançat","Mantenir el control sota pressió, obrir l'angle de visió."],
+            ["In-and-out explosiu","Fintes agressives mantenint la mà al costat de la pilota."],
+            ["Shammgod complex","Finta de canvi de mà coordinada."],
+            ["Crossover ràpid entre cames / darrere","Explosivitat de sortida."],
+            ["Bot de potència per penetrar","Empènyer el cos cap endavant per guanyar avantatge."],
+            ["Atac a l'eix central","Fixar la defensa per obrir línies de passada."],
+            ["Respostes al parany / trap","Driblar baix i protegir la pilota amb el cos."],
+            ["Contramoviments a la defensa","Ús de múltiples fintes corporals."],
+          ] },
         { t:"15'", title:"Joc de Peus Creatiu i Recepcions Avançades",
-          objectiu:"Crear separació i reaccionar ràpidament abans del bot.",
-          enfocament:"Dominar el Step-back explosiu, l'Euro-step (entrada canviada), pivots de revers al post, i fintes de joc de peus per reajustar la posició i mantenir sempre la triple amenaça activa." },
+          subtitol:"Pivots avançats, step-backs i euro-step",
+          punts:[
+            ["Step-back explosiu","Parada, bot enrere i tir ràpid."],
+            ["Euro-step / Entrada canviada","Dos passos llargs i amples, canvi de direcció."],
+            ["Pivot de revers al post","Girar ràpidament amb la pilota protegida."],
+            ["Joc de peus per protecció","Mantenir l'amenaça amb pivots."],
+            ["Side-step / Sortida lateral","Finta explosiva lateral."],
+            ["Pivot amb finta de passada","Crear línies de passada amb pivots."],
+            ["Recepció en moviment i pivot ràpid","Rebre en tall, reaccionar immediatament."],
+            ["Reajustaments de peus per amenaça","Mantenir la flexió i amenaçar amb pivots curts."],
+          ] },
         { t:"20'", title:"Llegir el Joc: Pick & Roll",
-          objectiu:"Tàctica individual i presa de decisions com a driblador de la pilota en el bloqueig directe.",
-          enfocament:"Aprendre a clavar el defensor al bloc, llegir la reacció del defensor frontal (reject si s'anticipa) i de l'ajuda, per decidir correctament el desplaçament, el tir, o l'assistència (passada al roll o al pop)." },
+          subtitol:"Lectures del portador i decisions al bloqueig directe",
+          punts:[
+            ["Atac al bloquejador","Acceptar el bloqueig per clavar el defensor. Si el defensor penetra, atacar."],
+            ["Llegir la defensa frontal","Si el defensor passa per darrere, tir; si passa per davant, penetrar."],
+            ["Llegir l'ajuda defensiva","Si el defensor del bloquejador surt, passada al roll; si no, penetrar."],
+            ["Passada al roll","Assistència al bloquejador que talla de camí a la cistella."],
+            ["Passada al pop","Assistència al bloquejador que s'obre per llançar."],
+            ["Rebuig del bloqueig / Reject","Atacar el costat contrari quan la defensa s'anticipa."],
+            ["Predicció d'espais","Aprofitar el bloqueig per obrir la visió i fer la passada."],
+            ["Decisions finals al P&R","Tir, passada, penetració o segones lectures."],
+          ] },
         { t:"10'", title:"Integració: Situació Global de P&R i Transició",
-          objectiu:"Transferència directa a la realitat del joc a màxima velocitat.",
-          enfocament:"Un exercici continu (estil roda competitiva) on es connecta una acció de bloqueig directe i finalització creativa (amb contacte o Euro-step) amb una sortida immediata en contraatac/transició ràpida llegint la superioritat numèrica." },
+          punts:[
+            ["Bot agressiu d'A","In-and-out explosiu a mitja pista."],
+            ["Jump stop d'A davant C","Recepció estable i triple amenaça."],
+            ["Llegir el parell frontal","Defensor B nega, A rebutja el bloqueig."],
+            ["Penetració d'A i ajuda de D","A penetra, llegeix les ajudes."],
+            ["Passada al roll de C","A fa la passada ràpida a C."],
+            ["Finalització creativa de C","C finalitza amb un Euro-step absorbint els contactes."],
+            ["Integració total i ritme","Repetició de la roda com a rotació competitiva, a màxima velocitat."],
+            ["Transició i lectura","Reacció ràpida post-cistella i sortida de contraatac."],
+          ] },
       ],
     };
 
@@ -999,6 +1041,12 @@
               return `<li><span class="t">${esc(t)}</span><span>${esc(d)}</span></li>`;
             }
             let rich=`<strong>${esc(item.title)}</strong>`;
+            if(item.subtitol) rich+=`<span class="wp-sub">${esc(item.subtitol)}</span>`;
+            if(item.punts && item.punts.length){
+              rich+="<ol class=\"wp-punts\">"+
+                item.punts.map(([lbl,desc])=>`<li><strong>${esc(lbl)}:</strong> ${esc(desc)}</li>`).join("")+
+                "</ol>";
+            }
             if(item.objectiu) rich+=`<span class="wp-lbl">Objectiu:</span> ${esc(item.objectiu)}`;
             if(item.enfocament) rich+=`<br><span class="wp-lbl">Enfocament:</span> ${esc(item.enfocament)}`;
             return `<li class="wp-block"><span class="t">${esc(item.t)}</span><span class="wp-rich">${rich}</span></li>`;
@@ -1209,22 +1257,16 @@
       const m=html.match(/<a id="cartellLinkS3" href="(data:image\/[^"]+)"/i);
       return m ? m[1] : "";
     }
-    function extractCartellS4(html){
-      const m=html.match(/<a id="cartellLinkS4" href="(data:image\/[^"]+)"/i);
-      return m ? m[1] : "";
-    }
     // Cartells de continguts per setmana (data-URIs extrets d'index.html).
     let cartellS12 = "";
     let cartellS3 = "";
-    let cartellS4 = "";
     // Actualitza el link del cartell segons la setmana seleccionada:
-    // S1/S2 -> cartell antic, S3 -> cartell nou, S4 -> cartell S4, S5 -> ocult.
+    // S1/S2 -> cartell antic, S3 -> cartell nou, S4/S5 -> ocult.
     function updateCartell(){
       const a=document.getElementById("cartellLink");
       if(!a) return;
       let uri="", name="Tecnis 26.jpeg";
-      if(filterWeek==="Setmana 4"){ uri=cartellS4; name="Continguts S4.jpeg"; }
-      else if(filterWeek==="Setmana 3"){ uri=cartellS3; name="Tecnis 26 v2.jpeg"; }
+      if(filterWeek==="Setmana 3"){ uri=cartellS3; name="Tecnis 26 v2.jpeg"; }
       else if(filterWeek==="Setmana 1" || filterWeek==="Setmana 2"){ uri=cartellS12; }
       if(uri){ a.href=uri; a.download=name; a.style.display=""; }
       else { a.removeAttribute("href"); a.style.display="none"; }
@@ -1260,7 +1302,6 @@
         if(logo){ document.querySelector("header .logo").src=logo; }
         cartellS12=extractCartell(html);
         cartellS3=extractCartellS3(html);
-        cartellS4=extractCartellS4(html);
         init();
         updateCartell();
       }).catch(e=>{
