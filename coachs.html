@@ -99,7 +99,8 @@
     .workplan .wp-sub { display:block; font-weight:600; color:var(--muted);
       text-transform:uppercase; font-size:0.8rem; letter-spacing:0.02em; margin:2px 0 6px; }
     .workplan .wp-lbl { font-weight:600; color:var(--muted); }
-    .workplan .wp-punts { margin:0; padding-left:20px; display:flex;
+    .workplan .wp-line { display:block; margin-bottom:2px; }
+    .workplan .wp-punts { margin:6px 0 0; padding-left:20px; display:flex;
       flex-direction:column; gap:3px; }
     .workplan .wp-punts li { display:list-item; }
     .workplan .wp-punts strong { color:var(--brand); }
@@ -884,6 +885,8 @@
       "Setmana 4": [
         { t:"15'", title:"Domini Avançat de Pilota",
           subtitol:"Bots, fintes i contra-moviments complexos",
+          objectiu:"Resolució en espais reduïts i control sota pressió.",
+          enfocament:"Treballar el bot de retrocés, In-and-Out explosius, respostes davant de trap/parany defensiu i canvis complexos (Shammgod, contra-moviments) mantenint el cos com a escut per protegir la pilota.",
           punts:[
             ["Bot de retrocés avançat","Mantenir el control sota pressió, obrir l'angle de visió."],
             ["In-and-out explosiu","Fintes agressives mantenint la mà al costat de la pilota."],
@@ -896,6 +899,8 @@
           ] },
         { t:"15'", title:"Joc de Peus Creatiu i Recepcions Avançades",
           subtitol:"Pivots avançats, step-backs i euro-step",
+          objectiu:"Crear separació i reaccionar ràpidament abans del bot.",
+          enfocament:"Dominar el Step-back explosiu, l'Euro-step (entrada canviada), pivots de revers al post, i fintes de joc de peus per reajustar la posició i mantenir sempre la triple amenaça activa.",
           punts:[
             ["Step-back explosiu","Parada, bot enrere i tir ràpid."],
             ["Euro-step / Entrada canviada","Dos passos llargs i amples, canvi de direcció."],
@@ -908,6 +913,8 @@
           ] },
         { t:"20'", title:"Llegir el Joc: Pick & Roll",
           subtitol:"Lectures del portador i decisions al bloqueig directe",
+          objectiu:"Tàctica individual i presa de decisions com a driblador de la pilota en el bloqueig directe.",
+          enfocament:"Aprendre a clavar el defensor al bloc, llegir la reacció del defensor frontal (reject si s'anticipa) i de l'ajuda, per decidir correctament el desplaçament, el tir, o l'assistència (passada al roll o al pop).",
           punts:[
             ["Atac al bloquejador","Acceptar el bloqueig per clavar el defensor. Si el defensor penetra, atacar."],
             ["Llegir la defensa frontal","Si el defensor passa per darrere, tir; si passa per davant, penetrar."],
@@ -919,6 +926,8 @@
             ["Decisions finals al P&R","Tir, passada, penetració o segones lectures."],
           ] },
         { t:"10'", title:"Integració: Situació Global de P&R i Transició",
+          objectiu:"Transferència directa a la realitat del joc a màxima velocitat.",
+          enfocament:"Un exercici continu (estil roda competitiva) on es connecta una acció de bloqueig directe i finalització creativa (amb contacte o Euro-step) amb una sortida immediata en contraatac/transició ràpida llegint la superioritat numèrica.",
           punts:[
             ["Bot agressiu d'A","In-and-out explosiu a mitja pista."],
             ["Jump stop d'A davant C","Recepció estable i triple amenaça."],
@@ -1042,13 +1051,13 @@
             }
             let rich=`<strong>${esc(item.title)}</strong>`;
             if(item.subtitol) rich+=`<span class="wp-sub">${esc(item.subtitol)}</span>`;
+            if(item.objectiu) rich+=`<span class="wp-line"><span class="wp-lbl">Objectiu:</span> ${esc(item.objectiu)}</span>`;
+            if(item.enfocament) rich+=`<span class="wp-line"><span class="wp-lbl">Enfocament:</span> ${esc(item.enfocament)}</span>`;
             if(item.punts && item.punts.length){
               rich+="<ol class=\"wp-punts\">"+
                 item.punts.map(([lbl,desc])=>`<li><strong>${esc(lbl)}:</strong> ${esc(desc)}</li>`).join("")+
                 "</ol>";
             }
-            if(item.objectiu) rich+=`<span class="wp-lbl">Objectiu:</span> ${esc(item.objectiu)}`;
-            if(item.enfocament) rich+=`<br><span class="wp-lbl">Enfocament:</span> ${esc(item.enfocament)}`;
             return `<li class="wp-block"><span class="t">${esc(item.t)}</span><span class="wp-rich">${rich}</span></li>`;
           }).join("");
           wp.innerHTML="<h3>Continguts Tecnificació</h3><ul>"+items+"</ul>";
