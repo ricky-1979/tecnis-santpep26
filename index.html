@@ -2234,20 +2234,22 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
         return;
       }
       // Una línia per player: total de tecnis a recuperar i les seves dates.
+      // Es guarda data + franja perquè un mateix dia pot tenir més d'una
+      // sessió pendent (franges diferents); així no semblen dates duplicades.
       const byPlayer=new Map();
       PENDING_RECOVERIES.forEach(r=>{
         if(!byPlayer.has(r.player)) byPlayer.set(r.player, []);
-        byPlayer.get(r.player).push(r.absentDate);
+        byPlayer.get(r.player).push({ date:r.absentDate, slot:r.slot });
       });
       const rows=[...byPlayer.entries()]
-        .map(([player, dates])=>({ player, count:dates.length,
-          dates:[...dates].sort() }))
+        .map(([player, items])=>({ player, count:items.length,
+          items:[...items].sort((a,b)=> a.date.localeCompare(b.date) || a.slot.localeCompare(b.slot)) }))
         .sort((a,b)=> b.count-a.count || a.player.localeCompare(b.player));
       table.style.display=""; empty.style.display="none";
       body.innerHTML=rows.map(r=>`<tr>
         <td>${esc(r.player)}</td>
         <td>${r.count}</td>
-        <td>${r.dates.map(d=>esc(displayFromIso(d))).join(", ")}</td>
+        <td>${r.items.map(it=>esc(`${displayFromIso(it.date)} (${SLOT_LABEL[it.slot]||it.slot})`)).join(", ")}</td>
       </tr>`).join("");
     }
 
