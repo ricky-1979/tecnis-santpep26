@@ -300,8 +300,8 @@
 
 
   <div class="table-card">
-    <h2 class="section">Recompte de tecnificacions per coach (Setmanes 1, 2 i 3)</h2>
-    <p class="hint">Cada tecnificació assignada es paga a <strong>15 €</strong>. El <strong>Total (S1+S2+S3)</strong> i l'<strong>Import</strong> compten només les setmanes consolidades. El <strong>Total estimat (S1-S5)</strong> i l'<strong>Import estimat</strong> inclouen totes cinc setmanes segons l'assignació actual (poden canviar mentre s'ajusten les setmanes 4 i 5). Es recalcula automàticament segons l'<strong>Assignació de coachs</strong>.</p>
+    <h2 class="section">Recompte de tecnificacions per coach (Setmanes 1, 2, 3 i 4)</h2>
+    <p class="hint">Cada tecnificació assignada es paga a <strong>15 €</strong>. El <strong>Total (S1+S2+S3+S4)</strong> i l'<strong>Import</strong> compten les setmanes consolidades. El <strong>Total estimat (S1-S5)</strong> i l'<strong>Import estimat</strong> inclouen totes cinc setmanes segons l'assignació actual (poden canviar mentre s'ajusta la setmana 5). Es recalcula automàticament segons l'<strong>Assignació de coachs</strong>.</p>
     <table class="data" id="payTable">
       <thead>
         <tr>
@@ -309,9 +309,9 @@
           <th>S1</th>
           <th>S2</th>
           <th>S3</th>
-          <th class="pay-info">S4</th>
+          <th>S4</th>
           <th class="pay-info">S5</th>
-          <th>Total (S1+S2+S3)</th>
+          <th>Total (S1+S2+S3+S4)</th>
           <th>Import (€)</th>
           <th class="pay-est">Total estimat (S1-S5)</th>
           <th class="pay-est">Import estimat (€)</th>
@@ -2241,7 +2241,7 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
     // pagable només suma les setmanes consolidades (PAYABLE_WEEKS).
     const PRICE_PER_TECNI = 15;
     const PAY_WEEK_LABELS = ["Setmana 1","Setmana 2","Setmana 3","Setmana 4","Setmana 5"];
-    const PAYABLE_WEEKS = ["Setmana 1","Setmana 2","Setmana 3"];
+    const PAYABLE_WEEKS = ["Setmana 1","Setmana 2","Setmana 3","Setmana 4"];
     function renderCoachPayments(){
       const body=document.getElementById("payBody");
       if(!body) return;
@@ -2281,7 +2281,7 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
         <td>${r.w["Setmana 1"]}</td>
         <td>${r.w["Setmana 2"]}</td>
         <td>${r.w["Setmana 3"]}</td>
-        <td class="pay-info">${r.w["Setmana 4"]}</td>
+        <td>${r.w["Setmana 4"]}</td>
         <td class="pay-info">${r.w["Setmana 5"]}</td>
         <td><strong>${r.payable}</strong></td>
         <td>${r.euros} €</td>
@@ -2297,7 +2297,7 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
           <td><strong>${tot("Setmana 1")}</strong></td>
           <td><strong>${tot("Setmana 2")}</strong></td>
           <td><strong>${tot("Setmana 3")}</strong></td>
-          <td class="pay-info"><strong>${tot("Setmana 4")}</strong></td>
+          <td><strong>${tot("Setmana 4")}</strong></td>
           <td class="pay-info"><strong>${tot("Setmana 5")}</strong></td>
           <td><strong>${tPay}</strong></td>
           <td><strong>${tPay*PRICE_PER_TECNI} €</strong></td>
