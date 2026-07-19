@@ -89,6 +89,12 @@
     .workplan { background:var(--card); border:1px solid var(--border);
       border-radius:12px; padding:18px; margin-bottom:20px; }
     .workplan h3 { margin:0 0 12px; font-size:1.05rem; }
+    .workplan .wp-toggle { display:flex; align-items:center; gap:8px;
+      width:100%; text-align:left; background:none; border:none; cursor:pointer;
+      font-size:1.05rem; font-weight:700; color:var(--text); padding:0; }
+    .workplan .wp-caret { color:var(--brand); font-size:0.9rem; width:1em; }
+    .workplan .wp-body { margin-top:12px; }
+    .workplan .wp-body[hidden] { display:none; }
     .workplan ul { list-style:none; margin:0; padding:0; display:flex;
       flex-direction:column; gap:8px; }
     .workplan li { display:grid; grid-template-columns:56px 1fr; gap:12px;
@@ -201,6 +207,9 @@
     let filterDay = "";
     let filterCoach = "";
     let filterPlayer = "";
+    // El bloc de continguts (workplan) està ocult per defecte; es desplega amb
+    // el botó. Es recorda l'estat mentre es navega per la pàgina.
+    let wpOpen = false;
 
     const PARSE_OPTS = { header:true, skipEmptyLines:true, transformHeader:h=>h.replace(/^\uFEFF+/, "").trim() };
     const COACH_NAME_MAP = { "Pau": "Pau Laviña" };
@@ -1060,8 +1069,21 @@
             }
             return `<li class="wp-block"><span class="t">${esc(item.t)}</span><span class="wp-rich">${rich}</span></li>`;
           }).join("");
-          wp.innerHTML="<h3>Continguts Tecnificació</h3><ul>"+items+"</ul>";
+          // Ocult per defecte: es mostra amb el botó. Es recorda l'estat obert
+          // mentre es navega entre setmanes (wpOpen).
+          wp.innerHTML=
+            `<button type="button" id="wpToggle" class="wp-toggle" aria-expanded="${wpOpen?"true":"false"}">`+
+              `<span class="wp-caret">${wpOpen?"▾":"▸"}</span> Continguts Tecnificació</button>`+
+            `<div id="wpBody" class="wp-body"${wpOpen?"":" hidden"}><ul>${items}</ul></div>`;
           wp.style.display="";
+          const btn=document.getElementById("wpToggle");
+          const bodyEl=document.getElementById("wpBody");
+          btn.addEventListener("click",()=>{
+            wpOpen=!wpOpen;
+            bodyEl.hidden=!wpOpen;
+            btn.setAttribute("aria-expanded",wpOpen?"true":"false");
+            btn.querySelector(".wp-caret").textContent=wpOpen?"▾":"▸";
+          });
         } else {
           wp.style.display="none";
         }
