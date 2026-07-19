@@ -330,8 +330,8 @@
       <thead>
         <tr>
           <th style="width:1%; white-space:nowrap;">Nre. de tecnificacions</th>
-          <th>Players</th>
           <th style="width:1%; white-space:nowrap;">Quants players</th>
+          <th>Players</th>
         </tr>
       </thead>
       <tbody id="playerCountBody"></tbody>
@@ -2340,16 +2340,16 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
       if(empty) empty.style.display="none";
       body.innerHTML=rows.map(r=>`<tr>
         <td><strong>${r.count}</strong></td>
-        <td class="wrap">${r.players.map(p=>`<span title="${esc(p)}">${esc(shortName(p))}</span>`).join(", ")}</td>
         <td>${r.players.length}</td>
+        <td class="wrap">${r.players.map(p=>`<span title="${esc(p)}">${esc(shortName(p))}</span>`).join(", ")}</td>
       </tr>`).join("");
       if(foot){
         const tPlayers=rows.reduce((s,r)=>s+r.players.length,0);
         const tTecnis=rows.reduce((s,r)=>s+r.count*r.players.length,0);
         foot.innerHTML=`<tr>
           <td><strong>Total: ${tTecnis} tecnificacions</strong></td>
-          <td></td>
           <td><strong>${tPlayers} players</strong></td>
+          <td></td>
         </tr>`;
       }
     }
