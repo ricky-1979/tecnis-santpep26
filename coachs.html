@@ -110,6 +110,11 @@
       flex-direction:column; gap:3px; }
     .workplan .wp-punts li { display:list-item; }
     .workplan .wp-punts strong { color:var(--brand); }
+    .workplan .wp-llegenda { margin-top:8px; }
+    .workplan .wp-llegenda ul { list-style:none; margin:4px 0 0; padding:0;
+      display:flex; flex-direction:column; gap:3px; }
+    .workplan .wp-llegenda li { display:block; }
+    .workplan .wp-llegenda strong { color:var(--brand); }
     .workplan li.wp-block { margin-bottom:18px; }
     .workplan li.wp-block:last-child { margin-bottom:0; }
     .empty { text-align:center; color:var(--muted); padding:30px; }
@@ -937,6 +942,12 @@
         { t:"10'", title:"Integració: Situació Global de P&R i Transició",
           objectiu:"Transferència directa a la realitat del joc a màxima velocitat.",
           enfocament:"Un exercici continu (estil roda competitiva) on es connecta una acció de bloqueig directe i finalització creativa (amb contacte o Euro-step) amb una sortida immediata en contraatac/transició ràpida llegint la superioritat numèrica.",
+          llegenda:[
+            ["A","Jugador amb pilota (base/escorta): bota, fa el jump stop, llegeix la defensa i assisteix."],
+            ["B","Defensor directe d'A: nega el bloqueig i força A a rebutjar-lo."],
+            ["C","Bloquejador (interior/pivot): fa la pantalla a B, roll cap a cistella i finalitza amb Euro-step."],
+            ["D","Defensor de l'ajuda: salta a tapar el camí quan A penetra a la zona."],
+          ],
           punts:[
             ["Bot agressiu d'A","In-and-out explosiu a mitja pista."],
             ["Jump stop d'A davant C","Recepció estable i triple amenaça."],
@@ -1066,6 +1077,11 @@
               rich+="<ol class=\"wp-punts\">"+
                 item.punts.map(([lbl,desc])=>`<li><strong>${esc(lbl)}:</strong> ${esc(desc)}</li>`).join("")+
                 "</ol>";
+            }
+            if(item.llegenda && item.llegenda.length){
+              rich+="<div class=\"wp-llegenda\"><span class=\"wp-lbl\">Qui és qui:</span><ul>"+
+                item.llegenda.map(([lbl,desc])=>`<li><strong>${esc(lbl)}</strong> = ${esc(desc)}</li>`).join("")+
+                "</ul></div>";
             }
             return `<li class="wp-block"><span class="t">${esc(item.t)}</span><span class="wp-rich">${rich}</span></li>`;
           }).join("");
