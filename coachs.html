@@ -319,6 +319,24 @@
       return PLAYER_SLOT_OVERRIDES[`${player}|${week}`] || slot;
     }
 
+    // Gènere per primer nom, per derivar el grup per defecte de la Setmana 4
+    // (noies -> G2, nois -> G1). Ha de coincidir amb NAME_SEX d'index.html.
+    const NAME_SEX = {
+      // Noies
+      "Abril":"F","Aina":"F","Ainhoa":"F","Aledis":"F","Allison":"F","Arlet":"F","Carla":"F","Daniela":"F","Elma":"F",
+      "Elsa":"F","Ivana":"F","Jana":"F","Joana":"F","Júlia":"F","Laia":"F",
+      "Maria":"F","Marina":"F","Mariona":"F","Martina":"F","Queralt":"F","Sofía":"F","Sílvia":"F","Thaïs":"F","Clàudia":"F",
+      // Nois
+      "Adrià":"M","Alex":"M","Alvaro":"M","Aniol":"M","Arnau":"M","Bernat":"M","Blai":"M",
+      "David":"M","Demian":"M","Efrén":"M","Eudald":"M","Hugo":"M","Huàscar":"M","Ignasi":"M",
+      "Isaac":"M","Jan":"M","Joel":"M","Karim":"M","Lluc":"M","Luc":"M","Martí":"M","Miquel":"M",
+      "Oriol":"M","Pau":"M","Pol":"M","Roc":"M","Teo":"M","Yago":"M","José":"M",
+    };
+    function sexOf(fullName){
+      const first=String(fullName||"").trim().split(/\s+/)[0];
+      return NAME_SEX[first] || "?";
+    }
+
     // Grup de treball per defecte de cada player: "1" o "2". Clau: "Nom
     // Cognoms". El dashboard pot sobreescriure-ho i ho publica a Firebase.
     const PLAYER_GROUP_DEFAULTS = {
@@ -381,7 +399,14 @@
     function groupOf(name, week, slot){
       if(week && slot && playerGroups[name+"|"+week+"|"+slot]) return playerGroups[name+"|"+week+"|"+slot];
       if(week && playerGroups[name+"|"+week]) return playerGroups[name+"|"+week];
-      return playerGroups[name] || PLAYER_GROUP_DEFAULTS[name] || "1";
+      if(playerGroups[name]) return playerGroups[name];
+      // Setmana 4: per defecte, noies a G2 i nois a G1 (segons el gènere).
+      if(week==="Setmana 4"){
+        const s=sexOf(name);
+        if(s==="F") return "2";
+        if(s==="M") return "1";
+      }
+      return PLAYER_GROUP_DEFAULTS[name] || "1";
     }
     function groupIsManual(name, week, slot){
       return !!((week&&slot&&playerGroups[name+"|"+week+"|"+slot]) || (week&&playerGroups[name+"|"+week]) || playerGroups[name]);

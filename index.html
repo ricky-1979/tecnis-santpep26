@@ -718,12 +718,12 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
     // en el primer nom; els casos ambigus o poc habituals es fixen a NAME_SEX.
     const NAME_SEX = {
       // Noies
-      "Abril":"F","Aina":"F","Ainhoa":"F","Aledis":"F","Allison":"F","Arlet":"F","Carla":"F","Elma":"F",
+      "Abril":"F","Aina":"F","Ainhoa":"F","Aledis":"F","Allison":"F","Arlet":"F","Carla":"F","Daniela":"F","Elma":"F",
       "Elsa":"F","Ivana":"F","Jana":"F","Joana":"F","Júlia":"F","Laia":"F",
-      "Maria":"F","Mariona":"F","Martina":"F","Queralt":"F","Sofía":"F","Sílvia":"F","Thaïs":"F","Clàudia":"F",
+      "Maria":"F","Marina":"F","Mariona":"F","Martina":"F","Queralt":"F","Sofía":"F","Sílvia":"F","Thaïs":"F","Clàudia":"F",
       // Nois
       "Adrià":"M","Alex":"M","Alvaro":"M","Aniol":"M","Arnau":"M","Bernat":"M","Blai":"M",
-      "David":"M","Demian":"M","Efrén":"M","Hugo":"M","Huàscar":"M","Ignasi":"M",
+      "David":"M","Demian":"M","Efrén":"M","Eudald":"M","Hugo":"M","Huàscar":"M","Ignasi":"M",
       "Isaac":"M","Jan":"M","Joel":"M","Karim":"M","Lluc":"M","Luc":"M","Martí":"M","Miquel":"M",
       "Oriol":"M","Pau":"M","Pol":"M","Roc":"M","Teo":"M","Yago":"M","José":"M",
     };
@@ -853,7 +853,15 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
     function groupOf(name, week, slot){
       if(week && slot && playerGroups[name+"|"+week+"|"+slot]) return playerGroups[name+"|"+week+"|"+slot];
       if(week && playerGroups[name+"|"+week]) return playerGroups[name+"|"+week];
-      return playerGroups[name] || PLAYER_GROUP_DEFAULTS[name] || "1";
+      if(playerGroups[name]) return playerGroups[name];
+      // Setmana 4: per defecte, noies a G2 i nois a G1 (segons el gènere).
+      // Qualsevol assignació manual (comprovada abans) hi preval.
+      if(week==="Setmana 4"){
+        const s=sexOf(name);
+        if(s==="F") return "2";
+        if(s==="M") return "1";
+      }
+      return PLAYER_GROUP_DEFAULTS[name] || "1";
     }
     // Cert si el grup d'aquesta setmana+franja s'ha fixat manualment (a
     // qualsevol nivell). Si no, el player "flota" i s'equilibra automàticament.
