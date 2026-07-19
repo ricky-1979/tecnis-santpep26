@@ -1209,6 +1209,14 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
       // 15/07: Sofía Carabajal no pot venir; s'elimina la seva sessió (3a franja,
       // 20:00) i queda pendent de recuperar.
       "Sofía Carabajal Palau|2026-07-15|20:00",
+      // 21-24/07: Sofía Carabajal es mou a la 3a franja (20:00) aquests dies.
+      // L'override de S4 la deixa a 19:00, així que es treu de 19:00 aquí i es
+      // reafegeix a 20:00 a ENROLLMENT_ADDITIONS. El dilluns 20 ja és a 20:00
+      // (recuperació del 15/07).
+      "Sofía Carabajal Palau|2026-07-21|19:00",
+      "Sofía Carabajal Palau|2026-07-22|19:00",
+      "Sofía Carabajal Palau|2026-07-23|19:00",
+      "Sofía Carabajal Palau|2026-07-24|19:00",
       // 16/07: Pol Simón no pot venir; s'elimina la seva sessió (2a franja,
       // 19:00 per override de setmana S3) i queda pendent de recuperar.
       "Pol Simón Reyes|2026-07-16|19:00",
@@ -1435,6 +1443,12 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
       // 15/07 → 20/07: Sofía Carabajal recupera la sessió pendent del 15/07 el
       // 20/07 a la 3a franja (20:00). Aquell dia té 19:00 (override S4) + 20:00.
       { player:"Sofía Carabajal Palau", dateISO:"2026-07-20", slot:"20:00", category:"Cadet/Júnior", week:"Setmana 4" },
+      // 21-24/07: Sofía Carabajal a la 3a franja (20:00) aquests dies.
+      // Contrapartida dels removals de 19:00 de dalt.
+      { player:"Sofía Carabajal Palau", dateISO:"2026-07-21", slot:"20:00", category:"Cadet/Júnior", week:"Setmana 4" },
+      { player:"Sofía Carabajal Palau", dateISO:"2026-07-22", slot:"20:00", category:"Cadet/Júnior", week:"Setmana 4" },
+      { player:"Sofía Carabajal Palau", dateISO:"2026-07-23", slot:"20:00", category:"Cadet/Júnior", week:"Setmana 4" },
+      { player:"Sofía Carabajal Palau", dateISO:"2026-07-24", slot:"20:00", category:"Cadet/Júnior", week:"Setmana 4" },
     ];
 
     // Sessions absents que encara NO tenen data de recuperació assignada.
