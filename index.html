@@ -325,17 +325,13 @@
 
   <div class="table-card">
     <h2 class="section">Recompte de tecnificacions per player</h2>
-    <p class="hint">Nombre de sessions inscrites de cada player per setmana. Es recalcula automàticament segons les inscripcions (inclou dies solts i moviments entre franges).</p>
+    <p class="hint">Players agrupats pel <strong>nombre total de tecnificacions</strong> inscrites (S1-S5). Es recalcula automàticament segons les inscripcions (inclou dies solts i moviments entre franges).</p>
     <table class="data" id="playerCountTable">
       <thead>
         <tr>
-          <th>Player</th>
-          <th>S1</th>
-          <th>S2</th>
-          <th>S3</th>
-          <th>S4</th>
-          <th>S5</th>
-          <th>Total</th>
+          <th>Nre. de tecnificacions</th>
+          <th>Players</th>
+          <th>Quants players</th>
         </tr>
       </thead>
       <tbody id="playerCountBody"></tbody>
@@ -2311,27 +2307,30 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
       }
     }
 
-    // Recompte de tecnificacions per player. Cada entrada d'enrollments és
-    // una sessió inscrita (dia + franja). Es compten per setmana; una mateixa
-    // persona pot tenir més d'una sessió per setmana (dies solts, doblets).
+    // Recompte de tecnificacions per player, agrupat pel nombre total de
+    // sessions inscrites (S1-S5). Cada entrada d'enrollments és una sessió
+    // (dia + franja); una persona pot tenir-ne més d'una per setmana (dies
+    // solts, doblets). Es mostra una fila per cada valor de total, amb la
+    // llista de players que en tenen aquest nombre.
     function renderPlayerCounts(){
       const body=document.getElementById("playerCountBody");
       if(!body) return;
       const foot=document.getElementById("playerCountFoot");
       const empty=document.getElementById("playerCountEmpty");
-      const counts=new Map();
-      const zero=()=>Object.fromEntries(PAY_WEEK_LABELS.map(w=>[w,0]));
+      const totals=new Map(); // player -> total de tecnificacions
       enrollments.forEach(e=>{
         if(!PAY_WEEK_LABELS.includes(e.week)) return;
-        if(!counts.has(e.player)) counts.set(e.player,zero());
-        counts.get(e.player)[e.week]++;
+        totals.set(e.player,(totals.get(e.player)||0)+1);
       });
-      const rows=[...counts.entries()]
-        .map(([player,w])=>{
-          const total=PAY_WEEK_LABELS.reduce((s,k)=>s+w[k],0);
-          return { player, w, total };
-        })
-        .sort((a,b)=> b.total-a.total || a.player.localeCompare(b.player));
+      // Agrupa players pel seu total.
+      const byCount=new Map(); // total -> [players]
+      totals.forEach((total,player)=>{
+        if(!byCount.has(total)) byCount.set(total,[]);
+        byCount.get(total).push(player);
+      });
+      const rows=[...byCount.entries()]
+        .map(([count,players])=>({ count, players:players.sort((a,b)=>a.localeCompare(b)) }))
+        .sort((a,b)=> b.count-a.count);
       if(!rows.length){
         body.innerHTML="";
         if(foot) foot.innerHTML="";
@@ -2340,25 +2339,17 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
       }
       if(empty) empty.style.display="none";
       body.innerHTML=rows.map(r=>`<tr>
-        <td title="${esc(r.player)}">${esc(shortName(r.player))}</td>
-        <td>${r.w["Setmana 1"]}</td>
-        <td>${r.w["Setmana 2"]}</td>
-        <td>${r.w["Setmana 3"]}</td>
-        <td>${r.w["Setmana 4"]}</td>
-        <td>${r.w["Setmana 5"]}</td>
-        <td><strong>${r.total}</strong></td>
+        <td><strong>${r.count}</strong></td>
+        <td class="wrap">${r.players.map(p=>`<span title="${esc(p)}">${esc(shortName(p))}</span>`).join(", ")}</td>
+        <td>${r.players.length}</td>
       </tr>`).join("");
       if(foot){
-        const tot=w=>rows.reduce((s,r)=>s+r.w[w],0);
-        const tTotal=rows.reduce((s,r)=>s+r.total,0);
+        const tPlayers=rows.reduce((s,r)=>s+r.players.length,0);
+        const tTecnis=rows.reduce((s,r)=>s+r.count*r.players.length,0);
         foot.innerHTML=`<tr>
-          <td><strong>Total (${rows.length} players)</strong></td>
-          <td><strong>${tot("Setmana 1")}</strong></td>
-          <td><strong>${tot("Setmana 2")}</strong></td>
-          <td><strong>${tot("Setmana 3")}</strong></td>
-          <td><strong>${tot("Setmana 4")}</strong></td>
-          <td><strong>${tot("Setmana 5")}</strong></td>
-          <td><strong>${tTotal}</strong></td>
+          <td><strong>Total: ${tTecnis} tecnificacions</strong></td>
+          <td></td>
+          <td><strong>${tPlayers} players</strong></td>
         </tr>`;
       }
     }
