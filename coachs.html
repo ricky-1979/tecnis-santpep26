@@ -95,8 +95,10 @@
       align-items:baseline; }
     .workplan .t { font-weight:700; color:var(--brand); }
     .workplan .wp-rich { display:block; line-height:1.5; }
-    .workplan .wp-rich strong { display:block; margin-bottom:2px; }
+    .workplan .wp-rich strong { display:block; margin-bottom:0; }
     .workplan .wp-lbl { font-weight:600; color:var(--muted); }
+    .workplan li.wp-block { margin-bottom:14px; }
+    .workplan li.wp-block:last-child { margin-bottom:0; }
     .empty { text-align:center; color:var(--muted); padding:30px; }
     .week-notice { display:flex; align-items:center; gap:10px;
       background:#fff7ed; border:1px solid #fed7aa; color:var(--warn);
@@ -996,10 +998,10 @@
               const [t,d]=item;
               return `<li><span class="t">${esc(t)}</span><span>${esc(d)}</span></li>`;
             }
-            const parts=[`<strong>${esc(item.title)}</strong>`];
-            if(item.objectiu) parts.push(`<span class="wp-lbl">Objectiu:</span> ${esc(item.objectiu)}`);
-            if(item.enfocament) parts.push(`<span class="wp-lbl">Enfocament:</span> ${esc(item.enfocament)}`);
-            return `<li><span class="t">${esc(item.t)}</span><span class="wp-rich">${parts.join("<br>")}</span></li>`;
+            let rich=`<strong>${esc(item.title)}</strong>`;
+            if(item.objectiu) rich+=`<span class="wp-lbl">Objectiu:</span> ${esc(item.objectiu)}`;
+            if(item.enfocament) rich+=`<br><span class="wp-lbl">Enfocament:</span> ${esc(item.enfocament)}`;
+            return `<li class="wp-block"><span class="t">${esc(item.t)}</span><span class="wp-rich">${rich}</span></li>`;
           }).join("");
           wp.innerHTML="<h3>Continguts Tecnificació</h3><ul>"+items+"</ul>";
           wp.style.display="";
