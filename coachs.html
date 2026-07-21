@@ -1234,7 +1234,11 @@
           const key=d+"|"+sl;
           const coaches=(assignments[key]||[]).slice().sort((a,b)=>a.localeCompare(b));
           const players=playersFor(d,sl);
-          if(coaches.length===0 || players.length===0) return; // franja buida de coachs o de players
+          if(players.length===0) return; // franja sense players: no es mostra
+          // A la S5 es mostren les franges amb players encara que no tinguin cap
+          // coach assignat (hi ha dies sense disponibilitat de coach a 20:00).
+          // A la resta de setmanes, una franja sense coach no es mostra.
+          if(coaches.length===0 && ISO_WEEK[d]!=="Setmana 5") return;
           // Filtres de coach/player: només mostra franges que hi coincideixin.
           if(filterCoach && !coaches.includes(filterCoach)) return;
           if(filterPlayer && !players.some(p=>p.name===filterPlayer)) return;
