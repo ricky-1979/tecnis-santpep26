@@ -1971,8 +1971,8 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
       // assignació: selector de setmana (amb opció "Totes")
       const aw=document.getElementById("assignWeek");
       aw.innerHTML=`<option value="">Totes les setmanes</option>`+weeks.map(w=>`<option value="${w}">${w}</option>`).join("");
-      // Selecciona "Setmana 4" per defecte si existeix (si no, la primera disponible)
-      const defaultWeek=weeks.includes("Setmana 4")?"Setmana 4":(weeks[0]||"");
+      // Selecciona "Setmana 5" per defecte si existeix (si no, la primera disponible)
+      const defaultWeek=weeks.includes("Setmana 5")?"Setmana 5":(weeks[0]||"");
       ["filterWeek","filterHmWeek","filterBlockWeek","filterPlayerWeek","assignWeek"].forEach(id=>{
         document.getElementById(id).value=defaultWeek;
       });
@@ -2313,8 +2313,8 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
       if(!sel) return;
       const weeks=WEEK_COLUMNS.map(w=>w.label).filter(w=> enrollments.some(e=>e.week===w));
       if(!weeks.length){ sel.innerHTML=""; groupsWeek=""; return; }
-      // Per defecte "Setmana 4" si existeix; si no, la primera disponible
-      if(!groupsWeek || !weeks.includes(groupsWeek)) groupsWeek=weeks.includes("Setmana 4")?"Setmana 4":weeks[0];
+      // Per defecte "Setmana 5" si existeix; si no, la primera disponible
+      if(!groupsWeek || !weeks.includes(groupsWeek)) groupsWeek=weeks.includes("Setmana 5")?"Setmana 5":weeks[0];
       sel.innerHTML=weeks.map(w=>`<option value="${esc(w)}"${w===groupsWeek?" selected":""}>${esc(w)}</option>`).join("");
     }
 
