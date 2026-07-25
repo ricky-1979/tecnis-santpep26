@@ -553,6 +553,11 @@
       "Oriol Ortega Alos|2026-07-29|20:00",
       "Oriol Ortega Alos|2026-07-30|20:00",
       "Oriol Ortega Alos|2026-07-31|20:00",
+      // Setmana 5: el dimarts 28/07 la 2a franja (19:00) es reubica a la 3a
+      // (20:00). Efrén Armenteros i Jan Rodríguez hi arriben pel CSV setmanal;
+      // removal del 19:00 del dia 28 + addition a 20:00.
+      "Efrén Armenteros Roldán|2026-07-28|19:00",
+      "Jan Rodríguez González|2026-07-28|19:00",
       // 14-17/07: els jugadors de la 1a franja (18:00) es mouen a la 2a (19:00)
       // cada dia. Hugo Parvez tenia override de setmana a 18:00; Roc i Jana la
       // tenen com a franja base del CSV. Removals de 18:00 + additions a 19:00.
@@ -775,10 +780,9 @@
       { player:"Yago Morales Gómez de Segura", dateISO:"2026-07-27", slot:"19:00", category:"Infantil/Cadet", week:"Setmana 5", solt:true },
       // 21-24/07 → 27-28/07: Pol Simón no pot venir la S4 per lesió i a la S5
       // només pot entrenar dilluns i dimarts. El dilluns 27 fa la 2a franja
-      // (19:00) i el dimarts 28 la 2a (19:00) + 3a (20:00).
+      // (19:00) i el dimarts 28 la 2a (19:00).
       { player:"Pol Simón Reyes", dateISO:"2026-07-27", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 5" },
       { player:"Pol Simón Reyes", dateISO:"2026-07-28", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 5" },
-      { player:"Pol Simón Reyes", dateISO:"2026-07-28", slot:"20:00", category:"Cadet/Júnior", week:"Setmana 5" },
       // 14/07: sessió extra per Miquel Villarreal i Karim Garcia a la 4a franja
       // (21:00). No estaven inscrits a la Setmana 3; és una sessió afegida.
       { player:"Miquel Villarreal Morales", dateISO:"2026-07-14", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 3" },
@@ -865,6 +869,11 @@
       { player:"Oriol Ortega Alos", dateISO:"2026-07-29", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 5" },
       { player:"Oriol Ortega Alos", dateISO:"2026-07-30", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 5" },
       { player:"Oriol Ortega Alos", dateISO:"2026-07-31", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 5" },
+      // Setmana 5: Efrén Armenteros i Jan Rodríguez pugen de la 2a franja
+      // (19:00) a la 3a (20:00) NOMÉS el dimarts 28/07. Contrapartida dels
+      // removals de 19:00 del dia 28 de dalt.
+      { player:"Efrén Armenteros Roldán", dateISO:"2026-07-28", slot:"20:00", category:"Infantil/Cadet", week:"Setmana 5" },
+      { player:"Jan Rodríguez González", dateISO:"2026-07-28", slot:"20:00", category:"Infantil/Cadet", week:"Setmana 5" },
     ];
     function applyEnrollmentExceptions(){
       const rm=new Set(ENROLLMENT_REMOVALS);
