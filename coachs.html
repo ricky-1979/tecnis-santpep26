@@ -528,6 +528,17 @@
       // 24/07: Teo Bigas no va entrenar (4a franja, 21:00 per override S4);
       // s'elimina la sessió i queda pendent de recuperar.
       "Teo Bigas Romo|2026-07-24|21:00",
+      // Setmana 5: es buida la 4a franja (21:00) de dimarts a divendres
+      // (28-31/07) movent Hugo Álvarez i Àlex Rojas a la 3a franja (20:00). El
+      // dilluns 27 es manté a 21:00. Removals del 21:00 + additions a 20:00.
+      "Hugo Alvarez Romero|2026-07-28|21:00",
+      "Hugo Alvarez Romero|2026-07-29|21:00",
+      "Hugo Alvarez Romero|2026-07-30|21:00",
+      "Hugo Alvarez Romero|2026-07-31|21:00",
+      "Alex Rojas Torres|2026-07-28|21:00",
+      "Alex Rojas Torres|2026-07-29|21:00",
+      "Alex Rojas Torres|2026-07-30|21:00",
+      "Alex Rojas Torres|2026-07-31|21:00",
       // 14-17/07: els jugadors de la 1a franja (18:00) es mouen a la 2a (19:00)
       // cada dia. Hugo Parvez tenia override de setmana a 18:00; Roc i Jana la
       // tenen com a franja base del CSV. Removals de 18:00 + additions a 19:00.
@@ -721,23 +732,27 @@
       // franja, 19:00) el 16/07 a la 4a franja (21:00).
       { player:"Aniol Abrisqueta López", dateISO:"2026-07-16", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 3" },
       // 17/07 → 27/07: Júlia Planell i Laia Cobarsi recuperen la tecni pendent
-      // (4a franja, 21:00) el dilluns 27/07 (Setmana 5), mateixa franja.
+      // (4a franja, 21:00) el dilluns 27/07 (Setmana 5), mateixa franja. El
+      // dilluns 27/07 la 4a franja (21:00) es manté intacta a la S5.
       // La Laia, amb aquesta sessió, salda també l'absència del 24/07 (no en
       // té cap més a recuperar).
       { player:"Júlia Planell Cisa", dateISO:"2026-07-27", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 5" },
       { player:"Laia Cobarsi Sánchez", dateISO:"2026-07-27", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 5" },
       // 24/07 → 29/07: Júlia Planell recupera l'absència del 24/07 el dimecres
-      // 29/07 (Setmana 5) a la 4a franja (21:00).
-      { player:"Júlia Planell Cisa", dateISO:"2026-07-29", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 5" },
+      // 29/07 (Setmana 5). La S5 buida la 4a franja excepte el dilluns 27, així
+      // que aquesta recuperació del dimecres es col·loca a la 3a (20:00).
+      { player:"Júlia Planell Cisa", dateISO:"2026-07-29", slot:"20:00", category:"Júnior/Sènior", week:"Setmana 5" },
       // 24/07 → 27/07: Mariona Cornet i Aina Sánchez (dies solts) recuperen
-      // l'absència del 24/07 el dilluns 27/07 (Setmana 5) a la 4a franja (21:00).
+      // l'absència del 24/07 el dilluns 27/07 (Setmana 5) a la 4a franja (21:00,
+      // el dilluns 27 es manté intacta).
       { player:"Mariona Cornet Vidal", dateISO:"2026-07-27", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 5", solt:true },
       { player:"Aina Sanchez Segu", dateISO:"2026-07-27", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 5", solt:true },
       // 16/07 → 28/07: Pol Simón recupera la tecni pendent del 16/07 (2a franja,
       // 19:00) el dimarts 28/07 (Setmana 5), mateixa franja.
       { player:"Pol Simón Reyes", dateISO:"2026-07-28", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 5" },
       // 24/07 → 27/07: Teo Bigas recupera l'absència del 24/07 (4a franja,
-      // 21:00) el dilluns 27/07 (Setmana 5), mateixa franja.
+      // 21:00) el dilluns 27/07 (Setmana 5), mateixa franja. El dilluns 27 la
+      // 4a franja es manté intacta.
       { player:"Teo Bigas Romo", dateISO:"2026-07-27", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 5" },
       // 01/07 → 27/07: Hugo i Yago Morales (dies solts) recuperen la tecni
       // pendent el dilluns 27/07 (Setmana 5) a la 2a franja (19:00). A la S5 no
@@ -810,6 +825,17 @@
       { player:"Sofía Carabajal Palau", dateISO:"2026-07-22", slot:"20:00", category:"Cadet/Júnior", week:"Setmana 4" },
       { player:"Sofía Carabajal Palau", dateISO:"2026-07-23", slot:"20:00", category:"Cadet/Júnior", week:"Setmana 4" },
       { player:"Sofía Carabajal Palau", dateISO:"2026-07-24", slot:"20:00", category:"Cadet/Júnior", week:"Setmana 4" },
+      // Setmana 5: Hugo Álvarez i Àlex Rojas baixen de la 4a franja (21:00) a la
+      // 3a (20:00) de dimarts a divendres (28-31/07). Contrapartida dels
+      // removals de 21:00 de dalt. El dilluns 27 es manté a 21:00 (del CSV).
+      { player:"Hugo Alvarez Romero", dateISO:"2026-07-28", slot:"20:00", category:"Júnior/Sènior", week:"Setmana 5" },
+      { player:"Hugo Alvarez Romero", dateISO:"2026-07-29", slot:"20:00", category:"Júnior/Sènior", week:"Setmana 5" },
+      { player:"Hugo Alvarez Romero", dateISO:"2026-07-30", slot:"20:00", category:"Júnior/Sènior", week:"Setmana 5" },
+      { player:"Hugo Alvarez Romero", dateISO:"2026-07-31", slot:"20:00", category:"Júnior/Sènior", week:"Setmana 5" },
+      { player:"Alex Rojas Torres", dateISO:"2026-07-28", slot:"20:00", category:"Júnior/Sènior", week:"Setmana 5" },
+      { player:"Alex Rojas Torres", dateISO:"2026-07-29", slot:"20:00", category:"Júnior/Sènior", week:"Setmana 5" },
+      { player:"Alex Rojas Torres", dateISO:"2026-07-30", slot:"20:00", category:"Júnior/Sènior", week:"Setmana 5" },
+      { player:"Alex Rojas Torres", dateISO:"2026-07-31", slot:"20:00", category:"Júnior/Sènior", week:"Setmana 5" },
     ];
     function applyEnrollmentExceptions(){
       const rm=new Set(ENROLLMENT_REMOVALS);
