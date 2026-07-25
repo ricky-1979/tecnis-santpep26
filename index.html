@@ -787,13 +787,13 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
 
     // Setmanes CONGELADES: només de consulta (ni grups de jugadors, ni
     // assignació de coachs, ni reserves). Vegeu AGENTS.md ("Setmana CONGELADA").
-    const FROZEN_WEEKS = new Set(["Setmana 1", "Setmana 2", "Setmana 3"]);
+    const FROZEN_WEEKS = new Set(["Setmana 1", "Setmana 2", "Setmana 3", "Setmana 4"]);
     const isWeekFrozen = (week)=> FROZEN_WEEKS.has(week);
 
     // Setmanes que el "Reiniciar des de reserves" NO ha de tocar mai: la
-    // Setmana 1, la 2 i la 3 (congelades, assignacions ja consolidades).
+    // Setmana 1, la 2, la 3 i la 4 (congelades, assignacions ja consolidades).
     // La resta de la UI d'aquestes setmanes segueix editable manualment.
-    const RESET_PROTECTED_WEEKS = new Set(["Setmana 1", "Setmana 2", "Setmana 3"]);
+    const RESET_PROTECTED_WEEKS = new Set(["Setmana 1", "Setmana 2", "Setmana 3", "Setmana 4"]);
     const isResetProtected = (week)=> RESET_PROTECTED_WEEKS.has(week);
 
     let coachRecords = [];
