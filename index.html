@@ -2510,7 +2510,10 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
           const coaches=assignments[key]||[];
           const players=playersBySlot.get(key)||0;
           const needed=coachesNeeded(players);
-          const pills=coaches.map(c=>{
+          // Franja sense players: no es mostren coaches ni el botó "+ Afegir";
+          // la cel·la queda neta amb només el recompte "0 pl.".
+          const noPlayers=players===0;
+          const pills=noPlayers?"":coaches.map(c=>{
             const cg=coachGroupOf(d,sl,c,coaches);
             if(frozen){
               // Setmana congelada: pill de només lectura (sense arrossegar,
@@ -2537,11 +2540,13 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
             ? (players===0 ? ' title="Cap player en aquesta franja"' : ' title="Players sense cap coach assignat"')
             : "";
           const slotHtml=`<span class="slot-lbl${slotRed?" slot-red":""}"${slotTitle}>${SLOT_LABEL[sl]}</span>`;
-          const countTxt=players>0 ? `${coaches.length}/${needed} · ${players} pl.${marker}` : `${coaches.length}`;
+          // Sempre es mostra el recompte de players (inclòs "0 pl."). Quan no
+          // hi ha players, la cel·la no llista coaches ni permet afegir-ne.
+          const countTxt=noPlayers ? `0 pl.` : `${coaches.length}/${needed} · ${players} pl.${marker}`;
           html+=`<div class="assign-cell${cellCls}" data-key="${esc(key)}"${cellTitle}>
             <span class="cell-count${countCls}">${slotHtml} ${countTxt}</span>
             ${pills}
-            ${frozen?"":`<button class="addbtn" data-key="${esc(key)}" type="button">+ Afegir</button>`}
+            ${(frozen||noPlayers)?"":`<button class="addbtn" data-key="${esc(key)}" type="button">+ Afegir</button>`}
           </div>`;
         });
       });
