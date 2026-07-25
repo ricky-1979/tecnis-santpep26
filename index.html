@@ -1247,6 +1247,9 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
       // sessions (4a franja, 21:00) i queden pendents de recuperar.
       "Júlia Planell Cisa|2026-07-24|21:00",
       "Laia Cobarsi Sánchez|2026-07-24|21:00",
+      // 24/07: Teo Bigas no va entrenar (4a franja, 21:00 per override S4);
+      // s'elimina la sessió i queda pendent de recuperar.
+      "Teo Bigas Romo|2026-07-24|21:00",
       // 14-17/07: els jugadors de la 1a franja (18:00) es mouen a la 2a (19:00)
       // cada dia. Hugo Parvez tenia override de setmana a 18:00; Roc i Jana la
       // tenen com a franja base del CSV. Removals de 18:00 + additions a 19:00.
@@ -1272,8 +1275,9 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
       // 24/07 → 23/07: Arnau Albaigés no pot venir divendres (2a franja, 19:00);
       // recupera la tecni dijous 23/07 a la 3a franja (20:00).
       "Arnau Albaigés Belsué|2026-07-24|19:00",
-      // 23/07 → 24/07: Mariona Cornet i Aina Sánchez (dies solts) mouen la
-      // tecni de dijous a divendres, mateixa franja (4a, 21:00).
+      // 23/07: Mariona Cornet i Aina Sánchez (dies solts) no entrenen dijous
+      // (4a, 21:00). Van moure la tecni a divendres 24, però tampoc hi van
+      // venir, així que queda pendent de recuperar (vegeu PENDING_RECOVERIES).
       "Mariona Cornet Vidal|2026-07-23|21:00",
       "Aina Sanchez Segu|2026-07-23|21:00",
       // 08/07: Lluc Muñoz i Martí Ordóñez baixen de la 3a franja (20:00) a la
@@ -1428,10 +1432,10 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
       // 24/07 → 23/07: Arnau Albaigés recupera la tecni de divendres (2a franja,
       // 19:00) el dijous 23/07 a la 3a franja (20:00).
       { player:"Arnau Albaigés Belsué", dateISO:"2026-07-23", slot:"20:00", category:"Infantil/Cadet", week:"Setmana 4" },
-      // 23/07 → 24/07: Mariona Cornet i Aina Sánchez (dies solts) mouen la
-      // tecni de dijous a divendres, mateixa franja (4a, 21:00).
-      { player:"Mariona Cornet Vidal", dateISO:"2026-07-24", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 4", solt:true },
-      { player:"Aina Sanchez Segu", dateISO:"2026-07-24", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 4", solt:true },
+      // 23/07 → 24/07: Mariona Cornet i Aina Sánchez (dies solts) van moure la
+      // tecni de dijous a divendres (4a, 21:00), però el 24 no hi van entrenar.
+      // La sessió queda pendent de recuperar (vegeu PENDING_RECOVERIES); per
+      // això ja no hi ha addition al 24/07.
       // 24/07 → 22/07: Aniol Abrisqueta recupera una de les dues sessions del 24
       // (la 3a franja, 20:00) el 22/07 a la 4a franja (21:00).
       { player:"Aniol Abrisqueta López", dateISO:"2026-07-22", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 4" },
@@ -1477,6 +1481,15 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
       // 24/07: sessió extra per Jan Rodríguez a la 3a franja (20:00). Ja fa la
       // 2a franja (19:00) aquell dia; aquesta és una tecni afegida.
       { player:"Jan Rodríguez González", dateISO:"2026-07-24", slot:"20:00", category:"Cadet/Júnior", week:"Setmana 4" },
+      // 24/07: sessió extra per Judit Marot, Ferran Dauder i Pau Laviña a la 4a
+      // franja (21:00). Tecnis afegides a la Setmana 4 (no surten al CSV base
+      // aquell dia). El Teo Bigas no hi va entrenar; queda a recuperar.
+      { player:"Judit Marot", dateISO:"2026-07-24", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 4" },
+      { player:"Ferran Dauder Gasull", dateISO:"2026-07-24", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 4" },
+      { player:"Pau Laviña", dateISO:"2026-07-24", slot:"21:00", category:"Júnior/Sènior", week:"Setmana 4" },
+      // 16/07 → 24/07: Pol Simón recupera la tecni pendent del 16/07 (2a franja,
+      // 19:00) el divendres 24/07, mateixa franja.
+      { player:"Pol Simón Reyes", dateISO:"2026-07-24", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 4" },
       // 17/07 → 24/07: Hugo Álvarez recupera la sessió del 17 (4a franja) el
       // 24/07 a la 3a franja (20:00).
       { player:"Hugo Alvarez Romero", dateISO:"2026-07-24", slot:"20:00", category:"Júnior/Sènior", week:"Setmana 4" },
@@ -1522,6 +1535,9 @@ Oriol,Piera,,,,"Dl 20,Dv 24",Infantil - 18:00 a 19:00,,,Oriol Piera,,
       { player:"Isaac Miguel Bel", absentDate:"2026-07-10", slot:"20:00" },
       { player:"Júlia Planell Cisa", absentDate:"2026-07-24", slot:"21:00" },
       { player:"Laia Cobarsi Sánchez", absentDate:"2026-07-24", slot:"21:00" },
+      { player:"Teo Bigas Romo", absentDate:"2026-07-24", slot:"21:00" },
+      { player:"Mariona Cornet Vidal", absentDate:"2026-07-24", slot:"21:00" },
+      { player:"Aina Sanchez Segu", absentDate:"2026-07-24", slot:"21:00" },
     ];
 
     function applyEnrollmentExceptions(){
