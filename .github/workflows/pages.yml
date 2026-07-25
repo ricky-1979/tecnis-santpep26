@@ -10,10 +10,12 @@ permissions:
   pages: write
   id-token: write
 
-# Un sol desplegament actiu; no cancel·la el que ja corre.
+# Un sol desplegament actiu. Cancel·la el run anterior si encara no ha
+# acabat: així un run "queued" encallat (que GitHub de vegades no arrenca
+# mai) no bloqueja tota la cua de desplegaments posteriors.
 concurrency:
   group: pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   deploy:
