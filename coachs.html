@@ -563,6 +563,12 @@
       "Oriol Ortega Alos|2026-07-29|20:00",
       "Oriol Ortega Alos|2026-07-30|20:00",
       "Oriol Ortega Alos|2026-07-31|20:00",
+      // 28/07: es fan 2 franges. Sílvia Muñoz, Sofía Carabajal i Queralt
+      // Gratacós (solts) tenen override de setmana a 19:00; només el dimarts 28
+      // pugen a la 3a franja (20:00). Removal del 19:00 + addition a 20:00 (dia).
+      "Sílvia Muñoz Afuera|2026-07-28|19:00",
+      "Sofía Carabajal Palau|2026-07-28|19:00",
+      "Queralt Gratacós Canals|2026-07-28|19:00",
       // 14-17/07: els jugadors de la 1a franja (18:00) es mouen a la 2a (19:00)
       // cada dia. Hugo Parvez tenia override de setmana a 18:00; Roc i Jana la
       // tenen com a franja base del CSV. Removals de 18:00 + additions a 19:00.
@@ -777,8 +783,14 @@
       //    Júnior/Sènior, va a la 3a franja (20:00).
       { player:"Aina Sanchez Segu", dateISO:"2026-07-28", slot:"20:00", category:"Júnior/Sènior", week:"Setmana 5", solt:true },
       // 10/07 → 28/07: Carla Perramón recupera l'absència del 10/07 (que tenia
-      // pendent) el dimarts 28/07 a la 2a franja (19:00).
-      { player:"Carla Perramón Navarro", dateISO:"2026-07-28", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 5", solt:true },
+      // pendent) el dimarts 28/07. El 28 es fan 2 franges: va a la 3a (20:00).
+      { player:"Carla Perramón Navarro", dateISO:"2026-07-28", slot:"20:00", category:"Cadet/Júnior", week:"Setmana 5", solt:true },
+      // 28/07: Sílvia Muñoz, Sofía Carabajal i Queralt Gratacós (solts) pugen de
+      // la 2a franja (19:00, override S5) a la 3a (20:00) només aquest dia, pel
+      // repartiment en 2 franges. Contrapartida dels removals de 19:00 de dalt.
+      { player:"Sílvia Muñoz Afuera", dateISO:"2026-07-28", slot:"20:00", category:"Cadet/Júnior", week:"Setmana 5", solt:true },
+      { player:"Sofía Carabajal Palau", dateISO:"2026-07-28", slot:"20:00", category:"Cadet/Júnior", week:"Setmana 5", solt:true },
+      { player:"Queralt Gratacós Canals", dateISO:"2026-07-28", slot:"20:00", category:"Cadet/Júnior", week:"Setmana 5", solt:true },
       // 16/07 → 28/07: Pol Simón recupera la tecni pendent del 16/07 (2a franja,
       // 19:00) el dimarts 28/07 (Setmana 5), mateixa franja.
       { player:"Pol Simón Reyes", dateISO:"2026-07-28", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 5" },
