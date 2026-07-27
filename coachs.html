@@ -482,8 +482,8 @@
       "Carla Perramón Navarro|2026-07-07|21:00",
       "Carla Perramón Navarro|2026-07-08|21:00",
       "Carla Perramón Navarro|2026-07-09|21:00",
-      // 10/07: Carla Perramón no ve; s'elimina sense recuperar (S2, 4a franja
-      // 21:00 per override de setmana).
+      // 10/07: Carla Perramón no ve (S2, 4a franja 21:00 per override de
+      // setmana); recupera aquesta sessió el 28/07 (vegeu ENROLLMENT_ADDITIONS).
       "Carla Perramón Navarro|2026-07-10|21:00",
       // 14/07: Aledis i Martina Carrillo pugen de la 2a franja (19:00, override
       // de setmana S3) a la 3a (20:00, la del CSV) només aquest dia.
@@ -766,11 +766,15 @@
       // 29/07 (Setmana 5) a la 2a franja (19:00): el dc/dj/dv de la S5 la 3a
       // franja (20:00) es reubica a la 2a (19:00).
       { player:"Júlia Planell Cisa", dateISO:"2026-07-29", slot:"19:00", category:"Júnior/Sènior", week:"Setmana 5" },
-      // 24/07 → 27/07: Mariona Cornet i Aina Sánchez (dies solts) recuperen
-      // l'absència del 24/07 el dilluns 27/07 (Setmana 5) a la 3a franja (20:00,
-      // el 27 la 4a franja es reubica a la 3a).
-      { player:"Mariona Cornet Vidal", dateISO:"2026-07-27", slot:"20:00", category:"Júnior/Sènior", week:"Setmana 5", solt:true },
-      { player:"Aina Sanchez Segu", dateISO:"2026-07-27", slot:"20:00", category:"Júnior/Sènior", week:"Setmana 5", solt:true },
+      // 24/07 → 27/07: Mariona Cornet i Aina Sánchez (dies solts) havien de
+      // recuperar l'absència del 24/07 el dilluns 27/07 (3a franja, 20:00), però
+      // cap de les dues hi va venir:
+      //  - Mariona no ve el 27/07: queda pendent de recuperar (PENDING_RECOVERIES).
+      //  - Aina mou la tecni a dimarts 28/07 a la 2a franja (19:00).
+      { player:"Aina Sanchez Segu", dateISO:"2026-07-28", slot:"19:00", category:"Júnior/Sènior", week:"Setmana 5", solt:true },
+      // 10/07 → 28/07: Carla Perramón recupera l'absència del 10/07 (que tenia
+      // pendent) el dimarts 28/07 a la 2a franja (19:00).
+      { player:"Carla Perramón Navarro", dateISO:"2026-07-28", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 5", solt:true },
       // 16/07 → 28/07: Pol Simón recupera la tecni pendent del 16/07 (2a franja,
       // 19:00) el dimarts 28/07 (Setmana 5), mateixa franja.
       { player:"Pol Simón Reyes", dateISO:"2026-07-28", slot:"19:00", category:"Cadet/Júnior", week:"Setmana 5" },
