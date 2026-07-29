@@ -335,101 +335,20 @@
   </div>
 
   <div class="table-card">
-    <h2 class="section">Planificació de franges (blocs de 2h consecutives)</h2>
-    <p class="hint">Coachs disponibles per cada franja horària. <span class="badge ok">Lila</span> = va demanar aquesta franja · <span class="badge under">Groc ⚠</span> = proposta per completar un bloc de 2h consecutives (no la va demanar). El recompte només compta les franges demanades.</p>
-    <div class="filters">
-      <select id="filterBlockWeek"><option value="">Totes les setmanes</option></select>
-      <select id="filterBlockCoach"><option value="">Tots els coachs</option></select>
-      <select id="filterBlockType">
-        <option value="">Tots els tipus</option>
-        <option value="requested">Franja demanada</option>
-        <option value="proposed">Franja proposta</option>
-      </select>
-      <button id="clearBlockFilters" type="button">Netejar</button>
-    </div>
-    <div class="count-info" id="blockCountInfo"></div>
-    <table class="data" id="blocksTable">
+    <h2 class="section">Report econòmic de juliol</h2>
+    <p class="hint">Ingressos de les tecnificacions i despesa de lloguer de pista. <strong>Setmanes senceres</strong> a 60 € · <strong>entrenaments solts</strong> a 15 € · <strong>entrenaments extra</strong> gratuïts. La despesa de pista és la factura de l'Ajuntament (23 dies · 9,55 €/hora de pista). Es recalcula automàticament segons les inscripcions.</p>
+    <table class="data" id="revenueTable">
       <thead>
         <tr>
-          <th data-key="dateISO">Data</th>
-          <th data-key="weekday">Dia</th>
-          <th data-key="blockLabel">Franja</th>
-          <th data-key="players">Players</th>
-          <th data-key="coachCount">Nre.</th>
-          <th>Coachs disponibles</th>
+          <th>Concepte</th>
+          <th style="text-align:right;">Unitats</th>
+          <th style="text-align:right;">Preu unitari</th>
+          <th style="text-align:right;">Import</th>
         </tr>
       </thead>
-      <tbody id="blocksBody"></tbody>
+      <tbody id="revenueBody"></tbody>
+      <tfoot id="revenueFoot"></tfoot>
     </table>
-    <div class="empty" id="blocksEmpty" style="display:none;">No hi ha blocs amb aquests filtres.</div>
-  </div>
-
-  <div class="table-card">
-    <h2 class="section">Grups de treball</h2>
-    <p class="hint">Tria si cada player va al <strong>Grup 1</strong> o al <strong>Grup 2</strong> per a la setmana seleccionada. Es mostra a la pàgina dels coachs. Els canvis es desen i se sincronitzen automàticament. Un player que assisteixi a més d'una franja la mateixa setmana hi apareixerà a cadascuna.</p>
-    <div class="assign-toolbar">
-      <select id="groupsWeek"></select>
-    </div>
-    <div class="assign-overwrap">
-      <div class="groups-wrap" id="groupsWrap"></div>
-    </div>
-  </div>
-
-  <div class="grid-card">
-    <h2 class="section">Ocupació per sessió</h2>
-    <p class="hint">Cada cel·la mostra <strong>players inscrits</strong> i <strong>coachs disponibles</strong>. Objectiu: 1 coach fins a 5 players, 2 coachs a partir de 6.</p>
-    <div class="filters">
-      <select id="filterHmWeek"><option value="">Totes les setmanes</option></select>
-      <select id="filterHmCategory"><option value="">Totes les categories</option></select>
-      <select id="filterHmCoach"><option value="">Tots els coachs</option></select>
-      <label class="chk"><input type="checkbox" id="onlyRiskHm" /> Només sessions per cobrir</label>
-      <button id="clearHmFilters" type="button">Netejar</button>
-    </div>
-    <div class="heatmap-wrap"><table class="heatmap" id="heatmap"></table></div>
-    <div class="legend">
-      <span><span class="sw lvl-crit"></span>Players sense coach</span>
-      <span><span class="sw lvl-under"></span>Falten coachs</span>
-      <span><span class="sw lvl-ok"></span>Ràtio coberta</span>
-      <span><span class="sw lvl-noplayers"></span>Sense inscrits</span>
-      <span>· cel·la buida = sense sessió</span>
-    </div>
-  </div>
-
-  <div class="table-card">
-    <h2 class="section">Sessions (dia × franja)</h2>
-    <div class="filters">
-      <input type="text" id="search" placeholder="Cercar per dia, franja, coach…" />
-      <select id="filterWeek"><option value="">Totes les setmanes</option></select>
-      <select id="filterTime"><option value="">Totes les franges</option></select>
-      <select id="filterCategory"><option value="">Totes les categories</option></select>
-      <select id="filterCoach"><option value="">Tots els coachs</option></select>
-      <select id="filterStatus">
-        <option value="">Tots els estats</option>
-        <option value="crit">Players sense coach</option>
-        <option value="under">Falten coachs</option>
-        <option value="ok">Ràtio coberta</option>
-        <option value="noplayers">Sense inscrits</option>
-      </select>
-      <label class="chk"><input type="checkbox" id="onlyRisk" /> Només sessions per cobrir</label>
-      <button id="clearFilters" type="button">Netejar</button>
-    </div>
-    <div class="count-info" id="countInfo"></div>
-    <table class="data" id="sessionsTable">
-      <thead>
-        <tr>
-          <th data-key="dateISO">Data</th>
-          <th data-key="weekday">Dia</th>
-          <th data-key="slot">Franja</th>
-          <th data-key="players">Players</th>
-          <th data-key="coachCount">Coachs</th>
-          <th data-key="needed">Calen</th>
-          <th data-key="status">Estat</th>
-          <th data-key="coachNames">Coachs disponibles</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-    <div class="empty" id="emptyMsg" style="display:none;">No hi ha resultats amb aquests filtres.</div>
   </div>
 
 
@@ -800,6 +719,11 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
     // Nombre de registres (files) llegits de cada CSV de players, per al KPI.
     let weeklyRegistrations = 0;
     let soltsRegistrations = 0;
+    // Unitats facturables per al report econòmic:
+    //  - fullWeekUnits: cel·les de setmana no buides al CSV setmanal (60 € c/u)
+    //  - looseDayUnits: dies individuals demanats al CSV de dies solts (15 € c/u)
+    let fullWeekUnits = 0;
+    let looseDayUnits = 0;
     let blocks = [];
     let sortKey = "dateISO";
     let sortDir = 1;
@@ -1674,6 +1598,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       const data=Papa.parse(text,PARSE_OPTS).data;
       enrollments=[];
       weeklyRegistrations=0;
+      fullWeekUnits=0;
       data.forEach(r=>{
         const nom=(r["Nom"]||"").trim();
         const cognoms=(r["Cognoms"]||"").trim();
@@ -1688,6 +1613,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
           if(!cell || cell.toLowerCase()==="no" || cell.toLowerCase()==="cap") return;
           const baseSlot=slotFromCell(cell);
           if(!baseSlot) return;
+          fullWeekUnits++; // cada cel·la de setmana no buida = una setmana sencera facturable
           const slot=overrideSlot(player, wc.label, baseSlot);
           const category=categoryFromCell(cell)||"";
           wc.days.forEach(mdy=>{
@@ -1703,6 +1629,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
     // Columna "Franja horària": "Infantil/Cadet - 19:00 a 20:00".
     function loadPlayersSolts(text){
       soltsRegistrations=0;
+      looseDayUnits=0;
       if(!text) return;
       const data=Papa.parse(text,PARSE_OPTS).data;
       // Compta inscripcions ÚNIQUES, no files: una mateixa inscripció pot estar
@@ -1731,6 +1658,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
           if(!m) return;
           const day=parseInt(m[1],10);
           if(!(day>=1 && day<=31)) return;
+          looseDayUnits++; // cada dia demanat = un entrenament solt facturable
           const dateISO=`2026-07-${String(day).padStart(2,"0")}`;
           const week=ISO_WEEK[dateISO]||"";
           const finalSlot=overrideSlot(player, week, slot);
@@ -1915,6 +1843,8 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
     // ---- Heatmap ----
     function cellClass(st){ return { crit:"lvl-crit", under:"lvl-under", ok:"lvl-ok", noplayers:"lvl-noplayers" }[st]||""; }
     function buildHeatmap(){
+      const tbl0=document.getElementById("heatmap");
+      if(!tbl0) return;
       const fw=document.getElementById("filterHmWeek").value;
       const fcat=document.getElementById("filterHmCategory").value;
       const fcoach=document.getElementById("filterHmCoach").value;
@@ -2062,6 +1992,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
     // ---- Taula ----
     function fillSelect(id, values, labelFn){
       const sel=document.getElementById(id);
+      if(!sel) return;
       values.forEach(v=> sel.insertAdjacentHTML("beforeend",
         `<option value="${String(v).replace(/"/g,"&quot;")}">${labelFn?labelFn(v):v}</option>`));
     }
@@ -2094,7 +2025,8 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       // Selecciona "Setmana 5" per defecte si existeix (si no, la primera disponible)
       const defaultWeek=weeks.includes("Setmana 5")?"Setmana 5":(weeks[0]||"");
       ["filterWeek","filterHmWeek","filterBlockWeek","filterPlayerWeek","assignWeek"].forEach(id=>{
-        document.getElementById(id).value=defaultWeek;
+        const el=document.getElementById(id);
+        if(el) el.value=defaultWeek;
       });
       assignWeek=defaultWeek;
     }
@@ -2138,8 +2070,9 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
     }
 
     function renderTable(){
-      const data=getFiltered();
       const body=document.getElementById("tableBody");
+      if(!body) return;
+      const data=getFiltered();
       const empty=document.getElementById("emptyMsg");
       document.getElementById("countInfo").textContent=`Mostrant ${data.length} de ${sessions.length} sessions`;
       if(!data.length){ body.innerHTML=""; empty.style.display="block"; return; }
@@ -2225,8 +2158,9 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
     }
 
     function renderBlocks(){
-      const data=getFilteredBlocks();
       const body=document.getElementById("blocksBody");
+      if(!body) return;
+      const data=getFilteredBlocks();
       const empty=document.getElementById("blocksEmpty");
       const requestedTotal=blocks.filter(b=>b.type==="requested").length;
       document.getElementById("blockCountInfo").textContent=`${data.length} franges · ${requestedTotal} disponibilitats`;
@@ -2436,6 +2370,69 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       // Per defecte "Setmana 5" si existeix; si no, la primera disponible
       if(!groupsWeek || !weeks.includes(groupsWeek)) groupsWeek=weeks.includes("Setmana 5")?"Setmana 5":weeks[0];
       sel.innerHTML=weeks.map(w=>`<option value="${esc(w)}"${w===groupsWeek?" selected":""}>${esc(w)}</option>`).join("");
+    }
+
+    // Report econòmic de juliol. Ingressos de tecnificacions menys la despesa
+    // de lloguer de pista. Preus: setmana sencera 60 €, entrenament solt 15 €,
+    // extra 0 €. La despesa de pista és la factura de l'Ajuntament del mes.
+    const PRICE_FULL_WEEK = 60;
+    const PRICE_LOOSE_DAY = 15;
+    const COURT_COST = 878.60;   // factura Ajuntament: 92 h × 9,55 €/h (23 dies × 4 franges)
+    const COURT_DAYS = 23;
+    const COURT_RATE = 9.55;
+    function eur(n){
+      // Format català: milers amb punt, decimals amb coma, sempre 2 decimals.
+      return n.toLocaleString("ca-ES",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+    }
+    function renderRevenueReport(){
+      const body=document.getElementById("revenueBody");
+      if(!body) return;
+      const foot=document.getElementById("revenueFoot");
+      const fullEuros=fullWeekUnits*PRICE_FULL_WEEK;
+      const looseEuros=looseDayUnits*PRICE_LOOSE_DAY;
+      const income=fullEuros+looseEuros;
+      const net=income-COURT_COST;
+      body.innerHTML=`
+        <tr>
+          <td>Setmanes senceres</td>
+          <td style="text-align:right;">${fullWeekUnits}</td>
+          <td style="text-align:right;">${eur(PRICE_FULL_WEEK)}</td>
+          <td style="text-align:right;">${eur(fullEuros)}</td>
+        </tr>
+        <tr>
+          <td>Entrenaments solts</td>
+          <td style="text-align:right;">${looseDayUnits}</td>
+          <td style="text-align:right;">${eur(PRICE_LOOSE_DAY)}</td>
+          <td style="text-align:right;">${eur(looseEuros)}</td>
+        </tr>
+        <tr>
+          <td>Entrenaments extra</td>
+          <td style="text-align:right;">—</td>
+          <td style="text-align:right;">Gratis</td>
+          <td style="text-align:right;">${eur(0)}</td>
+        </tr>
+        <tr>
+          <td>Lloguer de pista (Ajuntament)</td>
+          <td style="text-align:right;" title="${COURT_DAYS} dies × 4 franges = ${COURT_DAYS*4} h">${COURT_DAYS*4} h</td>
+          <td style="text-align:right;">${eur(COURT_RATE)}/h</td>
+          <td style="text-align:right;">−${eur(COURT_COST)}</td>
+        </tr>`;
+      if(foot){
+        const netCls=net>=0?"":' style="color:#b91c1c;"';
+        foot.innerHTML=`
+        <tr>
+          <td><strong>Ingressos tecnificacions</strong></td>
+          <td></td>
+          <td></td>
+          <td style="text-align:right;"><strong>${eur(income)}</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Benefici net</strong></td>
+          <td></td>
+          <td></td>
+          <td style="text-align:right;"${netCls}><strong>${eur(net)}</strong></td>
+        </tr>`;
+      }
     }
 
     // Recompte de tecnificacions per coach. Cada entrada de coach a
@@ -2936,32 +2933,40 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
     }
 
     function wireEvents(){
+      // Filtres de la taula de sessions (secció eliminada; es manté defensiu
+      // per si algun dels controls no existeix).
       const filterIds=["search","filterWeek","filterTime","filterCategory","filterCoach","filterStatus"];
       filterIds.forEach(id=>{
         const el=document.getElementById(id);
+        if(!el) return;
         el.addEventListener("input",renderTable);
         el.addEventListener("change",renderTable);
       });
-      document.getElementById("onlyRisk").addEventListener("change",renderTable);
-      document.getElementById("clearFilters").addEventListener("click",()=>{
-        filterIds.forEach(id=> document.getElementById(id).value="");
-        document.getElementById("onlyRisk").checked=false;
+      const onlyRisk=document.getElementById("onlyRisk");
+      if(onlyRisk) onlyRisk.addEventListener("change",renderTable);
+      const clearFilters=document.getElementById("clearFilters");
+      if(clearFilters) clearFilters.addEventListener("click",()=>{
+        filterIds.forEach(id=>{ const e=document.getElementById(id); if(e) e.value=""; });
+        if(onlyRisk) onlyRisk.checked=false;
         renderTable();
       });
-      // Filtres del heatmap (recalculen les cel·les)
+      // Filtres del heatmap (secció eliminada)
       const hmIds=["filterHmWeek","filterHmCategory","filterHmCoach"];
-      hmIds.forEach(id=> document.getElementById(id).addEventListener("change",buildHeatmap));
-      document.getElementById("onlyRiskHm").addEventListener("change",buildHeatmap);
-      document.getElementById("clearHmFilters").addEventListener("click",()=>{
-        hmIds.forEach(id=> document.getElementById(id).value="");
-        document.getElementById("onlyRiskHm").checked=false;
+      hmIds.forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener("change",buildHeatmap); });
+      const onlyRiskHm=document.getElementById("onlyRiskHm");
+      if(onlyRiskHm) onlyRiskHm.addEventListener("change",buildHeatmap);
+      const clearHmFilters=document.getElementById("clearHmFilters");
+      if(clearHmFilters) clearHmFilters.addEventListener("click",()=>{
+        hmIds.forEach(id=>{ const e=document.getElementById(id); if(e) e.value=""; });
+        if(onlyRiskHm) onlyRiskHm.checked=false;
         buildHeatmap();
       });
-      // Filtres de la taula de blocs
+      // Filtres de la taula de blocs (secció eliminada)
       const blockIds=["filterBlockWeek","filterBlockCoach","filterBlockType"];
-      blockIds.forEach(id=> document.getElementById(id).addEventListener("change",renderBlocks));
-      document.getElementById("clearBlockFilters").addEventListener("click",()=>{
-        blockIds.forEach(id=> document.getElementById(id).value="");
+      blockIds.forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener("change",renderBlocks); });
+      const clearBlockFilters=document.getElementById("clearBlockFilters");
+      if(clearBlockFilters) clearBlockFilters.addEventListener("click",()=>{
+        blockIds.forEach(id=>{ const e=document.getElementById(id); if(e) e.value=""; });
         renderBlocks();
       });
       document.querySelectorAll("#sessionsTable th").forEach(th=>{
@@ -2980,9 +2985,10 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       });
       // Filtres de la taula de players
       const playerIds=["filterPlayerWeek","filterPlayerCategory"];
-      playerIds.forEach(id=> document.getElementById(id).addEventListener("change",renderPlayers));
-      document.getElementById("clearPlayerFilters").addEventListener("click",()=>{
-        playerIds.forEach(id=> document.getElementById(id).value="");
+      playerIds.forEach(id=>{ const e=document.getElementById(id); if(e) e.addEventListener("change",renderPlayers); });
+      const clearPlayerFilters=document.getElementById("clearPlayerFilters");
+      if(clearPlayerFilters) clearPlayerFilters.addEventListener("click",()=>{
+        playerIds.forEach(id=>{ const e=document.getElementById(id); if(e) e.value=""; });
         renderPlayers();
       });
       document.querySelectorAll("#playersTable th").forEach(th=>{
@@ -2993,9 +2999,12 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
         });
       });
       // Assignació editable
-      document.getElementById("assignWeek").addEventListener("change",e=>{ assignWeek=e.target.value; renderAssign(); updateAssignResetBtn(); });
-      document.getElementById("groupsWeek").addEventListener("change",e=>{ groupsWeek=e.target.value; renderGroups(); });
-      document.getElementById("assignReset").addEventListener("click",resetAssignments);
+      const assignWeekSel=document.getElementById("assignWeek");
+      if(assignWeekSel) assignWeekSel.addEventListener("change",e=>{ assignWeek=e.target.value; renderAssign(); updateAssignResetBtn(); });
+      const groupsWeekSel=document.getElementById("groupsWeek");
+      if(groupsWeekSel) groupsWeekSel.addEventListener("change",e=>{ groupsWeek=e.target.value; renderGroups(); });
+      const assignReset=document.getElementById("assignReset");
+      if(assignReset) assignReset.addEventListener("click",resetAssignments);
     }
 
     function init(){
@@ -3016,6 +3025,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       renderAssign();
       renderCoachPayments();
       renderPlayerCounts();
+      renderRevenueReport();
       renderGroups();
       renderPendingRecoveries();
       updateAssignResetBtn();
