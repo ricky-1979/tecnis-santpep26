@@ -2410,7 +2410,11 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       const coachTecnis=totalCoachTecnis();
       const coachEuros=coachTecnis*PRICE_COACH_TECNI;
       const net=income-COURT_COST-coachEuros;
+      const expenses=COURT_COST+coachEuros;
       body.innerHTML=`
+        <tr>
+          <td colspan="4" style="background:var(--card);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;font-size:0.8rem;">Ingressos</td>
+        </tr>
         <tr>
           <td>Setmanes senceres</td>
           <td style="text-align:right;">${fullWeekUnits}</td>
@@ -2424,6 +2428,15 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
           <td style="text-align:right;">${eur(looseEuros)}</td>
         </tr>
         <tr>
+          <td style="font-weight:600;">Total ingressos</td>
+          <td></td>
+          <td></td>
+          <td style="text-align:right;font-weight:600;">${eur(income)}</td>
+        </tr>
+        <tr>
+          <td colspan="4" style="background:var(--card);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;font-size:0.8rem;">Despeses</td>
+        </tr>
+        <tr>
           <td>Lloguer de pista (Ajuntament)</td>
           <td style="text-align:right;" title="${COURT_DAYS} dies × 4 franges = ${COURT_DAYS*4} h">${COURT_DAYS*4} h</td>
           <td style="text-align:right;">${eur(COURT_RATE)}/h</td>
@@ -2434,22 +2447,16 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
           <td style="text-align:right;" title="Tecnificacions assignades (S1-S5)">${coachTecnis}</td>
           <td style="text-align:right;">${eur(PRICE_COACH_TECNI)}</td>
           <td style="text-align:right;">−${eur(coachEuros)}</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;">Total despeses</td>
+          <td></td>
+          <td></td>
+          <td style="text-align:right;font-weight:600;">−${eur(expenses)}</td>
         </tr>`;
       if(foot){
         const netCls=net>=0?"":' style="color:#b91c1c;"';
         foot.innerHTML=`
-        <tr>
-          <td><strong>Ingressos tecnificacions</strong></td>
-          <td></td>
-          <td></td>
-          <td style="text-align:right;"><strong>${eur(income)}</strong></td>
-        </tr>
-        <tr>
-          <td><strong>Despeses totals</strong></td>
-          <td></td>
-          <td></td>
-          <td style="text-align:right;"><strong>−${eur(COURT_COST+coachEuros)}</strong></td>
-        </tr>
         <tr>
           <td><strong>Benefici net</strong></td>
           <td></td>
