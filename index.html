@@ -336,7 +336,7 @@
 
   <div class="table-card">
     <h2 class="section">Report econòmic de juliol</h2>
-    <p class="hint">Ingressos de les tecnificacions i despesa de lloguer de pista. <strong>Setmanes senceres</strong> a 60 € · <strong>entrenaments solts</strong> a 15 € · <strong>entrenaments extra</strong> gratuïts. La despesa de pista és la factura de l'Ajuntament (23 dies · 9,55 €/hora de pista). Es recalcula automàticament segons les inscripcions.</p>
+    <p class="hint">Ingressos de les tecnificacions menys les despeses. <strong>Setmanes senceres</strong> a 60 € · <strong>entrenaments solts</strong> a 15 € · <strong>entrenaments extra</strong> gratuïts. Despeses: lloguer de pista (factura de l'Ajuntament, 23 dies · 9,55 €/hora) i pagament a entrenadors (15 € per tecnificació assignada). Es recalcula automàticament segons les inscripcions i l'assignació de coachs.</p>
     <table class="data" id="revenueTable">
       <thead>
         <tr>
@@ -2380,9 +2380,21 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
     const COURT_COST = 878.60;   // factura Ajuntament: 92 h × 9,55 €/h (23 dies × 4 franges)
     const COURT_DAYS = 23;
     const COURT_RATE = 9.55;
+    const PRICE_COACH_TECNI = 15; // pagament a l'entrenador per tecnificació feta
     function eur(n){
       // Format català: milers amb punt, decimals amb coma, sempre 2 decimals.
       return n.toLocaleString("ca-ES",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+    }
+    // Total de tecnificacions assignades a entrenadors (S1-S5). Cada entrada de
+    // coach a assignments[key] és una tecnificació pagable a PRICE_COACH_TECNI.
+    function totalCoachTecnis(){
+      let n=0;
+      Object.keys(assignments||{}).forEach(key=>{
+        const wk=ISO_WEEK[key.split("|")[0]];
+        if(!PAYABLE_WEEKS.includes(wk)) return;
+        (assignments[key]||[]).forEach(raw=>{ if(normalizeCoach(raw)) n++; });
+      });
+      return n;
     }
     function renderRevenueReport(){
       const body=document.getElementById("revenueBody");
@@ -2391,7 +2403,9 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       const fullEuros=fullWeekUnits*PRICE_FULL_WEEK;
       const looseEuros=looseDayUnits*PRICE_LOOSE_DAY;
       const income=fullEuros+looseEuros;
-      const net=income-COURT_COST;
+      const coachTecnis=totalCoachTecnis();
+      const coachEuros=coachTecnis*PRICE_COACH_TECNI;
+      const net=income-COURT_COST-coachEuros;
       body.innerHTML=`
         <tr>
           <td>Setmanes senceres</td>
@@ -2416,6 +2430,12 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
           <td style="text-align:right;" title="${COURT_DAYS} dies × 4 franges = ${COURT_DAYS*4} h">${COURT_DAYS*4} h</td>
           <td style="text-align:right;">${eur(COURT_RATE)}/h</td>
           <td style="text-align:right;">−${eur(COURT_COST)}</td>
+        </tr>
+        <tr>
+          <td>Pagament a entrenadors</td>
+          <td style="text-align:right;" title="Tecnificacions assignades (S1-S5)">${coachTecnis}</td>
+          <td style="text-align:right;">${eur(PRICE_COACH_TECNI)}</td>
+          <td style="text-align:right;">−${eur(coachEuros)}</td>
         </tr>`;
       if(foot){
         const netCls=net>=0?"":' style="color:#b91c1c;"';
@@ -2425,6 +2445,12 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
           <td></td>
           <td></td>
           <td style="text-align:right;"><strong>${eur(income)}</strong></td>
+        </tr>
+        <tr>
+          <td><strong>Despeses totals</strong></td>
+          <td></td>
+          <td></td>
+          <td style="text-align:right;"><strong>−${eur(COURT_COST+coachEuros)}</strong></td>
         </tr>
         <tr>
           <td><strong>Benefici net</strong></td>
@@ -2773,6 +2799,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       renderAssign();
       renderCoachPayments();
       renderPlayerCounts();
+      renderRevenueReport();
       renderGroups();
       buildBlocks();
       renderBlocks();
