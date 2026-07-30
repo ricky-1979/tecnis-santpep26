@@ -205,6 +205,18 @@
     .count-info .wk-total { white-space:nowrap; }
     .count-info .wk-total strong { color:var(--brand); }
     .empty { text-align:center; color:var(--muted); padding:30px; }
+    /* Podis */
+    .podium-wrap { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+    @media (max-width:640px){ .podium-wrap { grid-template-columns:1fr; } }
+    .podium-title { font-size:1rem; margin:0 0 10px; }
+    .podium-list { list-style:none; margin:0; padding:0; counter-reset:pod; }
+    .podium-list li { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; margin-bottom:5px; background:var(--card); }
+    .podium-list li .rank { flex:0 0 1.8rem; text-align:center; font-weight:700; color:var(--muted); }
+    .podium-list li .who { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .podium-list li .cnt { flex:0 0 auto; font-weight:700; color:var(--brand); }
+    .podium-list li.p1 { background:linear-gradient(90deg,rgba(250,204,21,0.22),transparent); }
+    .podium-list li.p2 { background:linear-gradient(90deg,rgba(148,163,184,0.22),transparent); }
+    .podium-list li.p3 { background:linear-gradient(90deg,rgba(202,138,4,0.20),transparent); }
     footer { margin-top:30px; color:var(--muted); font-size:0.8rem; text-align:center; }
   </style>
 </head>
@@ -349,6 +361,21 @@
       <tbody id="revenueBody"></tbody>
       <tfoot id="revenueFoot"></tfoot>
     </table>
+  </div>
+
+  <div class="table-card">
+    <h2 class="section">Podis de juliol</h2>
+    <p class="hint">Rànquing de tecnificacions fetes durant tot el mes (S1-S5). Els <strong>players</strong> es compten des de les inscripcions (setmanes, dies solts i sessions extra); els <strong>coachs</strong>, des de l'assignació real consolidada.</p>
+    <div class="podium-wrap">
+      <div class="podium-col">
+        <h3 class="podium-title">🏀 Players</h3>
+        <ol class="podium-list" id="podiumPlayers"></ol>
+      </div>
+      <div class="podium-col">
+        <h3 class="podium-title">📋 Coachs</h3>
+        <ol class="podium-list" id="podiumCoaches"></ol>
+      </div>
+    </div>
   </div>
 
 
@@ -2410,6 +2437,38 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       });
       return n;
     }
+    // Podis de tecnificacions del mes (S1-S5). Players des d'enrollments (una
+    // tecni per fila player|dia|franja); coachs des de l'assignació real.
+    function renderPodiums(){
+      const pEl=document.getElementById("podiumPlayers");
+      const cEl=document.getElementById("podiumCoaches");
+      if(!pEl && !cEl) return;
+      const medals=["🥇","🥈","🥉"];
+      const paint=(el,rank)=>{
+        if(!el) return;
+        if(!rank.length){ el.innerHTML='<li><span class="who">Sense dades</span></li>'; return; }
+        el.innerHTML=rank.slice(0,10).map(([name,n],i)=>{
+          const cls=i<3?` p${i+1}`:"";
+          const badge=i<3?medals[i]:(i+1)+".";
+          return `<li class="${cls.trim()}"><span class="rank">${badge}</span>`+
+                 `<span class="who">${esc(shortName(name))}</span>`+
+                 `<span class="cnt">${n}</span></li>`;
+        }).join("");
+      };
+      // Players: compta files d'enrollments per player
+      const pc={};
+      (enrollments||[]).forEach(e=>{ if(e.player) pc[e.player]=(pc[e.player]||0)+1; });
+      paint(pEl, Object.entries(pc).sort((a,b)=>b[1]-a[1]));
+      // Coachs: compta entrades a assignments (S1-S5)
+      const cc={};
+      Object.keys(assignments||{}).forEach(key=>{
+        const wk=ISO_WEEK[key.split("|")[0]];
+        if(!PAYABLE_WEEKS.includes(wk)) return;
+        (assignments[key]||[]).forEach(raw=>{ const c=normalizeCoach(raw); if(c) cc[c]=(cc[c]||0)+1; });
+      });
+      paint(cEl, Object.entries(cc).sort((a,b)=>b[1]-a[1]));
+    }
+
     function renderRevenueReport(){
       const body=document.getElementById("revenueBody");
       if(!body) return;
@@ -2815,6 +2874,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       renderCoachPayments();
       renderPlayerCounts();
       renderRevenueReport();
+      renderPodiums();
       renderGroups();
       buildBlocks();
       renderBlocks();
@@ -3068,6 +3128,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       renderCoachPayments();
       renderPlayerCounts();
       renderRevenueReport();
+      renderPodiums();
       renderGroups();
       renderPendingRecoveries();
       updateAssignResetBtn();
