@@ -2423,6 +2423,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
     const COURT_RATE = 9.55;
     const PRICE_COACH_TECNI = 15; // pagament a l'entrenador per tecnificació feta
     const COORD_SALARY = 150;    // sou de coordinació
+    const PENTEX_COST = 671;     // despeses PENTEX
     function eur(n){
       // Format català: milers amb punt, decimals amb coma, sempre 2 decimals.
       return n.toLocaleString("ca-ES",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
@@ -2479,8 +2480,8 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       const income=fullEuros+looseEuros;
       const coachTecnis=totalCoachTecnis();
       const coachEuros=coachTecnis*PRICE_COACH_TECNI;
-      const net=income-COURT_COST-coachEuros-COORD_SALARY;
-      const expenses=COURT_COST+coachEuros+COORD_SALARY;
+      const net=income-COURT_COST-coachEuros-COORD_SALARY-PENTEX_COST;
+      const expenses=COURT_COST+coachEuros+COORD_SALARY+PENTEX_COST;
       body.innerHTML=`
         <tr>
           <td colspan="4" style="background:var(--card);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;font-size:0.8rem;">Ingressos</td>
@@ -2523,6 +2524,12 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
           <td style="text-align:right;">1</td>
           <td style="text-align:right;">${eur(COORD_SALARY)}</td>
           <td style="text-align:right;">−${eur(COORD_SALARY)}</td>
+        </tr>
+        <tr>
+          <td>PENTEX</td>
+          <td style="text-align:right;">1</td>
+          <td style="text-align:right;">${eur(PENTEX_COST)}</td>
+          <td style="text-align:right;">−${eur(PENTEX_COST)}</td>
         </tr>
         <tr>
           <td style="font-weight:600;">Total despeses</td>
