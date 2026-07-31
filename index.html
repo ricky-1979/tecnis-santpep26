@@ -731,13 +731,13 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
 
     // Setmanes CONGELADES: només de consulta (ni grups de jugadors, ni
     // assignació de coachs, ni reserves). Vegeu AGENTS.md ("Setmana CONGELADA").
-    const FROZEN_WEEKS = new Set(["Setmana 1", "Setmana 2", "Setmana 3", "Setmana 4"]);
+    const FROZEN_WEEKS = new Set(["Setmana 1", "Setmana 2", "Setmana 3", "Setmana 4", "Setmana 5"]);
     const isWeekFrozen = (week)=> FROZEN_WEEKS.has(week);
 
     // Setmanes que el "Reiniciar des de reserves" NO ha de tocar mai: la
     // Setmana 1, la 2, la 3 i la 4 (congelades, assignacions ja consolidades).
     // La resta de la UI d'aquestes setmanes segueix editable manualment.
-    const RESET_PROTECTED_WEEKS = new Set(["Setmana 1", "Setmana 2", "Setmana 3", "Setmana 4"]);
+    const RESET_PROTECTED_WEEKS = new Set(["Setmana 1", "Setmana 2", "Setmana 3", "Setmana 4", "Setmana 5"]);
     const isResetProtected = (week)=> RESET_PROTECTED_WEEKS.has(week);
 
     let coachRecords = [];
