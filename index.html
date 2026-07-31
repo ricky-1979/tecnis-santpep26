@@ -748,8 +748,11 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
     let soltsRegistrations = 0;
     // Unitats facturables per al report econòmic:
     //  - fullWeekUnits: cel·les de setmana no buides al CSV setmanal (60 € c/u)
+    //  - fullWeekS1Units: subconjunt de la Setmana 1, que és curta (3 dies) i
+    //    es cobra proporcional (36 € = 3/5 de 60 €).
     //  - looseDayUnits: dies individuals demanats al CSV de dies solts (15 € c/u)
     let fullWeekUnits = 0;
+    let fullWeekS1Units = 0;
     let looseDayUnits = 0;
     let blocks = [];
     let sortKey = "dateISO";
@@ -1640,6 +1643,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       enrollments=[];
       weeklyRegistrations=0;
       fullWeekUnits=0;
+      fullWeekS1Units=0;
       data.forEach(r=>{
         const nom=(r["Nom"]||"").trim();
         const cognoms=(r["Cognoms"]||"").trim();
@@ -1655,6 +1659,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
           const baseSlot=slotFromCell(cell);
           if(!baseSlot) return;
           fullWeekUnits++; // cada cel·la de setmana no buida = una setmana sencera facturable
+          if(wc.label==="Setmana 1") fullWeekS1Units++; // S1 és curta (3 dies), es factura a 36 €
           const slot=overrideSlot(player, wc.label, baseSlot);
           const category=categoryFromCell(cell)||"";
           wc.days.forEach(mdy=>{
@@ -2417,6 +2422,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
     // de lloguer de pista. Preus: setmana sencera 60 €, entrenament solt 15 €,
     // extra 0 €. La despesa de pista és la factura de l'Ajuntament del mes.
     const PRICE_FULL_WEEK = 60;
+    const PRICE_FULL_WEEK_S1 = 36;  // Setmana 1 és curta (3 dies) = 3/5 de 60 €
     const PRICE_LOOSE_DAY = 15;
     const COURT_COST = 878.60;   // factura Ajuntament: 92 h × 9,55 €/h (23 dies × 4 franges)
     const COURT_DAYS = 23;
@@ -2475,7 +2481,9 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       const body=document.getElementById("revenueBody");
       if(!body) return;
       const foot=document.getElementById("revenueFoot");
-      const fullEuros=fullWeekUnits*PRICE_FULL_WEEK;
+      // La Setmana 1 és curta (3 dies) i es factura a 36 €; la resta a 60 €.
+      const fullEuros=(fullWeekUnits-fullWeekS1Units)*PRICE_FULL_WEEK
+                      + fullWeekS1Units*PRICE_FULL_WEEK_S1;
       const looseEuros=looseDayUnits*PRICE_LOOSE_DAY;
       const income=fullEuros+looseEuros;
       const coachTecnis=totalCoachTecnis();
@@ -2489,7 +2497,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
         <tr>
           <td>Setmanes senceres</td>
           <td style="text-align:right;">${fullWeekUnits}</td>
-          <td style="text-align:right;">${eur(PRICE_FULL_WEEK)}</td>
+          <td style="text-align:right;"></td>
           <td style="text-align:right;">${eur(fullEuros)}</td>
         </tr>
         <tr>
