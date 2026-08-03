@@ -754,6 +754,16 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
     let fullWeekUnits = 0;
     let fullWeekS1Units = 0;
     let looseDayUnits = 0;
+    // Sessions marcades com a solt (grogues) però de jugadors que NO consten al
+    // CSV de dies solts: són tecnis EXTRA afegides manualment (recuperacions o
+    // sessions de cortesia) que NO s'han pagat com a dia solt. Es comptabilitzen
+    // a part i NO sumen als ingressos. Es reompla a renderRevenueReport().
+    let extraTecniUnits = 0;
+    // Noms (normalitzats) dels jugadors que consten al CSV de dies solts, és a
+    // dir, que han pagat almenys un dia solt. Serveix per distingir, entre les
+    // sessions grogues (solt) del dashboard, les pagades de les extra.
+    const SOLT_CSV_PLAYERS = new Set();
+    const normName = s => (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
     let blocks = [];
     let sortKey = "dateISO";
     let sortDir = 1;
@@ -1674,6 +1684,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
     function loadPlayersSolts(text){
       soltsRegistrations=0;
       looseDayUnits=0;
+      SOLT_CSV_PLAYERS.clear();
       if(!text) return;
       const data=Papa.parse(text,PARSE_OPTS).data;
       // Compta inscripcions ÚNIQUES, no files: una mateixa inscripció pot estar
@@ -1687,6 +1698,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
         const cognoms=(r["Cognoms"]||"").trim();
         const player=`${nom} ${cognoms}`.trim();
         if(!player) return;
+        SOLT_CSV_PLAYERS.add(normName(player));
         const primerCognom=cognoms.split(/\s+/)[0]||"";
         PLAYER_SHORT[player]=`${nom} ${primerCognom}`.trim();
         const cell=(r["Franja horària"]||"").trim();
@@ -2482,7 +2494,13 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       // La Setmana 1 és curta (3 dies) i es factura a 36 €; la resta a 60 €.
       const fullEuros=(fullWeekUnits-fullWeekS1Units)*PRICE_FULL_WEEK
                       + fullWeekS1Units*PRICE_FULL_WEEK_S1;
-      const looseEuros=looseDayUnits*PRICE_LOOSE_DAY;
+      // Separa les sessions solt (grogues) en pagades (jugador al CSV de dies
+      // solts) i extra (jugador que no hi consta: recuperacions/cortesia no
+      // pagades). Les extra no sumen als ingressos.
+      extraTecniUnits=enrollments.filter(e=>e.solt && !SOLT_CSV_PLAYERS.has(normName(e.player))).length;
+      const paidLooseUnits=looseDayUnits-extraTecniUnits;
+      const looseEuros=paidLooseUnits*PRICE_LOOSE_DAY;
+      const extraEuros=extraTecniUnits*PRICE_LOOSE_DAY;
       const income=fullEuros+looseEuros;
       const coachTecnis=totalCoachTecnis();
       const coachEuros=coachTecnis*PRICE_COACH_TECNI;
@@ -2500,7 +2518,7 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
         </tr>
         <tr>
           <td>Entrenaments solts</td>
-          <td style="text-align:right;">${looseDayUnits}</td>
+          <td style="text-align:right;">${paidLooseUnits}</td>
           <td style="text-align:right;">${eur(PRICE_LOOSE_DAY)}</td>
           <td style="text-align:right;">${eur(looseEuros)}</td>
         </tr>
@@ -2510,6 +2528,12 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
           <td></td>
           <td style="text-align:right;font-weight:600;">${eur(income)}</td>
         </tr>
+        ${extraTecniUnits>0?`<tr style="color:var(--muted);font-style:italic;">
+          <td title="Sessions grogues de jugadors que no consten al CSV de dies solts: recuperacions o cortesia no pagades. No sumen als ingressos.">Tecnis extra (no pagades)</td>
+          <td style="text-align:right;">${extraTecniUnits}</td>
+          <td style="text-align:right;">${eur(PRICE_LOOSE_DAY)}</td>
+          <td style="text-align:right;">(${eur(extraEuros)})</td>
+        </tr>`:""}
         <tr>
           <td colspan="4" style="background:var(--card);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;font-size:0.8rem;">Despeses</td>
         </tr>
