@@ -2500,7 +2500,6 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
       extraTecniUnits=enrollments.filter(e=>e.solt && !SOLT_CSV_PLAYERS.has(normName(e.player))).length;
       const paidLooseUnits=looseDayUnits-extraTecniUnits;
       const looseEuros=paidLooseUnits*PRICE_LOOSE_DAY;
-      const extraEuros=extraTecniUnits*PRICE_LOOSE_DAY;
       const income=fullEuros+looseEuros;
       const coachTecnis=totalCoachTecnis();
       const coachEuros=coachTecnis*PRICE_COACH_TECNI;
@@ -2531,8 +2530,8 @@ Eudald,Ventura sebastia,20102012,eudaldisarn2@gmail.com,,"Dc 29,Dj 30",Infantil/
         ${extraTecniUnits>0?`<tr style="color:var(--muted);font-style:italic;">
           <td title="Sessions grogues de jugadors que no consten al CSV de dies solts: recuperacions o cortesia no pagades. No sumen als ingressos.">Tecnis extra (no pagades)</td>
           <td style="text-align:right;">${extraTecniUnits}</td>
-          <td style="text-align:right;">${eur(PRICE_LOOSE_DAY)}</td>
-          <td style="text-align:right;">(${eur(extraEuros)})</td>
+          <td style="text-align:right;">${eur(0)}</td>
+          <td style="text-align:right;">${eur(0)}</td>
         </tr>`:""}
         <tr>
           <td colspan="4" style="background:var(--card);font-weight:600;text-transform:uppercase;letter-spacing:0.04em;font-size:0.8rem;">Despeses</td>
